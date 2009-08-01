@@ -1,0 +1,8 @@
+#!/bin/sh
+# vim:set et sts=4 sw=4
+
+prefix=/usr
+zimedir=${prefix}/share/ibus-zime
+export IBUS_ZIME_LOCATION=${zimedir}
+exec python ${zimedir}/engine/main.py $@
+
