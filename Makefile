@@ -1,13 +1,13 @@
 folders = data engine icons
-targetdir = /usr/share/ibus-combo
+targetdir = /usr/share/ibus-zime
 install: clean
 	mkdir -p $(targetdir)
 	cp -R $(folders) $(targetdir)
-	cp ibus-engine-combo /usr/lib/ibus/ibus-engine-combo
-	cp combo.xml /usr/share/ibus/component/combo.xml
+	cp ibus-engine-zime /usr/lib/ibus/ibus-engine-zime
+	cp zime.xml /usr/share/ibus/component/zime.xml
 uninstall:
 	rm -R $(targetdir)
-	rm /usr/lib/ibus/ibus-engine-combo
-	rm /usr/share/ibus/component/combo.xml
+	rm /usr/lib/ibus/ibus-engine-zime
+	rm /usr/share/ibus/component/zime.xml
 clean:
 	-rm engine/*~ > /dev/null 2>&1
