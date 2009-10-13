@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from ibus import keysyms
+from ibus import modifier
+from ibus import ascii
 
 from zimecore import *
 
@@ -26,7 +28,8 @@ class GroupingParser (Parser):
         self.__slots = [u''] * self.__group_count
         self.__cursor = 0
     def process (self, event, ctx):
-        k = self.__cursor
+        if event.mask & modifier.RELEASE_MASK:
+            return True
         if event.keycode == keysyms.BackSpace:
             if self.__is_empty ():
                 return False
@@ -48,18 +51,22 @@ class GroupingParser (Parser):
             ctx.update ()
             return True
         ch = event.get_char ()
+        k = self.__cursor
         while ch not in self.__key_groups[k]:
             k += 1
             if k >= self.__group_count:
                 k = 0
             if k == self.__cursor:
                 return not self.__is_empty ()
-        self.__slots[k] = self.__code_groups[k][self.__key_groups[k].index (ch)]
+        idx = self.__key_groups[k].index (ch)
+        self.__slots[k] = self.__code_groups[k][idx]
         ctx.keywords[-1] = u''.join (self.__slots)
         k += 1
         if k >= self.__group_count:
             self.clear ()
             ctx.keywords.append (u'')
+        else:
+            self.__cursor = k
         ctx.update ()
         return True
     def __is_empty (self):

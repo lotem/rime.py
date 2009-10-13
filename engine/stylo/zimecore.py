@@ -75,7 +75,7 @@ class Model:
             ok = False
             for y in c[j]:
                 if y[0][-3:] == x[0][:3]:
-                    self.__add_candidate (i, j + 1, (y[0] + x[0][-1], min (y[1], x[1])))
+                    self.__add_candidate (ctx, i, j + 1, (y[0] + x[0][-1], min (y[1], x[1])))
                     ok = True
             if ok:
                 return True
@@ -108,6 +108,8 @@ class Context:
         self.kwd = []
         self.cand = []
         self.sugg = [(-1, u'', 0)]
+    def is_empty (self):
+        return not self.keywords[0]
     def get_preedit (self):
         i = len (self.keywords) - 1
         while i > 0 and not self.sugg[i]:
@@ -132,17 +134,17 @@ class Engine:
         self.__ctx = Context (self)
         self.__ctx.update ()
     def process_key_event (self, event):
-        if event.mask:
-            return False
         if self.__parser.process (event, self.__ctx):
             return True
+        if self.__ctx.is_empty ():
+            return False
         if event.keycode == keysyms.BackSpace:
             if len (self.__ctx.keywords) < 2:
                 return False
             del self.__ctx.keywords[-2]
             self.__ctx.update ()
             return True
-        if event.keycode == keysyms.space:
+        if event.keycode in (keysyms.space, keysyms.Return):
             self.__frontend.commit_string (self.__ctx.get_preedit ())
             self.__ctx.clear ()
             self.__ctx.update ()
