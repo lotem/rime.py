@@ -10,12 +10,8 @@ from zimecore import *
 class RomanParser (Parser):
     pass
 
-Parser.register ('roman', RomanParser)
-
 class ComboParser (Parser):
     pass
-
-Parser.register ('combo', ComboParser)
 
 class GroupingParser (Parser):
     def __init__ (self, schema):
@@ -74,5 +70,8 @@ class GroupingParser (Parser):
     def __is_empty (self):
         return not any (self.__slots)
 
-Parser.register ('grouping', GroupingParser)
+def register_parsers ():
+    Parser.register ('roman', RomanParser)
+    Parser.register ('combo', ComboParser)
+    Parser.register ('grouping', GroupingParser)
 

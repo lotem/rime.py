@@ -11,7 +11,6 @@ class KeyEvent:
         self.keycode = keycode
         self.mask = mask
     def get_char (self):
-        # TODO
         return unichr (self.keycode)
 
 class Schema:
@@ -64,7 +63,7 @@ class Model:
     def __add_candidate (self, ctx, pos, length, x):
         c = ctx.cand[pos]
         if length > len (c):
-            c += [[]] * (length - len (c))
+            c += [[] for i in range (length - len (c))]
         c[length - 1].append (x)
     def __concatenated (self, ctx, pos, x):
         for i in range (pos):
@@ -75,7 +74,7 @@ class Model:
             ok = False
             for y in c[j]:
                 if y[0][-3:] == x[0][:3]:
-                    self.__add_candidate (ctx, i, j + 1, (y[0] + x[0][-1], min (y[1], x[1])))
+                    self.__add_candidate (ctx, i, j + 2, (y[0] + x[0][-1], min (y[1], x[1])))
                     ok = True
             if ok:
                 return True
@@ -111,22 +110,30 @@ class Context:
         self.sugg = [(-1, u'', 0)]
     def is_empty (self):
         return not self.keywords
+    def move_cursor (self, offset):
+        self.cursor = (self.cursor + offset + 1) % (len (self.keywords) + 1) - 1
     def get_preedit (self):
         i = len (self.sugg) - 1
         while i > 0 and not self.sugg[i]:
             i -= 1
         r = u' '.join (self.keywords[i:])
-        s = self.sugg[i]
-        while s[0] != -1:
-            r = s[1] + r
-            #r = s[1] + u'|' + r
-            s = self.sugg[s[0]]
-        return r
+        s = u''
+        t = self.sugg[i]
+        while t[0] != -1:
+            s = t[1] + s
+            t = self.sugg[t[0]]
+        return s + r
     def get_aux_string (self):
         return self.aux
-    def get_lookup_table (self):
-        # TODO
-        return None
+    def get_candidates (self):
+        if self.cursor == -1:
+            return None
+        pos = self.cursor
+        s = self.get_preedit ()
+        result = [x[0] for c in reversed (self.cand[pos]) 
+                           for x in c 
+                               if not s.startswith (x[0], pos)]
+        return result
 
 class Engine:
     def __init__ (self, frontend, name):
@@ -141,10 +148,19 @@ class Engine:
             return True
         if self.__ctx.is_empty ():
             return False
+        if event.keycode == keysyms.Left:
+            self.__ctx.move_cursor (-1)
+            self.__ctx.update ()
+            return True
+        if event.keycode == keysyms.Right:
+            self.__ctx.move_cursor (1)
+            self.__ctx.update ()
+            return True
         if event.keycode == keysyms.BackSpace:
             if len (self.__ctx.keywords) < 1:
                 return False
             del self.__ctx.keywords[-1]
+            self.__ctx.cursor = -1
             self.__ctx.update ()
             return True
         if event.keycode in (keysyms.space, keysyms.Return):
@@ -156,5 +172,5 @@ class Engine:
         self.__model.analyze (ctx)
         self.__frontend.update_preedit (ctx.get_preedit ())
         self.__frontend.update_aux_string (ctx.get_aux_string ())
-        self.__frontend.update_lookup_table (ctx.get_lookup_table ())
+        self.__frontend.update_candidates (ctx.get_candidates ())
 

@@ -10,6 +10,7 @@ import gobject
 
 from stylo import zimecore
 from stylo import zimeparser
+zimeparser.register_parsers ()
 
 #from gettext import dgettext
 #_  = lambda a : dgettext ("ibus-zime", a)
@@ -21,6 +22,7 @@ class ZimeEngine (ibus.EngineBase):
 
     def __init__ (self, conn, object_path):
         super (ZimeEngine, self).__init__ (conn, object_path)
+        self.__lookup_table = ibus.LookupTable ()
         # TODO
         self.__engine = zimecore.Engine (self, 'zhuyin')
 
@@ -48,8 +50,15 @@ class ZimeEngine (ibus.EngineBase):
             return
         super (ZimeEngine, self).update_auxiliary_text (ibus.Text (s), True)
 
-    def update_lookup_table (self, lookup_table):
-        pass
+    def update_candidates (self, candidates):
+        self.__lookup_table.clean ()
+        self.__lookup_table.show_cursor (False)
+        if not candidates:
+            self.hide_lookup_table ()
+        else:
+            for c in candidates:
+                self.__lookup_table.append_candidate (ibus.Text (c))
+            self.update_lookup_table (self.__lookup_table, True, True)
 
     @classmethod
     def CONFIG_VALUE_CHANGED (cls, bus, section, name, value):
