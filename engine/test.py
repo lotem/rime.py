@@ -54,10 +54,23 @@ class TestEngine:
         else:
             for c in candidates:
                 self.__lookup_table.append_candidate (ibus.Text (c))
-                print u'candidate: %s ...' % c
-                break
+            print u'candidate: %s ...' % candidates[0]
             #self.update_lookup_table (self.__lookup_table, True, True)
             
+    def page_up (self):
+        if self.__lookup_table.page_up ():
+            print u'page_up.'
+            #self.update_lookup_table (self.__lookup_table, True, True)
+            return True
+        return False
+
+    def page_down (self):
+        if self.__lookup_table.page_down ():
+            print u'page_down.'
+            #self.update_lookup_table (self.__lookup_table, True, True)
+            return True
+        return False
+
     def test (self, string):
         name = ''
         is_name = False
@@ -76,8 +89,9 @@ class TestEngine:
 def main ():
     e = TestEngine ()
     #e.test ('5j/ cj86aup6eji6{BackSpace}ji{BackSpace}i6 ')
-    e.test ('5j/ eji6{BackSpace}{BackSpace}')
-    e.test ('5j/ cj86bp6aup6ej/4ck6eji6{Tab}{Tab}{Escape}')
+    #e.test ('5j/ eji6{BackSpace}{BackSpace}')
+    #e.test ('5j/ cj86bp6aup6ej/4ck6eji6{Tab}{Page_Down}{Page_Up}{Tab}{Escape} ')
+    e.test ('5j/ eji62k75j/{Tab}{Page_Down}')
 
 if __name__ == "__main__":
     main ()

@@ -64,6 +64,18 @@ class ZimeEngine (ibus.EngineBase):
             for c in candidates:
                 self.__lookup_table.append_candidate (ibus.Text (c))
             self.update_lookup_table (self.__lookup_table, True, True)
+    
+    def page_up (self):
+        if self.__lookup_table.page_up ():
+            self.update_lookup_table (self.__lookup_table, True, True)
+            return True
+        return False
+
+    def page_down (self):
+        if self.__lookup_table.page_down ():
+            self.update_lookup_table (self.__lookup_table, True, True)
+            return True
+        return False
 
     @classmethod
     def CONFIG_VALUE_CHANGED (cls, bus, section, name, value):

@@ -39,6 +39,8 @@ class GroupingParser (Parser):
             ctx.keywords[-1] = u''.join (self.__slots)
             ctx.update_keywords ()
             return True
+        if ctx.cursor < len (ctx.keywords) - 1:
+            return False
         if event.keycode == keysyms.space:
             if self.__is_empty ():
                 return False

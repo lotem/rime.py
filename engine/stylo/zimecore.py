@@ -126,6 +126,8 @@ class Context:
         self.cand = []
         self.sugg = [(-1, u'', 0)]
         self.preedit = []
+        self.candidates = []
+        self.update_keywords ()
     def is_empty (self):
         return not self.keywords
     def update_keywords (self):
@@ -175,6 +177,14 @@ class Engine:
             return True
         if event.keycode == keysyms.Right or event.keycode == keysyms.Tab:
             self.__ctx.move_cursor (1)
+            return True
+        if event.keycode == keysyms.Page_Up:
+            if self.__ctx.get_candidates () and self.__frontend.page_up ():
+                return True
+            return True
+        if event.keycode == keysyms.Page_Down:
+            if self.__ctx.get_candidates () and self.__frontend.page_down ():
+                return True
             return True
         if event.keycode == keysyms.BackSpace:
             k = self.__ctx.keywords
