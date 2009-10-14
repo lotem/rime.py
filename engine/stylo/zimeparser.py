@@ -40,14 +40,15 @@ class GroupingParser (Parser):
             while j > 0 and not self.__slots[j]:
                 j -= 1
             self.__cursor = j
-            ctx.keywords[-1] = u''.join (self.__slots)
+            ctx.aux = u''.join (self.__slots)
             ctx.update ()
             return True
         if event.keycode == keysyms.space:
             if self.__is_empty ():
                 return False
             self.clear ()
-            ctx.keywords.append (u'')
+            ctx.keywords.append (ctx.aux)
+            ctx.aux = u''
             ctx.update ()
             return True
         ch = event.get_char ()
@@ -60,11 +61,12 @@ class GroupingParser (Parser):
                 return not self.__is_empty ()
         idx = self.__key_groups[k].index (ch)
         self.__slots[k] = self.__code_groups[k][idx]
-        ctx.keywords[-1] = u''.join (self.__slots)
+        ctx.aux = u''.join (self.__slots)
         k += 1
         if k >= self.__group_count:
             self.clear ()
-            ctx.keywords.append (u'')
+            ctx.keywords.append (ctx.aux)
+            ctx.aux = u''
         else:
             self.__cursor = k
         ctx.update ()

@@ -49,7 +49,7 @@ class Model:
             del ctx.cand[i][m - i:]
         del ctx.cand[m:]
         del ctx.sugg[m + 1:]
-        for k in ctx.keywords[m:-1]:
+        for k in ctx.keywords[m:]:
             ctx.kwd.append (k)
             ctx.cand.append ([])
             ctx.sugg.append (None)
@@ -103,15 +103,16 @@ class Context:
     def update (self):
         self.__cb.on_context_update (self)
     def clear (self):
-        self.keywords = [u'']
+        self.keywords = []
         self.cursor = -1
+        self.aux = u''
         self.kwd = []
         self.cand = []
         self.sugg = [(-1, u'', 0)]
     def is_empty (self):
-        return not self.keywords[0]
+        return not self.keywords
     def get_preedit (self):
-        i = len (self.keywords) - 1
+        i = len (self.sugg) - 1
         while i > 0 and not self.sugg[i]:
             i -= 1
         r = u' '.join (self.keywords[i:])
@@ -121,6 +122,8 @@ class Context:
             #r = s[1] + u'|' + r
             s = self.sugg[s[0]]
         return r
+    def get_aux_string (self):
+        return self.aux
     def get_lookup_table (self):
         # TODO
         return None
@@ -139,9 +142,9 @@ class Engine:
         if self.__ctx.is_empty ():
             return False
         if event.keycode == keysyms.BackSpace:
-            if len (self.__ctx.keywords) < 2:
+            if len (self.__ctx.keywords) < 1:
                 return False
-            del self.__ctx.keywords[-2]
+            del self.__ctx.keywords[-1]
             self.__ctx.update ()
             return True
         if event.keycode in (keysyms.space, keysyms.Return):
@@ -152,5 +155,6 @@ class Engine:
     def on_context_update (self, ctx):
         self.__model.analyze (ctx)
         self.__frontend.update_preedit (ctx.get_preedit ())
+        self.__frontend.update_aux_string (ctx.get_aux_string ())
         self.__frontend.update_lookup_table (ctx.get_lookup_table ())
 
