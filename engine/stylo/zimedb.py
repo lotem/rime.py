@@ -3,7 +3,7 @@
 import os
 import sqlite3
 
-IBUS_ZIME_LOCATION = os.getenv ("IBUS_ZIME_LOCATION")
+IBUS_ZIME_LOCATION = os.getenv ("IBUS_ZIME_LOCATION") or ".."
 
 class DB:
 

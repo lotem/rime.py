@@ -24,6 +24,9 @@ class Schema:
     def get_parser_name (self):
         # TODO: read config values
         return 'grouping'
+    def get_in_place_prompt (self):
+        # TODO: read config values
+        return 1
 
 class Parser:
     __parsers = dict ()
@@ -48,7 +51,7 @@ class Model:
             del ctx.cand[i][m - i:]
         del ctx.cand[m:]
         del ctx.sugg[m + 1:]
-        for k in ctx.keywords[m:]:
+        for k in ctx.keywords[m:len (ctx.keywords) - ctx.in_place_prompt]:
             ctx.kwd.append (k)
             ctx.cand.append ([])
             ctx.sugg.append (None)
@@ -94,46 +97,60 @@ class Model:
                 w = ctx.sugg[i][2] + 1 + 1.0 / (x[1] + 1)
                 if not ctx.sugg[k] or w < ctx.sugg[k][2]:
                     ctx.sugg[k] = (i, x[0], w)
+        k = len (ctx.sugg) - 1
+        while k > 0 and not ctx.sugg[k]:
+            k -= 1
+        r = ctx.keywords[k:]
+        t = ctx.sugg[k]
+        split_words = lambda x: x.split () if u' ' in x else list (x)
+        while t[0] != -1:
+            r = split_words(t[1]) + r
+            t = ctx.sugg[t[0]]
+        ctx.preedit = r
+        s = ctx.get_preedit ()
+        ctx.candidates = [[x[0] for c in reversed (ctx.cand[pos]) 
+                                for x in c 
+                                if not s.startswith (x[0], pos)] 
+                           for pos in range (len (ctx.cand))]
 
 class Context:
-    def __init__ (self, callback):
+    def __init__ (self, callback, in_place_prompt):
         self.__cb = callback
+        self.in_place_prompt = in_place_prompt
         self.clear ()
-    def update (self):
-        self.__cb.on_context_update (self)
     def clear (self):
-        self.keywords = []
-        self.cursor = -1
-        self.aux = u''
+        self.keywords = [u'']
+        self.cursor = 0
+        self.aux_string = u''
         self.kwd = []
         self.cand = []
         self.sugg = [(-1, u'', 0)]
+        self.preedit = []
     def is_empty (self):
         return not self.keywords
+    def update_keywords (self):
+        self.cursor = len (self.keywords) - 1
+        self.__cb.update_context (self)
+    def set_cursor (self, pos):
+        if pos == -1:
+            pos += len (self.keywords)
+        self.cursor = pos
+        self.__cb.update_ui (self)
     def move_cursor (self, offset):
-        self.cursor = (self.cursor + offset + 1) % (len (self.keywords) + 1) - 1
+        self.cursor = (self.cursor + offset) % len (self.keywords)
+        self.__cb.update_ui (self)
     def get_preedit (self):
-        i = len (self.sugg) - 1
-        while i > 0 and not self.sugg[i]:
-            i -= 1
-        r = u' '.join (self.keywords[i:])
-        s = u''
-        t = self.sugg[i]
-        while t[0] != -1:
-            s = t[1] + s
-            t = self.sugg[t[0]]
-        return s + r
+        return u''.join (self.preedit)
     def get_aux_string (self):
-        return self.aux
+        return self.aux_string
+    def set_aux_string (self, s):
+        self.aux_string = s
+        self.__cb.update_ui (self)
     def get_candidates (self):
-        if self.cursor == -1:
+        k = self.cursor
+        if k >= len (self.candidates):
             return None
-        pos = self.cursor
-        s = self.get_preedit ()
-        result = [x[0] for c in reversed (self.cand[pos]) 
-                           for x in c 
-                               if not s.startswith (x[0], pos)]
-        return result
+        return self.candidates[k]
 
 class Engine:
     def __init__ (self, frontend, name):
@@ -141,36 +158,50 @@ class Engine:
         self.__schema = Schema (name)
         self.__model = Model (self.__schema)
         self.__parser = Parser.create (self.__schema)
-        self.__ctx = Context (self)
-        self.__ctx.update ()
+        self.__ctx = Context (self, self.__schema.get_in_place_prompt ())
     def process_key_event (self, event):
         if self.__parser.process (event, self.__ctx):
             return True
         if self.__ctx.is_empty ():
             return False
+        if event.keycode == keysyms.Home:
+            self.__ctx.set_cursor (0)
+            return True
+        if event.keycode == keysyms.End or event.keycode == keysyms.Escape:
+            self.__ctx.set_cursor (-1)
+            return True
         if event.keycode == keysyms.Left:
             self.__ctx.move_cursor (-1)
-            self.__ctx.update ()
             return True
-        if event.keycode == keysyms.Right:
+        if event.keycode == keysyms.Right or event.keycode == keysyms.Tab:
             self.__ctx.move_cursor (1)
-            self.__ctx.update ()
             return True
         if event.keycode == keysyms.BackSpace:
-            if len (self.__ctx.keywords) < 1:
+            k = self.__ctx.keywords
+            if len (k) < 1:
                 return False
-            del self.__ctx.keywords[-1]
-            self.__ctx.cursor = -1
-            self.__ctx.update ()
+            if k[-1]:
+                k[-1] = u''
+            else:
+                if len (k) < 2:
+                    return False
+                del k[-2]
+            self.__ctx.update_keywords ()
             return True
         if event.keycode in (keysyms.space, keysyms.Return):
             self.__frontend.commit_string (self.__ctx.get_preedit ())
             self.__ctx.clear ()
-            self.__ctx.update ()
         return True
-    def on_context_update (self, ctx):
+    def update_context (self, ctx):
         self.__model.analyze (ctx)
-        self.__frontend.update_preedit (ctx.get_preedit ())
+        self.update_ui (ctx)
+    def update_ui (self, ctx):
+        k = 0
+        for x in ctx.preedit[:ctx.cursor]:
+            k += len (x)
+        ll = len (ctx.preedit[ctx.cursor])
+        self.__frontend.update_preedit (ctx.get_preedit (), k, k + ll)
         self.__frontend.update_aux_string (ctx.get_aux_string ())
         self.__frontend.update_candidates (ctx.get_candidates ())
+        
 

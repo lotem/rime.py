@@ -1,42 +1,32 @@
 # -*- coding: utf-8 -*-
 # vim:set et sts=4 sw=4:
 
-__all__ = (
-    "ZimeEngine",
-)
-
 import ibus
-import gobject
+from ibus import keysyms
 
 from stylo import zimecore
 from stylo import zimeparser
 zimeparser.register_parsers ()
 
-#from gettext import dgettext
-#_  = lambda a : dgettext ("ibus-zime", a)
-_ = lambda a : a
-N_ = lambda a : a
 
+class TestEngine:
 
-class ZimeEngine (ibus.EngineBase):
-
-    def __init__ (self, conn, object_path):
-        super (ZimeEngine, self).__init__ (conn, object_path)
+    def __init__ (self):
         self.__lookup_table = ibus.LookupTable ()
         # TODO
         self.__engine = zimecore.Engine (self, 'zhuyin')
 
     def process_key_event (self, keycode, mask):
+        print "key_event: '%s' (%x), %x" % (keysyms.keycode_to_name (keycode), keycode, mask)
         return self.__engine.process_key_event (zimecore.KeyEvent (keycode, mask))
 
     def commit_string (self, s):
-        #print u'commit: [%s]' % s
-        super (ZimeEngine, self).commit_text (ibus.Text (s))
+        print u'commit: [%s]' % s
 
     def update_preedit (self, s, start, end):
-        #print u'preedit: [%s]' % s
+        print u'preedit: [%s[%s]%s]' % (s[:start], s[start:end], s[end:])
         if not s:
-            super (ZimeEngine, self).hide_preedit_text ()
+            #super (ZimeEngine, self).hide_preedit_text ()
             return
         preedit_attrs = ibus.AttrList ()
         length = len (s)
@@ -46,32 +36,48 @@ class ZimeEngine (ibus.EngineBase):
         preedit_attrs.append (ibus.AttributeForeground (ibus.RGB (255, 255, 128), start, end))
         preedit_attrs.append (ibus.AttributeBackground (ibus.RGB (255, 255, 128), end, length))
         preedit_attrs.append (ibus.AttributeForeground (ibus.RGB (0, 0, 0), end, length))
-        super (ZimeEngine, self).update_preedit_text (ibus.Text (s, preedit_attrs), length, True)
+        #super (ZimeEngine, self).update_preedit_text (ibus.Text (s, preedit_attrs), length, True)
 
     def update_aux_string (self, s):
-        #print u'aux: [%s]' % s
+        print u'aux: [%s]' % s
         if not s:
-            super (ZimeEngine, self).hide_auxiliary_text ()
+            #super (ZimeEngine, self).hide_auxiliary_text ()
             return
-        super (ZimeEngine, self).update_auxiliary_text (ibus.Text (s), True)
+        #super (ZimeEngine, self).update_auxiliary_text (ibus.Text (s), True)
 
     def update_candidates (self, candidates):
         self.__lookup_table.clean ()
         self.__lookup_table.show_cursor (False)
         if not candidates:
-            self.hide_lookup_table ()
+            #self.hide_lookup_table ()
+            pass
         else:
             for c in candidates:
                 self.__lookup_table.append_candidate (ibus.Text (c))
-            self.update_lookup_table (self.__lookup_table, True, True)
+                print u'candidate: %s ...' % c
+                break
+            #self.update_lookup_table (self.__lookup_table, True, True)
+            
+    def test (self, string):
+        name = ''
+        is_name = False
+        for c in string:
+            if c == '{':
+                name = ''
+                is_name = True
+            elif c == '}':
+                is_name = False
+                self.process_key_event (keysyms.name_to_keycode (name), 0)
+            elif is_name:
+                name += c
+            else:
+                self.process_key_event (ord (c), 0)
 
-    @classmethod
-    def CONFIG_VALUE_CHANGED (cls, bus, section, name, value):
-        config = bus.get_config ()
-        if section != "engine/Zime":
-            return
+def main ():
+    e = TestEngine ()
+    #e.test ('5j/ cj86aup6eji6{BackSpace}ji{BackSpace}i6 ')
+    e.test ('5j/ eji6{BackSpace}{BackSpace}')
+    e.test ('5j/ cj86bp6aup6ej/4ck6eji6{Tab}{Tab}{Escape}')
 
-    @classmethod
-    def CONFIG_RELOADED (cls, bus):
-        config = bus.get_config ()
-
+if __name__ == "__main__":
+    main ()
