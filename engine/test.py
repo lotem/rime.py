@@ -52,9 +52,12 @@ class TestEngine:
             #self.hide_lookup_table ()
             pass
         else:
+            i = 0
             for c in candidates:
                 self.__lookup_table.append_candidate (ibus.Text (c[0]))
-            print u'candidate: %s ...' % candidates[0][0]
+                if i < 5:
+                    print u'candidate: %d. %s' % (i + 1, candidates[i][0])
+                i += 1
             #self.update_lookup_table (self.__lookup_table, True, True)
             
     def page_up (self):
@@ -97,7 +100,8 @@ def main ():
     #e.test ('5j/ eji6{BackSpace}{BackSpace}')
     #e.test ('5j/ cj86bp6aup6ej/4ck6eji6{Tab}{Page_Down}{Page_Up}{Tab}{Escape} ')
     #e.test ('5j/ eji62k75j/{Tab}{Page_Down}')
-    e.test ('5j/ eji62k75j/ {Left}1{Home}2{Left}1{Tab}1 ')
+    #e.test ('5j/ eji62k75j/ {Left}1{Home}2{Left}1{Tab}1 ')
+    e.test ('5j/ cj86bp6aup6ej/4ck6eji6{Home}1{Home}')
 
 if __name__ == "__main__":
     main ()

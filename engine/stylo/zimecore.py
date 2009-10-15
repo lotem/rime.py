@@ -95,12 +95,17 @@ class Model:
             if s[0] < end and s[1] > start:
                 ctx.selection.remove (s)
     def __calculate (self, ctx):
+        # update suggestion
         Free, Fixed = 0, 1
         sel = [Free] * len (ctx.kwd)
         for s in ctx.selection:
             for i in range (s[0], s[1] - 1):
                 sel[i] = Fixed
             sel[s[0] + s[1] - 1] = s
+        def update_sugg (ctx, k, i, x):
+            w = ctx.sugg[i][2] + 1 + 1.0 / (x[1] + 1)
+            if not ctx.sugg[k] or w < ctx.sugg[k][2]:
+                ctx.sugg[k] = (i, x[0], w)
         start = 0
         for k in range (1, len (ctx.sugg)):
             if ctx.sugg[k]:
@@ -117,12 +122,12 @@ class Model:
                     if j > len (c) or len (c[j - 1]) == 0:
                         continue
                     x = c[j - 1][0]
-                    self.__update_sugg (ctx, k, i, x)
+                    update_sugg (ctx, k, i, x)
             else:
                 i, j, x = s[:]
                 start = i + j
                 if ctx.sugg[i]:
-                    self.__update_sugg (ctx, k, i, x)
+                    update_sugg (ctx, k, i, x)
         # update preedit
         k = len (ctx.sugg) - 1
         while k > 0 and not ctx.sugg[k]:
@@ -136,15 +141,16 @@ class Model:
         ctx.preedit = r
         # update candidates
         s = ctx.get_preedit ()
-        ctx.candidates = [[(x[0], (pos, length, x))
-                           for length in range (len (ctx.cand[pos]), 0, -1)
-                           for x in ctx.cand[pos][length - 1] 
-                           if not s.startswith (x[0], pos)] 
-                          for pos in range (len (ctx.cand))]
-    def __update_sugg (self, ctx, k, i, x):
-        w = ctx.sugg[i][2] + 1 + 1.0 / (x[1] + 1)
-        if not ctx.sugg[k] or w < ctx.sugg[k][2]:
-            ctx.sugg[k] = (i, x[0], w)
+        ctx.candidates = []
+        for pos in range (len (ctx.cand)):
+            c = ctx.cand[pos]
+            a = []
+            for length in range (len (c), 0, -1):
+                for x in c[length - 1]:
+                    y = x[0]
+                    if not (s.startswith (y, pos) or length >= 4 and any ([t[0].startswith (y) for t in a])): 
+                        a.append ((y, (pos, length, x)))
+            ctx.candidates.append (a)
 
 class Context:
     def __init__ (self, callback, model):
