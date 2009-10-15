@@ -43,10 +43,11 @@ class Model:
     def __init__ (self, schema):
         self.__db = schema.get_db ()
         self.__in_place_prompt = schema.get_in_place_prompt ()
-    def analyze (self, ctx):
+    def update (self, ctx):
         m = 0
         while m < min (len (ctx.keywords), len (ctx.kwd)) and ctx.keywords[m] == ctx.kwd[m]:
             m += 1
+        self.__invalidate_selections (ctx, m, len (ctx.kwd))
         del ctx.kwd[m:]
         for i in range (len (ctx.cand)):
             del ctx.cand[i][m - i:]
@@ -63,6 +64,10 @@ class Model:
                     if n - i == 4 and self.__concatenated (ctx, i, x):
                         continue
                     self.__add_candidate (ctx, i, n - i, x)
+        self.__update_sugguestions (ctx)
+    def select (self, ctx, sel):
+        self.__invalidate_selections (ctx, sel[0], sel[1])
+        ctx.selection.append (sel)
         self.__update_sugguestions (ctx)
     def __add_candidate (self, ctx, pos, length, x):
         c = ctx.cand[pos]
@@ -83,7 +88,12 @@ class Model:
             if ok:
                 return True
         return False
+    def __invalidate_selections (self, ctx, start, end):
+        for s in ctx.selection:
+            if s[0] < end and s[1] > start:
+                ctx.selection.remove (s)
     def __update_sugguestions (self, ctx):
+        print "__update_sugguestions:", ctx.selection
         for k in range (1, len (ctx.sugg)):
             if ctx.sugg[k]:
                 continue
@@ -135,11 +145,12 @@ class Context:
         return not self.keywords
     def update_keywords (self):
         self.cursor = len (self.keywords) - 1
-        self.__model.analyze (self)
+        self.__model.update (self)
         self.__cb.update_ui (self)
     def select (self, index):
-        # TODO
-        pass
+        s = self.get_candidates ()[index][1]
+        self.__model.select (self, s)
+        self.__cb.update_ui (self)
     def set_cursor (self, pos):
         if pos == -1:
             pos += len (self.keywords)
@@ -152,9 +163,6 @@ class Context:
         return u''.join (self.preedit)
     def get_aux_string (self):
         return self.aux_string
-    def set_aux_string (self, s):
-        self.aux_string = s
-        self.__cb.update_ui (self)
     def get_candidates (self):
         k = self.cursor
         if k >= len (self.candidates):
@@ -198,7 +206,6 @@ class Engine:
             if candidates:
                 index = self.__frontend.get_candidate_index (event.keycode - keysyms._1)
                 self.__ctx.select (index)
-                self.update_ui (self.__ctx)
             return True
         if event.keycode == keysyms.BackSpace:
             k = self.__ctx.keywords
