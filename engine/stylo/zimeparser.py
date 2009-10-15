@@ -3,7 +3,6 @@
 
 from ibus import keysyms
 from ibus import modifier
-from ibus import ascii
 
 from zimecore import *
 

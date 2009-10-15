@@ -8,9 +8,7 @@ __all__ = (
 import ibus
 import gobject
 
-from stylo import zimecore
-from stylo import zimeparser
-zimeparser.register_parsers ()
+from stylo import zimeengine
 
 #from gettext import dgettext
 #_  = lambda a : dgettext ("ibus-zime", a)
@@ -24,10 +22,10 @@ class ZimeEngine (ibus.EngineBase):
         super (ZimeEngine, self).__init__ (conn, object_path)
         self.__lookup_table = ibus.LookupTable ()
         # TODO
-        self.__engine = zimecore.Engine (self, 'zhuyin')
+        self.__engine = zimeengine.Engine (self, 'zhuyin')
 
     def process_key_event (self, keycode, mask):
-        return self.__engine.process_key_event (zimecore.KeyEvent (keycode, mask))
+        return self.__engine.process_key_event (keycode, mask)
 
     def commit_string (self, s):
         #print u'commit: [%s]' % s

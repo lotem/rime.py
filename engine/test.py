@@ -4,9 +4,7 @@
 import ibus
 from ibus import keysyms
 
-from stylo import zimecore
-from stylo import zimeparser
-zimeparser.register_parsers ()
+from stylo import zimeengine
 
 
 class TestEngine:
@@ -14,11 +12,11 @@ class TestEngine:
     def __init__ (self):
         self.__lookup_table = ibus.LookupTable ()
         # TODO
-        self.__engine = zimecore.Engine (self, 'zhuyin')
+        self.__engine = zimeengine.Engine (self, 'zhuyin')
 
     def process_key_event (self, keycode, mask):
         print "key_event: '%s' (%x), %x" % (keysyms.keycode_to_name (keycode), keycode, mask)
-        return self.__engine.process_key_event (zimecore.KeyEvent (keycode, mask))
+        return self.__engine.process_key_event (keycode, mask)
 
     def commit_string (self, s):
         print u'commit: [%s]' % s
