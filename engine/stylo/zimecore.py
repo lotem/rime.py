@@ -64,11 +64,13 @@ class Model:
                     if n - i == 4 and self.__concatenated (ctx, i, x):
                         continue
                     self.__add_candidate (ctx, i, n - i, x)
-        self.__update_sugguestions (ctx)
+        self.__calculate (ctx)
     def select (self, ctx, sel):
         self.__invalidate_selections (ctx, sel[0], sel[1])
         ctx.selection.append (sel)
-        self.__update_sugguestions (ctx)
+        for i in range (sel[0] + 1, len (ctx.sugg)):
+            ctx.sugg[i] = None
+        self.__calculate (ctx)
     def __add_candidate (self, ctx, pos, length, x):
         c = ctx.cand[pos]
         if length > len (c):
@@ -92,22 +94,36 @@ class Model:
         for s in ctx.selection:
             if s[0] < end and s[1] > start:
                 ctx.selection.remove (s)
-    def __update_sugguestions (self, ctx):
-        print "__update_sugguestions:", ctx.selection
+    def __calculate (self, ctx):
+        Free, Fixed = 0, 1
+        sel = [Free] * len (ctx.kwd)
+        for s in ctx.selection:
+            for i in range (s[0], s[1] - 1):
+                sel[i] = Fixed
+            sel[s[0] + s[1] - 1] = s
+        start = 0
         for k in range (1, len (ctx.sugg)):
             if ctx.sugg[k]:
                 continue
-            for i in range (k):
-                if not ctx.sugg[i]:
-                    continue
-                c = ctx.cand[i]
-                j = k - i - 1
-                if j >= len (c) or len (c[j]) == 0:
-                    continue
-                x = c[j][0]
-                w = ctx.sugg[i][2] + 1 + 1.0 / (x[1] + 1)
-                if not ctx.sugg[k] or w < ctx.sugg[k][2]:
-                    ctx.sugg[k] = (i, x[0], w)
+            s = sel[k - 1]
+            if s == Fixed:
+                pass
+            elif s == Free:
+                for i in range (start, k):
+                    if not ctx.sugg[i]:
+                        continue
+                    c = ctx.cand[i]
+                    j = k - i
+                    if j > len (c) or len (c[j - 1]) == 0:
+                        continue
+                    x = c[j - 1][0]
+                    self.__update_sugg (ctx, k, i, x)
+            else:
+                i, j, x = s[:]
+                start = i + j
+                if ctx.sugg[i]:
+                    self.__update_sugg (ctx, k, i, x)
+        # update preedit
         k = len (ctx.sugg) - 1
         while k > 0 and not ctx.sugg[k]:
             k -= 1
@@ -118,12 +134,17 @@ class Model:
             r = split_words(t[1]) + r
             t = ctx.sugg[t[0]]
         ctx.preedit = r
+        # update candidates
         s = ctx.get_preedit ()
         ctx.candidates = [[(x[0], (pos, length, x))
                            for length in range (len (ctx.cand[pos]), 0, -1)
                            for x in ctx.cand[pos][length - 1] 
                            if not s.startswith (x[0], pos)] 
                           for pos in range (len (ctx.cand))]
+    def __update_sugg (self, ctx, k, i, x):
+        w = ctx.sugg[i][2] + 1 + 1.0 / (x[1] + 1)
+        if not ctx.sugg[k] or w < ctx.sugg[k][2]:
+            ctx.sugg[k] = (i, x[0], w)
 
 class Context:
     def __init__ (self, callback, model):
@@ -149,6 +170,7 @@ class Context:
         self.__cb.update_ui (self)
     def select (self, index):
         s = self.get_candidates ()[index][1]
+        self.cursor += s[1]
         self.__model.select (self, s)
         self.__cb.update_ui (self)
     def set_cursor (self, pos):

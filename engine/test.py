@@ -97,7 +97,7 @@ def main ():
     #e.test ('5j/ eji6{BackSpace}{BackSpace}')
     #e.test ('5j/ cj86bp6aup6ej/4ck6eji6{Tab}{Page_Down}{Page_Up}{Tab}{Escape} ')
     #e.test ('5j/ eji62k75j/{Tab}{Page_Down}')
-    e.test ('5j/ {Tab}{Page_Down}2')
+    e.test ('5j/ eji62k75j/ {Left}1{Home}2{Left}1{Tab}1 ')
 
 if __name__ == "__main__":
     main ()

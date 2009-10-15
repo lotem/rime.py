@@ -77,6 +77,10 @@ class ZimeEngine (ibus.EngineBase):
             return True
         return False
 
+    def get_candidate_index (self, index):
+        index += self.__lookup_table.get_current_page_start ()
+        return index
+
     @classmethod
     def CONFIG_VALUE_CHANGED (cls, bus, section, name, value):
         config = bus.get_config ()
