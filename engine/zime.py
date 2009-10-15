@@ -62,7 +62,7 @@ class ZimeEngine (ibus.EngineBase):
             self.hide_lookup_table ()
         else:
             for c in candidates:
-                self.__lookup_table.append_candidate (ibus.Text (c))
+                self.__lookup_table.append_candidate (ibus.Text (c[0]))
             self.update_lookup_table (self.__lookup_table, True, True)
     
     def page_up (self):

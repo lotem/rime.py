@@ -42,6 +42,7 @@ class Parser:
 class Model:
     def __init__ (self, schema):
         self.__db = schema.get_db ()
+        self.__in_place_prompt = schema.get_in_place_prompt ()
     def analyze (self, ctx):
         m = 0
         while m < min (len (ctx.keywords), len (ctx.kwd)) and ctx.keywords[m] == ctx.kwd[m]:
@@ -51,7 +52,7 @@ class Model:
             del ctx.cand[i][m - i:]
         del ctx.cand[m:]
         del ctx.sugg[m + 1:]
-        for k in ctx.keywords[m:len (ctx.keywords) - ctx.in_place_prompt]:
+        for k in ctx.keywords[m:len (ctx.keywords) - self.__in_place_prompt]:
             ctx.kwd.append (k)
             ctx.cand.append ([])
             ctx.sugg.append (None)
@@ -108,15 +109,16 @@ class Model:
             t = ctx.sugg[t[0]]
         ctx.preedit = r
         s = ctx.get_preedit ()
-        ctx.candidates = [[x[0] for c in reversed (ctx.cand[pos]) 
-                                for x in c 
-                                if not s.startswith (x[0], pos)] 
-                           for pos in range (len (ctx.cand))]
+        ctx.candidates = [[(x[0], (pos, length, x))
+                           for length in range (len (ctx.cand[pos]), 0, -1)
+                           for x in ctx.cand[pos][length - 1] 
+                           if not s.startswith (x[0], pos)] 
+                          for pos in range (len (ctx.cand))]
 
 class Context:
-    def __init__ (self, callback, in_place_prompt):
+    def __init__ (self, callback, model):
         self.__cb = callback
-        self.in_place_prompt = in_place_prompt
+        self.__model = model
         self.clear ()
     def clear (self):
         self.keywords = [u'']
@@ -125,14 +127,19 @@ class Context:
         self.kwd = []
         self.cand = []
         self.sugg = [(-1, u'', 0)]
-        self.preedit = []
-        self.candidates = []
-        self.update_keywords ()
+        self.preedit = [u'']
+        self.candidates = [None]
+        self.selection = []
+        self.__cb.update_ui (self)
     def is_empty (self):
         return not self.keywords
     def update_keywords (self):
         self.cursor = len (self.keywords) - 1
-        self.__cb.update_context (self)
+        self.__model.analyze (self)
+        self.__cb.update_ui (self)
+    def select (self, index):
+        # TODO
+        pass
     def set_cursor (self, pos):
         if pos == -1:
             pos += len (self.keywords)
@@ -160,7 +167,7 @@ class Engine:
         self.__schema = Schema (name)
         self.__model = Model (self.__schema)
         self.__parser = Parser.create (self.__schema)
-        self.__ctx = Context (self, self.__schema.get_in_place_prompt ())
+        self.__ctx = Context (self, self.__model)
     def process_key_event (self, event):
         if self.__parser.process (event, self.__ctx):
             return True
@@ -178,13 +185,20 @@ class Engine:
         if event.keycode == keysyms.Right or event.keycode == keysyms.Tab:
             self.__ctx.move_cursor (1)
             return True
-        if event.keycode == keysyms.Page_Up:
-            if self.__ctx.get_candidates () and self.__frontend.page_up ():
+        candidates = self.__ctx.get_candidates ()
+        if event.keycode == keysyms.Page_Up or event.keycode == keysyms.Up:
+            if candidates and self.__frontend.page_up ():
                 return True
             return True
-        if event.keycode == keysyms.Page_Down:
-            if self.__ctx.get_candidates () and self.__frontend.page_down ():
+        if event.keycode == keysyms.Page_Down or event.keycode == keysyms.Down:
+            if candidates and self.__frontend.page_down ():
                 return True
+            return True
+        if event.keycode >= keysyms._1 and event.keycode <= keysyms._9:
+            if candidates:
+                index = self.__frontend.get_candidate_index (event.keycode - keysyms._1)
+                self.__ctx.select (index)
+                self.update_ui (self.__ctx)
             return True
         if event.keycode == keysyms.BackSpace:
             k = self.__ctx.keywords
@@ -201,10 +215,8 @@ class Engine:
         if event.keycode in (keysyms.space, keysyms.Return):
             self.__frontend.commit_string (self.__ctx.get_preedit ())
             self.__ctx.clear ()
+            return True
         return True
-    def update_context (self, ctx):
-        self.__model.analyze (ctx)
-        self.update_ui (ctx)
     def update_ui (self, ctx):
         k = 0
         for x in ctx.preedit[:ctx.cursor]:

@@ -53,8 +53,8 @@ class TestEngine:
             pass
         else:
             for c in candidates:
-                self.__lookup_table.append_candidate (ibus.Text (c))
-            print u'candidate: %s ...' % candidates[0]
+                self.__lookup_table.append_candidate (ibus.Text (c[0]))
+            print u'candidate: %s ...' % candidates[0][0]
             #self.update_lookup_table (self.__lookup_table, True, True)
             
     def page_up (self):
@@ -70,6 +70,11 @@ class TestEngine:
             #self.update_lookup_table (self.__lookup_table, True, True)
             return True
         return False
+
+    def get_candidate_index (self, index):
+        index += self.__lookup_table.get_current_page_start ()
+        print u'index = %d' % index
+        return index
 
     def test (self, string):
         name = ''
@@ -91,7 +96,8 @@ def main ():
     #e.test ('5j/ cj86aup6eji6{BackSpace}ji{BackSpace}i6 ')
     #e.test ('5j/ eji6{BackSpace}{BackSpace}')
     #e.test ('5j/ cj86bp6aup6ej/4ck6eji6{Tab}{Page_Down}{Page_Up}{Tab}{Escape} ')
-    e.test ('5j/ eji62k75j/{Tab}{Page_Down}')
+    #e.test ('5j/ eji62k75j/{Tab}{Page_Down}')
+    e.test ('5j/ {Tab}{Page_Down}2')
 
 if __name__ == "__main__":
     main ()
