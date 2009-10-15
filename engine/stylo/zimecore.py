@@ -65,10 +65,10 @@ class Model:
                         continue
                     self.__add_candidate (ctx, i, n - i, x)
         self.__calculate (ctx)
-    def select (self, ctx, sel):
-        self.__invalidate_selections (ctx, sel[0], sel[1])
-        ctx.selection.append (sel)
-        for i in range (sel[0] + 1, len (ctx.sugg)):
+    def select (self, ctx, s):
+        self.__invalidate_selections (ctx, s[0], s[0] + s[1])
+        ctx.selection.append (s)
+        for i in range (s[0] + 1, len (ctx.sugg)):
             ctx.sugg[i] = None
         self.__calculate (ctx)
     def __add_candidate (self, ctx, pos, length, x):
@@ -91,6 +91,7 @@ class Model:
                 return True
         return False
     def __invalidate_selections (self, ctx, start, end):
+        print '__invalidate_selections:', start, end
         if start >= end:
             return
         for s in ctx.selection:
@@ -104,18 +105,20 @@ class Model:
             for i in range (s[0], s[1] - 1):
                 sel[i] = Fixed
             sel[s[0] + s[1] - 1] = s
+        print sel
         def update_sugg (ctx, k, i, x):
             w = ctx.sugg[i][2] + 1 + 1.0 / (x[1] + 1)
             if not ctx.sugg[k] or w < ctx.sugg[k][2]:
                 ctx.sugg[k] = (i, x[0], w)
         start = 0
         for k in range (1, len (ctx.sugg)):
-            if ctx.sugg[k]:
-                continue
+            print 'k:', k
             s = sel[k - 1]
             if s == Fixed:
                 pass
             elif s == Free:
+                if ctx.sugg[k]:
+                    continue
                 for i in range (start, k):
                     if not ctx.sugg[i]:
                         continue
@@ -128,6 +131,9 @@ class Model:
             else:
                 i, j, x = s[:]
                 start = i + j
+                print 'start:', start
+                if ctx.sugg[k]:
+                    continue
                 if ctx.sugg[i]:
                     update_sugg (ctx, k, i, x)
         # update preedit
