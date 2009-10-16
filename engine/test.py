@@ -18,7 +18,7 @@ class TestEngine:
     def __init__ (self):
         self.__lookup_table = ibus.LookupTable ()
         # TODO
-        self.__engine = zimeengine.Engine (self, 'zhuyin')
+        self.__engine = zimeengine.Engine (self, 'Zhuyin')
 
     def process_key_event (self, keycode, mask):
         print "key_event: '%s' (%x), %x" % (keysyms.keycode_to_name (keycode), keycode, mask)

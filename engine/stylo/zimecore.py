@@ -18,11 +18,10 @@ class Schema:
     def get_db (self):
         return self.__db
     def get_parser_name (self):
-        # TODO: read config values
-        return 'grouping'
+        return self.__db.read_config_value ('Parser')
     def get_in_place_prompt (self):
-        # TODO: read config values
-        return 1
+        parser = self.__db.read_config_value ('Parser')
+        return 0 if parser == 'roman' else 1
 
 class Parser:
     __parsers = dict ()

@@ -4,13 +4,18 @@ import sqlite3
 
 class DB:
 
+    QUERY_SETTING_SQL = """
+    SELECT value FROM settings where path = :path;
+    """
+
     @classmethod
     def connect (cls, db_path):
         cls.__conn = sqlite3.connect (db_path)
 
     def __init__ (self, name):
         self.__name = name
-        prefix = {'prefix' : name}
+        self.__conf_path = 'Schema/%s/' % name
+        prefix = {'prefix' : self.read_config_value ('Prefix')}
         self.QUERY_KEYWORD_SQL = """
         SELECT phrase FROM %(prefix)s_keywords WHERE keyword = :keyword;
         """ % prefix
@@ -53,6 +58,11 @@ class DB:
         self.ADD_PHRASE_SQL = """
         INSERT INTO %(prefix)s_phrases VALUES (:klen, :k0, :k1, :k2, :k3, :phrase, :freq);
         """ % prefix
+
+    def read_config_value (self, key):
+        print self.__conf_path + key
+        r = DB.__conn.execute (DB.QUERY_SETTING_SQL, {'path': self.__conf_path + key}).fetchone ()
+        return r[0] if r else None
 
     def lookup (self, keywords):
         klen = len (keywords)
