@@ -20,7 +20,6 @@ def __initialize ():
         os.makedirs (db_path)
     db_file = os.path.join (db_path, 'zime.db')
     DB.open (db_file)
-    print "__initialize"
 
 __initialize ()
 
@@ -31,6 +30,7 @@ class Engine:
         self.__model = Model (self.__schema)
         self.__parser = Parser.create (self.__schema)
         self.__ctx = Context (self, self.__model)
+        self.update_ui ()
     def process_key_event (self, keycode, mask):
         if self.__parser.process (KeyEvent (keycode, mask), self.__ctx):
             return True
@@ -79,12 +79,13 @@ class Engine:
             self.__ctx.clear ()
             return True
         return True
-    def update_ui (self, ctx):
-        k = 0
+    def update_ui (self):
+        ctx = self.__ctx
+        start = 0
         for x in ctx.preedit[:ctx.cursor]:
-            k += len (x)
-        ll = len (ctx.preedit[ctx.cursor])
-        self.__frontend.update_preedit (ctx.get_preedit (), k, k + ll)
+            start += len (x)
+        end = start + len (ctx.preedit[ctx.cursor])
+        self.__frontend.update_preedit (ctx.get_preedit (), start, end)
         self.__frontend.update_aux_string (ctx.get_aux_string ())
         self.__frontend.update_candidates (ctx.get_candidates ())
         
@@ -100,9 +101,11 @@ class SchemaChooser:
         self.__engine = None
     def __load_schema_list (self):
         s = DB.read_setting_items (u'Schema/')
-        #t = DB.read_setting_items (u'SchemaChooser/LastUsed/')
-        # TODO: sort by time
-        self.__schema_list = [(x[1], x[0]) for x in s]
+        t = dict ()
+        for x in DB.read_setting_items (u'SchemaChooser/LastUsed/'):
+            t[x[0]] = float (x[1])
+        last_used_time = lambda a: t[a[0]] if a[0] in t else 0.0
+        self.__schema_list = [(x[1], x[0]) for x in sorted (s, key=last_used_time, reverse=True)]
     def choose (self, schema_name):
         s = [x[1] for x in self.__schema_list]
         c = -1
@@ -113,7 +116,6 @@ class SchemaChooser:
         if c == -1:
             # TODO: 
             self.__frontend.update_aux_string (u'無方案')
-            print 'failed to load schema.'
             self.__reset ()
         else:
             now = time.time ()        
@@ -132,5 +134,26 @@ class SchemaChooser:
                 self.__activate ()
                 return True
             return self.__engine.process_key_event (keycode, mask)
+        # schema chooser menu
+        if keycode == keysyms.Escape:
+            self.__active = False
+            if self.__engine:
+                self.__engine.update_ui ()
+            return True
+        if keycode == keysyms.Page_Up or keycode == keysyms.Up:
+            if self.__frontend.page_up ():
+                return True
+            return True
+        if keycode == keysyms.Page_Down or keycode == keysyms.Down:
+            if self.__frontend.page_down ():
+                return True
+            return True
+        if keycode >= keysyms._1 and keycode <= keysyms._9:
+            index = self.__frontend.get_candidate_index (keycode - keysyms._1)
+            if index < len (self.__schema_list):
+                schema_name = self.__schema_list[index][1]
+                self.choose (schema_name)
+            return True
+        return True
         
 

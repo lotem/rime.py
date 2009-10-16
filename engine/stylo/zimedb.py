@@ -31,6 +31,7 @@ class DB:
     def open (cls, db_file):
         cls.__conn = sqlite3.connect (db_file)
         cls.__conn.execute (cls.CREATE_SETTINGS_TABLE_SQL)
+        cls.flush (True)
 
     @classmethod
     def read_setting (cls, key):
@@ -48,7 +49,7 @@ class DB:
             cls.__conn.execute (cls.ADD_SETTING_SQL, {'path': key, 'value': value})
         else:
             cls.__conn.execute (cls.UPDATE_SETTING_SQL, {'path': key, 'value': value})
-        cls.flush ()
+        cls.flush (True)
 
     @classmethod
     def flush (cls, immediate=False):

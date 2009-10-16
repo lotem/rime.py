@@ -7,7 +7,7 @@
 	<version>0.1.0.20090427</version>
 	<author>GONG Chen &lt;chen.sst@gmail.com&gt;</author>
 	<license>GPL</license>
-	<homepage>http://code.google.com/p/zime</homepage>
+	<homepage>http://zime.googlecode.com/</homepage>
 	<textdomain>ibus-zime</textdomain>
 
 	<!-- for static engines -->
@@ -19,7 +19,7 @@
 			<author>GONG Chen &lt;chen.sst@gmail.com&gt;</author>
 			<icon>/usr/share/ibus-zime/icons/zhung.png</icon>
 			<layout>us</layout>
-			<longname>zime</longname>
+			<longname>ZIME</longname>
 			<description>ZIME Input Method Engine</description>
 		</engine>
 	</engines>

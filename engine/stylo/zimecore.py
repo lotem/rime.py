@@ -38,8 +38,8 @@ class Context:
     def __init__ (self, callback, model):
         self.__cb = callback
         self.__model = model
-        self.clear ()
-    def clear (self):
+        self.__reset ()
+    def __reset (self):
         self.keywords = [u'']
         self.cursor = 0
         self.kwd = []
@@ -48,26 +48,28 @@ class Context:
         self.preedit = [u'']
         self.candidates = [None]
         self.selection = []
-        self.__cb.update_ui (self)
+    def clear (self):
+        self.__reset ()
+        self.__cb.update_ui ()
     def is_empty (self):
         return not self.keywords
     def update_keywords (self):
         self.cursor = len (self.keywords) - 1
         self.__model.update (self)
-        self.__cb.update_ui (self)
+        self.__cb.update_ui ()
     def select (self, index):
         s = self.get_candidates ()[index][1]
         self.cursor += s[1]
         self.__model.select (self, s)
-        self.__cb.update_ui (self)
+        self.__cb.update_ui ()
     def set_cursor (self, pos):
         if pos == -1:
             pos += len (self.keywords)
         self.cursor = pos
-        self.__cb.update_ui (self)
+        self.__cb.update_ui ()
     def move_cursor (self, offset):
         self.cursor = (self.cursor + offset) % len (self.keywords)
-        self.__cb.update_ui (self)
+        self.__cb.update_ui ()
     def get_preedit (self):
         return u''.join (self.preedit)
     def get_aux_string (self):
