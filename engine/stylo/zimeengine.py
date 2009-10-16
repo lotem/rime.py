@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim:set et sts=4 sw=4:
 
+import os
 import time
 import ibus
 from ibus import keysyms
@@ -10,9 +11,17 @@ from zimedb import *
 from zimemodel import *
 import zimeparser
 
-def initialize (db_file):
+def __initialize ():
     zimeparser.register_parsers ()
+    home_path = os.getenv ('HOME')
+    db_path = os.path.join (home_path, '.ibus', 'zime')
+    if not os.path.isdir (db_path):
+        os.makedirs (db_path)
+    db_file = os.path.join (db_path, 'zime.db')
     DB.connect (db_file)
+    print "__initialize"
+
+__initialize ()
 
 class Engine:
     def __init__ (self, frontend, name):
