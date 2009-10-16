@@ -101,7 +101,7 @@ INSERT INTO %(prefix)s_phrases VALUES (?, ?, ?, ?, ?, ?, ?);
 usage = 'usage: %prog [options] schema-file [keyword-file [phrase-file]]'
 parser = optparse.OptionParser (usage)
 
-parser.add_option ('-d', '--db-file', dest='db_file', default='zime.db', help='specify destination SQLite DB', metavar='FILE')
+parser.add_option ('-d', '--db-file', dest='db_file', help='specify destination sqlite db', metavar='FILE')
 
 parser.add_option ('-k', '--keep', action='store_true', dest='keep', default=False, help='keep existing schema data')
 
@@ -116,7 +116,16 @@ schema_file = args[0] if len (args) > 0 else None
 keyword_file = args[1] if len (args) > 1 else None
 phrase_file = args[2] if len (args) > 2 else None
 
-conn = sqlite3.connect (options.db_file)
+if not options.db_file:
+    home_path = os.getenv ('HOME')
+    db_path = os.path.join (home_path, '.ibus', 'zime')
+    if not os.path.isdir (db_path):
+        os.makedirs (db_path)
+    db_file = os.path.join (db_path, 'zime.db')
+else:
+    db_file = options.db_file
+
+conn = sqlite3.connect (db_file)
 conn.execute (CREATE_SETTINGS_TABLE_SQL)
 
 schema = None

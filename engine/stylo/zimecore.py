@@ -42,7 +42,6 @@ class Context:
     def clear (self):
         self.keywords = [u'']
         self.cursor = 0
-        self.aux_string = u''
         self.kwd = []
         self.cand = []
         self.sugg = [(-1, u'', 0)]
@@ -72,7 +71,7 @@ class Context:
     def get_preedit (self):
         return u''.join (self.preedit)
     def get_aux_string (self):
-        return self.aux_string
+        return u''
     def get_candidates (self):
         k = self.cursor
         if k >= len (self.candidates):

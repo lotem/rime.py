@@ -7,9 +7,12 @@ from ibus import keysyms
 
 from stylo import zimeengine
 
-IBUS_ZIME_LOCATION = os.getenv ("IBUS_ZIME_LOCATION") or ".."
-db_path = os.path.join (IBUS_ZIME_LOCATION, 'data', 'zime.db')
-zimeengine.initialize (db_path)
+home_path = os.getenv ('HOME')
+db_path = os.path.join (home_path, '.ibus', 'zime')
+if not os.path.isdir (db_path):
+    os.makedirs (db_path)
+db_file = os.path.join (db_path, 'zime.db')
+zimeengine.initialize (db_file)
 
 class TestEngine:
 
@@ -104,7 +107,7 @@ def main ():
     #e.test ('5j/ eji62k75j/ {Left}1{Home}2{Left}1{Tab}1 ')
     #e.test ('5j/ cj86bp6aup6ej/4ck6eji6{Home}1{Home}')
     #e.test ('5j/ cj86bp6aup6ej/4ck6eji6j04njo4{Left}{Left}5{End}{BackSpace}{BackSpace}{BackSpace}{BackSpace}{BackSpace}{BackSpace}{BackSpace} ')
-    #e.test ('5j/ 5. mp4{Left}2gj bj4 ')
+    e.test ('5j/ 5. mp4{Left}2gj bj4 ')
     #e.test ('5j/ 5. mp4gj {Left}{Left}2bj4z83{Home}{Tab}{Tab}4')
 
 if __name__ == "__main__":

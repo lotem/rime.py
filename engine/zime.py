@@ -11,9 +11,12 @@ import gobject
 
 from stylo import zimeengine
 
-IBUS_ZIME_LOCATION = os.getenv ("IBUS_ZIME_LOCATION") or ".."
-db_path = os.path.join (IBUS_ZIME_LOCATION, 'data', 'zime.db')
-zimeengine.initialize (db_path)
+home_path = os.getenv ('HOME')
+db_path = os.path.join (home_path, '.ibus', 'zime')
+if not os.path.isdir (db_path):
+    os.makedirs (db_path)
+db_file = os.path.join (db_path, 'zime.db')
+zimeengine.initialize (db_file)
 
 #from gettext import dgettext
 #_  = lambda a : dgettext ("ibus-zime", a)

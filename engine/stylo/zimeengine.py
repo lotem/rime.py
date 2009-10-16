@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim:set et sts=4 sw=4:
 
+import time
 import ibus
 from ibus import keysyms
 
@@ -9,9 +10,9 @@ from zimedb import *
 from zimemodel import *
 import zimeparser
 
-def initialize (db_path):
+def initialize (db_file):
     zimeparser.register_parsers ()
-    DB.connect (db_path)
+    DB.connect (db_file)
 
 class Engine:
     def __init__ (self, frontend, name):
@@ -88,6 +89,8 @@ class SchemaChooser:
             schema_name = s[0][0]
         self.choose (schema_name)
     def choose (self, schema_name):
+        timestamp = time.time ()        
+        DB.update_setting (u'SchemaChooser/LastUsed/%s' % schema_name, unicode (timestamp))
         self.__engine = Engine (self.__frontend, schema_name)
     def process_key_event (self, keycode, mask):
         return self.__engine.process_key_event (keycode, mask)

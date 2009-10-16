@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 
 import sqlite3
+import time
 
 class DB:
-
-    @classmethod
-    def connect (cls, db_path):
-        cls.__conn = sqlite3.connect (db_path)
 
     QUERY_SETTING_SQL = """
     SELECT value FROM settings WHERE path = :path;
@@ -16,15 +13,45 @@ class DB:
     SELECT path, value FROM settings WHERE path LIKE :pattern;
     """
 
+    ADD_SETTING_SQL = """
+    INSERT INTO settings VALUES (:path, :value);
+    """
+
+    UPDATE_SETTING_SQL = """
+    UPDATE settings SET value = :value WHERE path == :path;
+    """
+
+    FLUSH_INTERVAL = 5 * 60  # 5 minutes
+    __last_flush_time = 0
+
+    @classmethod
+    def connect (cls, db_file):
+        cls.__conn = sqlite3.connect (db_file)
+
     @classmethod
     def read_setting (cls, key):
-        r = DB.__conn.execute (DB.QUERY_SETTING_SQL, {'path': key}).fetchone ()
+        r = cls.__conn.execute (cls.QUERY_SETTING_SQL, {'path': key}).fetchone ()
         return r[0] if r else None
 
     @classmethod
     def read_setting_items (cls, key):
-        r = DB.__conn.execute (DB.QUERY_SETTING_ITEMS_SQL, {'pattern': key + '%'}).fetchall ()
+        r = cls.__conn.execute (cls.QUERY_SETTING_ITEMS_SQL, {'pattern': key + '%'}).fetchall ()
         return [(x[0][len (key):], x[1]) for x in r]
+
+    @classmethod
+    def update_setting (cls, key, value):
+        if cls.read_setting (key) is None:
+            cls.__conn.execute (cls.ADD_SETTING_SQL, {'path': key, 'value': value})
+        else:
+            cls.__conn.execute (cls.UPDATE_SETTING_SQL, {'path': key, 'value': value})
+        cls.flush ()
+
+    @classmethod
+    def flush (cls, immediate=False):
+        now = time.time ()
+        if immediate or now - cls.__last_flush_time > cls.FLUSH_INTERVAL:
+            cls.__conn.commit ()
+            cls.__last_flush_time = now
 
     def __init__ (self, name):
         self.__name = name
