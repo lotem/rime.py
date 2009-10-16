@@ -5,18 +5,21 @@ import time
 
 class DB:
 
+    CREATE_SETTINGS_TABLE_SQL = """
+    CREATE TABLE IF NOT EXISTS settings (
+        path TEXT PRIMARY KEY,
+        value TEXT
+    );
+    """
     QUERY_SETTING_SQL = """
     SELECT value FROM settings WHERE path = :path;
     """
-
     QUERY_SETTING_ITEMS_SQL = """
     SELECT path, value FROM settings WHERE path LIKE :pattern;
     """
-
     ADD_SETTING_SQL = """
     INSERT INTO settings VALUES (:path, :value);
     """
-
     UPDATE_SETTING_SQL = """
     UPDATE settings SET value = :value WHERE path == :path;
     """
@@ -25,8 +28,9 @@ class DB:
     __last_flush_time = 0
 
     @classmethod
-    def connect (cls, db_file):
+    def open (cls, db_file):
         cls.__conn = sqlite3.connect (db_file)
+        cls.__conn.execute (cls.CREATE_SETTINGS_TABLE_SQL)
 
     @classmethod
     def read_setting (cls, key):

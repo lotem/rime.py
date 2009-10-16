@@ -5,6 +5,7 @@ import os
 import time
 import ibus
 from ibus import keysyms
+from ibus import modifier
 
 from zimecore import *
 from zimedb import *
@@ -18,7 +19,7 @@ def __initialize ():
     if not os.path.isdir (db_path):
         os.makedirs (db_path)
     db_file = os.path.join (db_path, 'zime.db')
-    DB.connect (db_file)
+    DB.open (db_file)
     print "__initialize"
 
 __initialize ()
@@ -90,18 +91,46 @@ class Engine:
 class SchemaChooser:
     def __init__ (self, frontend, schema_name=None):
         self.__frontend = frontend
-        s = DB.read_setting_items (u'Schema/')
-        print 'schema:', s
-        if not schema_name and len (s) > 0:
-            # TODO
-            #t = DB.read_setting_items (u'SchemaChooser/LastUsed/')
-            schema_name = s[0][0]
+        self.__reset ()
+        self.__load_schema_list ()
         self.choose (schema_name)
+    def __reset (self):
+        self.__active = True
+        self.__schema_list = []
+        self.__engine = None
+    def __load_schema_list (self):
+        s = DB.read_setting_items (u'Schema/')
+        #t = DB.read_setting_items (u'SchemaChooser/LastUsed/')
+        # TODO: sort by time
+        self.__schema_list = [(x[1], x[0]) for x in s]
     def choose (self, schema_name):
-        timestamp = time.time ()        
-        DB.update_setting (u'SchemaChooser/LastUsed/%s' % schema_name, unicode (timestamp))
-        self.__engine = Engine (self.__frontend, schema_name)
+        s = [x[1] for x in self.__schema_list]
+        c = -1
+        if schema_name and schema_name in s:
+            c = s.index (schema_name)
+        elif len (s) > 0:
+            c = 0
+        if c == -1:
+            # TODO: 
+            self.__frontend.update_aux_string (u'無方案')
+            print 'failed to load schema.'
+            self.__reset ()
+        else:
+            now = time.time ()        
+            DB.update_setting (u'SchemaChooser/LastUsed/%s' % s[c], unicode (now))
+            self.__active = False
+            self.__schema_list = []
+            self.__engine = Engine (self.__frontend, s[c])
+    def __activate (self):
+        self.__active = True
+        self.__load_schema_list ()
+        self.__frontend.update_aux_string (u'方案選單')
+        self.__frontend.update_candidates (self.__schema_list)
     def process_key_event (self, keycode, mask):
-        return self.__engine.process_key_event (keycode, mask)
+        if not self.__active:
+            if keycode == keysyms.grave:# and mask & modifier.CONTROL_MASK:
+                self.__activate ()
+                return True
+            return self.__engine.process_key_event (keycode, mask)
         
 

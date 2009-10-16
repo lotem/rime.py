@@ -99,8 +99,9 @@ def main ():
     #e.test ('5j/ eji62k75j/ {Left}1{Home}2{Left}1{Tab}1 ')
     #e.test ('5j/ cj86bp6aup6ej/4ck6eji6{Home}1{Home}')
     #e.test ('5j/ cj86bp6aup6ej/4ck6eji6j04njo4{Left}{Left}5{End}{BackSpace}{BackSpace}{BackSpace}{BackSpace}{BackSpace}{BackSpace}{BackSpace} ')
-    e.test ('5j/ 5. mp4{Left}2gj bj4 ')
+    #e.test ('5j/ 5. mp4{Left}2gj bj4 ')
     #e.test ('5j/ 5. mp4gj {Left}{Left}2bj4z83{Home}{Tab}{Tab}4')
+    e.process_key_event (96, 4)  # Ctrl+grave
 
 if __name__ == "__main__":
     main ()
