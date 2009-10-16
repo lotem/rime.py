@@ -5,16 +5,21 @@ __all__ = (
     "ZimeEngine",
 )
 
+import os
 import ibus
 import gobject
 
+from stylo import zimedb
 from stylo import zimeengine
+
+IBUS_ZIME_LOCATION = os.getenv ("IBUS_ZIME_LOCATION") or ".."
+db_path = os.path.join (IBUS_ZIME_LOCATION, 'data', 'zime.db')
+zimedb.DB.connect (db_path)
 
 #from gettext import dgettext
 #_  = lambda a : dgettext ("ibus-zime", a)
 _ = lambda a : a
 N_ = lambda a : a
-
 
 class ZimeEngine (ibus.EngineBase):
 
@@ -38,12 +43,15 @@ class ZimeEngine (ibus.EngineBase):
             return
         preedit_attrs = ibus.AttrList ()
         length = len (s)
-        preedit_attrs.append (ibus.AttributeBackground (ibus.RGB (255, 255, 128), 0, start))
-        preedit_attrs.append (ibus.AttributeForeground (ibus.RGB (0, 0, 0), 0, start))
-        preedit_attrs.append (ibus.AttributeBackground (ibus.RGB (0, 0, 0), start, end))
-        preedit_attrs.append (ibus.AttributeForeground (ibus.RGB (255, 255, 128), start, end))
-        preedit_attrs.append (ibus.AttributeBackground (ibus.RGB (255, 255, 128), end, length))
-        preedit_attrs.append (ibus.AttributeForeground (ibus.RGB (0, 0, 0), end, length))
+        if 0 < start:
+            preedit_attrs.append (ibus.AttributeBackground (ibus.RGB (255, 255, 128), 0, start))
+            preedit_attrs.append (ibus.AttributeForeground (ibus.RGB (0, 0, 0), 0, start))
+        if start < end:
+            preedit_attrs.append (ibus.AttributeBackground (ibus.RGB (0, 0, 0), start, end))
+            preedit_attrs.append (ibus.AttributeForeground (ibus.RGB (255, 255, 128), start, end))
+        if end < length:
+            preedit_attrs.append (ibus.AttributeBackground (ibus.RGB (255, 255, 128), end, length))
+            preedit_attrs.append (ibus.AttributeForeground (ibus.RGB (0, 0, 0), end, length))
         super (ZimeEngine, self).update_preedit_text (ibus.Text (s, preedit_attrs), length, True)
 
     def update_aux_string (self, s):

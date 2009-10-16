@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
 # vim:set et sts=4 sw=4:
 
+import os
 import ibus
 from ibus import keysyms
 
+from stylo import zimedb
 from stylo import zimeengine
+
+IBUS_ZIME_LOCATION = os.getenv ("IBUS_ZIME_LOCATION") or ".."
+db_path = os.path.join (IBUS_ZIME_LOCATION, 'data', 'zime.db')
+zimedb.DB.connect (db_path)
 
 
 class TestEngine:

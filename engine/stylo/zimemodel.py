@@ -106,7 +106,7 @@ class Model:
         t = ctx.sugg[k]
         split_words = lambda x: x.split () if u' ' in x else list (x)
         while t[0] != -1:
-            r = split_words(t[1]) + r
+            r = split_words (t[1]) + r
             t = ctx.sugg[t[0]]
         ctx.preedit = r
         # update candidates

@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 
-import os
 import sqlite3
-
-IBUS_ZIME_LOCATION = os.getenv ("IBUS_ZIME_LOCATION") or ".."
 
 class DB:
 
-    __db_path = os.path.join (IBUS_ZIME_LOCATION, 'data', 'zime.db')
-    __conn = sqlite3.connect (__db_path)
+    @classmethod
+    def connect (cls, db_path):
+        cls.__conn = sqlite3.connect (db_path)
 
     def __init__ (self, name):
         self.__name = name
@@ -61,6 +59,6 @@ class DB:
         args = {'klen' : klen}
         for i in range (klen):
             args['k%d' % i] = keywords[i]
-        r = self.__conn.execute (self.QUERY_PHRASE_SQL[klen - 1], args).fetchall ()
+        r = DB.__conn.execute (self.QUERY_PHRASE_SQL[klen - 1], args).fetchall ()
         return r
 
