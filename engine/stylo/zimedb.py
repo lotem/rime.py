@@ -4,17 +4,31 @@ import sqlite3
 
 class DB:
 
-    QUERY_SETTING_SQL = """
-    SELECT value FROM settings where path = :path;
-    """
-
     @classmethod
     def connect (cls, db_path):
         cls.__conn = sqlite3.connect (db_path)
 
+    QUERY_SETTING_SQL = """
+    SELECT value FROM settings WHERE path = :path;
+    """
+
+    QUERY_SETTING_ITEMS_SQL = """
+    SELECT path, value FROM settings WHERE path LIKE :pattern;
+    """
+
+    @classmethod
+    def read_setting (cls, key):
+        r = DB.__conn.execute (DB.QUERY_SETTING_SQL, {'path': key}).fetchone ()
+        return r[0] if r else None
+
+    @classmethod
+    def read_setting_items (cls, key):
+        r = DB.__conn.execute (DB.QUERY_SETTING_ITEMS_SQL, {'pattern': key + '%'}).fetchall ()
+        return [(x[0][len (key):], x[1]) for x in r]
+
     def __init__ (self, name):
         self.__name = name
-        self.__conf_path = 'Schema/%s/' % name
+        self.__conf_path = 'Config/%s/' % name
         prefix = {'prefix' : self.read_config_value ('Prefix')}
         self.QUERY_KEYWORD_SQL = """
         SELECT phrase FROM %(prefix)s_keywords WHERE keyword = :keyword;
@@ -60,9 +74,7 @@ class DB:
         """ % prefix
 
     def read_config_value (self, key):
-        print self.__conf_path + key
-        r = DB.__conn.execute (DB.QUERY_SETTING_SQL, {'path': self.__conf_path + key}).fetchone ()
-        return r[0] if r else None
+        return DB.read_setting (self.__conf_path + key)
 
     def lookup (self, keywords):
         klen = len (keywords)

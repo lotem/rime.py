@@ -9,12 +9,11 @@ import os
 import ibus
 import gobject
 
-from stylo import zimedb
 from stylo import zimeengine
 
 IBUS_ZIME_LOCATION = os.getenv ("IBUS_ZIME_LOCATION") or ".."
 db_path = os.path.join (IBUS_ZIME_LOCATION, 'data', 'zime.db')
-zimedb.DB.connect (db_path)
+zimeengine.initialize (db_path)
 
 #from gettext import dgettext
 #_  = lambda a : dgettext ("ibus-zime", a)
@@ -26,11 +25,10 @@ class ZimeEngine (ibus.EngineBase):
     def __init__ (self, conn, object_path):
         super (ZimeEngine, self).__init__ (conn, object_path)
         self.__lookup_table = ibus.LookupTable ()
-        # TODO
-        self.__engine = zimeengine.Engine (self, 'Zhuyin')
+        self.__backend = zimeengine.SchemaChooser (self)
 
     def process_key_event (self, keycode, mask):
-        return self.__engine.process_key_event (keycode, mask)
+        return self.__backend.process_key_event (keycode, mask)
 
     def commit_string (self, s):
         #print u'commit: [%s]' % s

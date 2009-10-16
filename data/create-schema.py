@@ -138,12 +138,13 @@ if schema_file:
             if m:
                 schema = m.group (1)
                 print >> sys.stderr, 'processing schema: %s' % schema
-                conn.execute (CLEAR_SCHEMA_SETTING_SQL, (path + u'%', ))
+                conn.execute (CLEAR_SCHEMA_SETTING_SQL, (path, ))
+                conn.execute (CLEAR_SCHEMA_SETTING_SQL, (u'Config/%s/%%' % schema, ))
         else:
-            if not prefix and path == u'Schema/%s/Prefix' % schema:
+            if not prefix and path == u'Config/%s/Prefix' % schema:
                 prefix = value
                 print >> sys.stderr, 'schema prefix: %s' % prefix
-            if not delim and path == u'Schema/%s/Delimiter' % schema:
+            if not delim and path == u'Config/%s/Delimiter' % schema:
                 if value[0] == u'[' and value[-1] == u']':
                     delim = value[1]
                 else:

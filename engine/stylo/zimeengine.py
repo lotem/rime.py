@@ -5,10 +5,13 @@ import ibus
 from ibus import keysyms
 
 from zimecore import *
+from zimedb import *
 from zimemodel import *
 import zimeparser
 
-zimeparser.register_parsers ()
+def initialize (db_path):
+    zimeparser.register_parsers ()
+    DB.connect (db_path)
 
 class Engine:
     def __init__ (self, frontend, name):
@@ -73,5 +76,20 @@ class Engine:
         self.__frontend.update_preedit (ctx.get_preedit (), k, k + ll)
         self.__frontend.update_aux_string (ctx.get_aux_string ())
         self.__frontend.update_candidates (ctx.get_candidates ())
+        
+class SchemaChooser:
+    def __init__ (self, frontend, schema_name=None):
+        self.__frontend = frontend
+        s = DB.read_setting_items (u'Schema/')
+        print 'schema:', s
+        if not schema_name and len (s) > 0:
+            # TODO
+            #t = DB.read_setting_items (u'SchemaChooser/LastUsed/')
+            schema_name = s[0][0]
+        self.choose (schema_name)
+    def choose (self, schema_name):
+        self.__engine = Engine (self.__frontend, schema_name)
+    def process_key_event (self, keycode, mask):
+        return self.__engine.process_key_event (keycode, mask)
         
 

@@ -10,4 +10,4 @@ uninstall:
 	rm /usr/lib/ibus/ibus-engine-zime
 	rm /usr/share/ibus/component/zime.xml
 clean:
-	-rm engine/*~ engine/stylo/*~ > /dev/null 2>&1
+	-rm *~ data/*~ engine/*~ engine/stylo/*~ > /dev/null 2>&1

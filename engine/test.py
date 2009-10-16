@@ -5,24 +5,21 @@ import os
 import ibus
 from ibus import keysyms
 
-from stylo import zimedb
 from stylo import zimeengine
 
 IBUS_ZIME_LOCATION = os.getenv ("IBUS_ZIME_LOCATION") or ".."
 db_path = os.path.join (IBUS_ZIME_LOCATION, 'data', 'zime.db')
-zimedb.DB.connect (db_path)
-
+zimeengine.initialize (db_path)
 
 class TestEngine:
 
     def __init__ (self):
         self.__lookup_table = ibus.LookupTable ()
-        # TODO
-        self.__engine = zimeengine.Engine (self, 'Zhuyin')
+        self.__backend = zimeengine.SchemaChooser (self, u'Zhuyin')
 
     def process_key_event (self, keycode, mask):
         print "key_event: '%s' (%x), %x" % (keysyms.keycode_to_name (keycode), keycode, mask)
-        return self.__engine.process_key_event (keycode, mask)
+        return self.__backend.process_key_event (keycode, mask)
 
     def commit_string (self, s):
         print u'commit: [%s]' % s
@@ -107,8 +104,8 @@ def main ():
     #e.test ('5j/ eji62k75j/ {Left}1{Home}2{Left}1{Tab}1 ')
     #e.test ('5j/ cj86bp6aup6ej/4ck6eji6{Home}1{Home}')
     #e.test ('5j/ cj86bp6aup6ej/4ck6eji6j04njo4{Left}{Left}5{End}{BackSpace}{BackSpace}{BackSpace}{BackSpace}{BackSpace}{BackSpace}{BackSpace} ')
-    e.test ('5j/ 5. mp4{Left}2gj bj4 ')
-    e.test ('5j/ 5. mp4gj {Left}{Left}2bj4z83{Home}{Tab}{Tab}4')
+    #e.test ('5j/ 5. mp4{Left}2gj bj4 ')
+    #e.test ('5j/ 5. mp4gj {Left}{Left}2bj4z83{Home}{Tab}{Tab}4')
 
 if __name__ == "__main__":
     main ()

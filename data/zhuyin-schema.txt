@@ -1,5 +1,5 @@
 Schema/Zhuyin = 注音
-Schema/Zhuyin/Prefix = zhuyin
-Schema/Zhuyin/Parser = grouping
-Schema/Zhuyin/KeyGroups = 1qaz2wsxedcrfv5tgbyhn ujm 8ik,9ol.0p;/- 6347
-Schema/Zhuyin/CodeGroups = ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙ ㄧㄨㄩ ㄚㄛㄜㄝㄞㄟㄠㄡㄢㄣㄤㄥㄦ ˊˇˋ˙
+Config/Zhuyin/Prefix = zhuyin
+Config/Zhuyin/Parser = grouping
+Config/Zhuyin/KeyGroups = 1qaz2wsxedcrfv5tgbyhn ujm 8ik,9ol.0p;/- 6347
+Config/Zhuyin/CodeGroups = ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙ ㄧㄨㄩ ㄚㄛㄜㄝㄞㄟㄠㄡㄢㄣㄤㄥㄦ ˊˇˋ˙
