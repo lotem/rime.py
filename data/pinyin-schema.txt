@@ -1,0 +1,5 @@
+Schema/Pinyin = 拼音
+Config/Pinyin/Prefix = pinyin
+Config/Pinyin/Parser = roman
+Config/Pinyin/Delimiter = [ '-]
+Config/Pinyin/MaxKeywordLength = 6
