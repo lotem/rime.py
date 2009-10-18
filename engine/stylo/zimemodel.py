@@ -2,9 +2,8 @@
 # vim:set et sts=4 sw=4:
 
 class Model:
-    def __init__ (self, schema):
-        self.__db = schema.get_db ()
-        self.__in_place_prompt = schema.get_in_place_prompt ()
+    def __init__ (self):
+        pass
     def update (self, ctx):
         m = 0
         while m < min (len (ctx.keywords), len (ctx.kwd)) and ctx.keywords[m] == ctx.kwd[m]:
@@ -15,13 +14,15 @@ class Model:
             del ctx.cand[i][m - i:]
         del ctx.cand[m:]
         del ctx.sugg[m + 1:]
-        for k in ctx.keywords[m:len (ctx.keywords) - self.__in_place_prompt]:
+        db = ctx.schema.get_db ()
+        in_place_prompt = ctx.schema.get_in_place_prompt ()
+        for k in ctx.keywords[m:len (ctx.keywords) - in_place_prompt]:
             ctx.kwd.append (k)
             ctx.cand.append ([])
             ctx.sugg.append (None)
             n = len (ctx.kwd)
             for i in range (max (0, n - 4), n):
-                r = self.__db.lookup (ctx.kwd[i:])
+                r = db.lookup (ctx.kwd[i:])
                 for x in r:
                     if n - i == 4 and self.__concatenated (ctx, i, x):
                         continue

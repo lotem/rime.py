@@ -27,9 +27,9 @@ class Engine:
     def __init__ (self, frontend, name):
         self.__frontend = frontend
         self.__schema = Schema (name)
-        self.__model = Model (self.__schema)
         self.__parser = Parser.create (self.__schema)
-        self.__ctx = Context (self, self.__model)
+        self.__model = Model ()
+        self.__ctx = Context (self, self.__model, self.__schema)
         self.update_ui ()
     def process_key_event (self, keycode, mask):
         if self.__parser.process (KeyEvent (keycode, mask), self.__ctx):
@@ -114,7 +114,6 @@ class SchemaChooser:
         elif len (s) > 0:
             c = 0
         if c == -1:
-            # TODO: 
             self.__frontend.update_aux_string (u'無方案')
             self.__reset ()
         else:
