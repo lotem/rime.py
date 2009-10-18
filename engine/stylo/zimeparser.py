@@ -24,9 +24,10 @@ class RomanParser (Parser):
         return True
 
 class ComboParser (Parser):
-    pass
+    IN_PLACE_PROMPT = 1
 
 class GroupingParser (Parser):
+    IN_PLACE_PROMPT = 1
     def __init__ (self, schema):
         self.__key_groups = schema.get_config_value (u'KeyGroups').split ()
         self.__code_groups = schema.get_config_value (u'CodeGroups').split ()

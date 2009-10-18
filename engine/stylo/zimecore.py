@@ -14,7 +14,7 @@ class Schema:
         self.__name = name
         self.__db = DB (name)
         self.__parser_name = self.__db.read_config_value ('Parser')
-        self.__in_place_prompt = 0 if self.__parser_name == 'roman' else 1
+        self.__in_place_prompt = Parser.get_parser_class (self.__parser_name).IN_PLACE_PROMPT
     def get_name (self):
         return self.__name
     def get_db (self):
@@ -33,12 +33,16 @@ class Schema:
 
 class Parser:
     __parsers = dict ()
+    IN_PLACE_PROMPT = 0
     @classmethod
     def register (cls, name, parser_class):
         cls.__parsers[name] = parser_class
     @classmethod
+    def get_parser_class (cls, parser_name):
+        return cls.__parsers[parser_name]
+    @classmethod
     def create (cls, schema):
-        return cls.__parsers[schema.get_parser_name ()] (schema)
+        return cls.get_parser_class (schema.get_parser_name ()) (schema)
     def __init__ (self, schema):
         self.__schema = schema
 
@@ -57,6 +61,7 @@ class Context:
         self.preedit = [u'']
         self.candidates = [None]
         self.selection = []
+        self.aux_string = u''
     def clear (self):
         self.__reset ()
         self.__cb.update_ui ()
@@ -82,6 +87,8 @@ class Context:
     def get_preedit (self):
         return u''.join (self.preedit)
     def get_aux_string (self):
+        if self.aux_string:
+            return self.aux_string
         k = self.cursor
         if k < len (self.keywords) - self.schema.get_in_place_prompt ():
             return self.keywords[k]
