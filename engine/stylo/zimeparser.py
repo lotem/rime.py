@@ -7,16 +7,29 @@ from ibus import modifier
 from zimecore import *
 
 class RomanParser (Parser):
-    pass
+    def __init__ (self, schema):
+        self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
+        self.__input = []
+    def process (self, event, ctx):
+        if event.mask & modifier.RELEASE_MASK:
+            return True
+        if event.keycode == keysyms.BackSpace:
+            if self.__is_empty ():
+                return False
+            # TODO
+            return True
+        if event.keycode in (keysyms.space, keysyms.Return):
+            return False
+        # TODO
+        return True
 
 class ComboParser (Parser):
     pass
 
 class GroupingParser (Parser):
     def __init__ (self, schema):
-        self.__schema = schema
-        self.__key_groups = u'1qaz2wsxedcrfv5tgbyhn ujm 8ik,9ol.0p;/- 6347'.split ()
-        self.__code_groups = u'ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙ ㄧㄨㄩ ㄚㄛㄜㄝㄞㄟㄠㄡㄢㄣㄤㄥㄦ ˊˇˋ˙'.split ()
+        self.__key_groups = schema.get_config_value (u'KeyGroups').split ()
+        self.__code_groups = schema.get_config_value (u'CodeGroups').split ()
         self.__group_count = len (self.__key_groups)
         self.clear ()
     def clear (self):

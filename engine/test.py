@@ -8,9 +8,9 @@ from stylo import zimeengine
 
 class TestEngine:
 
-    def __init__ (self):
+    def __init__ (self, schema):
         self.__lookup_table = ibus.LookupTable ()
-        self.__backend = zimeengine.SchemaChooser (self, u'Zhuyin')
+        self.__backend = zimeengine.SchemaChooser (self, schema)
 
     def process_key_event (self, keycode, mask):
         print "key_event: '%s' (%x), %x" % (keysyms.keycode_to_name (keycode), keycode, mask)
@@ -91,7 +91,7 @@ class TestEngine:
                 self.process_key_event (ord (c), 0)
 
 def main ():
-    e = TestEngine ()
+    e = TestEngine (u'Zhuyin')
     #e.test ('5j/ cj86aup6eji6{BackSpace}ji{BackSpace}i6 ')
     #e.test ('5j/ eji6{BackSpace}{BackSpace}')
     #e.test ('5j/ cj86bp6aup6ej/4ck6eji6{Tab}{Page_Down}{Page_Up}{Tab}{Escape} ')
@@ -108,6 +108,11 @@ def main ():
     #e.test ('{Page_Down}{Up}{Escape}')
     #e.process_key_event (96, 4)  # Ctrl+grave
     #e.test ('1')
+    #
+    e.test ('g4{Tab}.=,- ')
+
+    e = TestEngine (u'Pinyin')
+    e.test ('pinyin ')
 
 if __name__ == "__main__":
     main ()

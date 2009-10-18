@@ -49,11 +49,11 @@ class Engine:
             self.__ctx.move_cursor (1)
             return True
         candidates = self.__ctx.get_candidates ()
-        if keycode == keysyms.Page_Up or keycode == keysyms.Up:
+        if keycode in (keysyms.Page_Up, keysyms.Up, keysyms.minus, keysyms.comma):
             if candidates and self.__frontend.page_up ():
                 return True
             return True
-        if keycode == keysyms.Page_Down or keycode == keysyms.Down:
+        if keycode in (keysyms.Page_Down, keysyms.Down, keysyms.equal, keysyms.period):
             if candidates and self.__frontend.page_down ():
                 return True
             return True

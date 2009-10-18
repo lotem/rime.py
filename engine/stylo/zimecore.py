@@ -22,6 +22,13 @@ class Schema:
     def get_in_place_prompt (self):
         parser = self.__db.read_config_value ('Parser')
         return 0 if parser == 'roman' else 1
+    def get_config_value (self, key):
+        return self.__db.read_config_value (key)
+    def get_config_char_sequence (self, key):
+        r = self.__db.read_config_value (key)
+        if r and r.startswith (u'[') and r.endswith (u']'):
+            return r[1:-1]
+        return r
 
 class Parser:
     __parsers = dict ()
