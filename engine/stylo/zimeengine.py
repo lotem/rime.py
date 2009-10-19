@@ -84,6 +84,7 @@ class Engine:
         start = 0
         for x in ctx.preedit[:ctx.cursor]:
             start += len (x)
+        print ctx.preedit, ctx.cursor
         end = start + len (ctx.preedit[ctx.cursor])
         self.__frontend.update_preedit (ctx.get_preedit (), start, end)
         self.__frontend.update_aux_string (ctx.get_aux_string ())

@@ -5,6 +5,8 @@ class Model:
     def __init__ (self):
         pass
     def update (self, ctx):
+        print 'update:', ctx.keywords
+        db = ctx.schema.get_db ()
         m = 0
         while m < min (len (ctx.keywords), len (ctx.kwd)) and ctx.keywords[m] == ctx.kwd[m]:
             m += 1
@@ -14,9 +16,7 @@ class Model:
             del ctx.cand[i][m - i:]
         del ctx.cand[m:]
         del ctx.sugg[m + 1:]
-        db = ctx.schema.get_db ()
-        in_place_prompt = ctx.schema.get_in_place_prompt ()
-        for k in ctx.keywords[m:len (ctx.keywords) - in_place_prompt]:
+        for k in ctx.keywords[m:len (ctx.keywords) - 1]:
             ctx.kwd.append (k)
             ctx.cand.append ([])
             ctx.sugg.append (None)
@@ -54,7 +54,6 @@ class Model:
                 return True
         return False
     def __invalidate_selections (self, ctx, start, end):
-        print '__invalidate_selections:', start, end
         if start >= end:
             return
         for s in ctx.selection:
@@ -68,14 +67,12 @@ class Model:
             for i in range (s[0], s[1] - 1):
                 sel[i] = Fixed
             sel[s[0] + s[1] - 1] = s
-        print sel
         def update_sugg (ctx, k, i, x):
             w = ctx.sugg[i][2] + 1 + 1.0 / (x[1] + 1)
             if not ctx.sugg[k] or w < ctx.sugg[k][2]:
                 ctx.sugg[k] = (i, x[0], w)
         start = 0
         for k in range (1, len (ctx.sugg)):
-            print 'k:', k
             s = sel[k - 1]
             if s == Fixed:
                 pass
@@ -94,7 +91,6 @@ class Model:
             else:
                 i, j, x = s[:]
                 start = i + j
-                print 'start:', start
                 if ctx.sugg[k]:
                     continue
                 if ctx.sugg[i]:

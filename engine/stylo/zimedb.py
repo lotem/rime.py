@@ -62,6 +62,9 @@ class DB:
         self.__name = name
         self.__conf_path = 'Config/%s/' % name
         prefix = {'prefix' : self.read_config_value ('Prefix')}
+        self.LIST_KEYWORDS_SQL = """
+        SELECT DISTINCT keyword FROM %(prefix)s_keywords;
+        """ % prefix
         self.QUERY_KEYWORD_SQL = """
         SELECT phrase FROM %(prefix)s_keywords WHERE keyword = :keyword;
         """ % prefix
@@ -108,11 +111,14 @@ class DB:
     def read_config_value (self, key):
         return DB.read_setting (self.__conf_path + key)
 
-    def lookup (self, keywords):
-        klen = len (keywords)
+    def list_keywords (self):
+        return [x[0] for x in DB.__conn.execute (self.LIST_KEYWORDS_SQL, ()).fetchall ()]
+
+    def lookup (self, key):
+        klen = len (key)
         args = {'klen' : klen}
         for i in range (klen):
-            args['k%d' % i] = keywords[i]
+            args['k%d' % i] = key[i]
         r = DB.__conn.execute (self.QUERY_PHRASE_SQL[klen - 1], args).fetchall ()
         return r
 
