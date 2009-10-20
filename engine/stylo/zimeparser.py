@@ -12,9 +12,28 @@ class RomanParser (Parser):
         self.__alphabet = schema.get_config_char_sequence (u'Alphabet') or u'abcdefghijklmnopqrstuvwxyz'
         self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
         self.__max_keyword_length = int (schema.get_config_value (u'MaxKeywordLength') or u'7')
-        self.__split_rules = [tuple (r.split ()) for r in schema.get_config_list (u'SplitRule')]
+        get_rules = lambda f, key: [f (r.split ()) for r in schema.get_config_list (key)]
+        compile_repl_pattern = lambda x: (re.compile (x[0]), x[1])
+        self.__split_rules = get_rules (tuple, u'SplitRule')
+        spelling_rules = get_rules (compile_repl_pattern, u'SpellingRule')
+        fuzzy_rules = get_rules (compile_repl_pattern, u'FuzzyRule')
         db = schema.get_db ()
-        self.__keywords = set (db.list_keywords ())
+        keywords = db.list_keywords ()
+        self.__use_keyword_mapping = bool (spelling_rules or fuzzy_rules)
+        if self.__use_keyword_mapping:
+            def apply_spelling_rule (m, r):
+                return (r[0].sub (r[1], m[0], 1), m[1])
+            d = dict ([reduce (apply_spelling_rule, spelling_rules, (k, k)) for k in keywords])
+            def apply_fuzzy_rule (d, r):
+                dd = dict (d)
+                for x in d:
+                    y = r[0].sub (r[1], x, 1)
+                    if y not in dd:
+                        dd[y] = d[x]
+                return dd
+            self.__keywords = reduce (apply_fuzzy_rule, fuzzy_rules, d)
+        else:
+            self.__keywords = set (keywords)
         self.__clear ()
     def __clear (self):
         self.__input = []
@@ -54,7 +73,10 @@ class RomanParser (Parser):
                 remainder = u''.join (self.__input[i:])
                 break
         ctx.aux_string = u''.join ([self.__delimiter[0] if x is None else x for x in k] + [remainder])
-        ctx.keywords = k[::2] + [remainder]
+        if self.__use_keyword_mapping:
+            ctx.keywords = [self.__keywords[x] for x in k[::2]] + [remainder]
+        else:
+            ctx.keywords = k[::2] + [remainder]
         print 'parse result:', ctx.keywords
         ctx.update_keywords ()
     def process (self, event, ctx):

@@ -114,7 +114,8 @@ def main ():
     #e.test ('zhongguo weida ')
     #e.test ('zhongzhouhua4 ')
     #e.test ("pinyin-shuru'fa' ")
-    e.test ("an'an anan chang'an changang2 ")
+    #e.test ("an'an anan chang'an changang2 ")
+    e.test ('xauxin xiauxin ')
 
 if __name__ == "__main__":
     main ()

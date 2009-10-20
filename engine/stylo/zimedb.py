@@ -5,11 +5,14 @@ import time
 
 class DB:
 
-    CREATE_SETTINGS_TABLE_SQL = """
+    CREATE_SETTING_TABLE_SQL = """
     CREATE TABLE IF NOT EXISTS settings (
-        path TEXT PRIMARY KEY,
+        path TEXT,
         value TEXT
     );
+    """
+    CREATE_SETTING_INDEX_SQL = """
+    CREATE INDEX IF NOT EXISTS setting_index ON settings (path);
     """
     QUERY_SETTING_SQL = """
     SELECT value FROM settings WHERE path = :path;
@@ -30,7 +33,8 @@ class DB:
     @classmethod
     def open (cls, db_file):
         cls.__conn = sqlite3.connect (db_file)
-        cls.__conn.execute (cls.CREATE_SETTINGS_TABLE_SQL)
+        cls.__conn.execute (cls.CREATE_SETTING_TABLE_SQL)
+        cls.__conn.execute (cls.CREATE_SETTING_INDEX_SQL)
         cls.flush (True)
 
     @classmethod

@@ -5,3 +5,5 @@ Config/Pinyin/AutoPrompt = yes
 Config/Pinyin/Delimiter = [ '-]
 Config/Pinyin/MaxKeywordLength = 6
 Config/Pinyin/SplitRule = ng aeiou
+Config/Pinyin/SpellingRule = ao$ au
+Config/Pinyin/FuzzyRule = ^([jqx])i([aeiou]) \1\2

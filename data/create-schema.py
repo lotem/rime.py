@@ -17,11 +17,15 @@ def debug (*what):
     print >> sys.stderr, u'[DEBUG]: ', u' '.join (map (unicode, what))
 
 
-CREATE_SETTINGS_TABLE_SQL = """
+CREATE_SETTING_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS settings (
-    path TEXT PRIMARY KEY,
+    path TEXT,
     value TEXT
 );
+"""
+
+CREATE_SETTING_INDEX_SQL = """
+CREATE INDEX IF NOT EXISTS setting_index ON settings (path);
 """
 
 CLEAR_SCHEMA_SETTING_SQL = """
@@ -32,7 +36,7 @@ ADD_SETTING_SQL = """
 INSERT INTO settings VALUES (?, ?);
 """
 
-DROP_KEYWORDS_TABLE_SQL = """
+DROP_KEYWORD_TABLE_SQL = """
 DROP TABLE IF EXISTS %(prefix)s_keywords;
 """
 
@@ -48,7 +52,7 @@ DROP_PHRASE_INDEX_SQL = """
 DROP INDEX IF EXISTS %(prefix)s_phrase_index;
 """
 
-CREATE_KEYWORDS_TABLE_SQL = """
+CREATE_KEYWORD_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS %(prefix)s_keywords (
     keyword TEXT,
     phrase TEXT
@@ -126,7 +130,8 @@ else:
     db_file = options.db_file
 
 conn = sqlite3.connect (db_file)
-conn.execute (CREATE_SETTINGS_TABLE_SQL)
+conn.execute (CREATE_SETTING_TABLE_SQL)
+conn.execute (CREATE_SETTING_INDEX_SQL)
 
 schema = None
 prefix = None
@@ -168,9 +173,9 @@ prefix_args = {'prefix' : prefix}
 if not options.keep:
     conn.execute (DROP_KEYWORD_INDEX_SQL % prefix_args)
     conn.execute (DROP_PHRASE_INDEX_SQL % prefix_args)
-    conn.execute (DROP_KEYWORDS_TABLE_SQL % prefix_args)
+    conn.execute (DROP_KEYWORD_TABLE_SQL % prefix_args)
     conn.execute (DROP_PHRASES_TABLE_SQL % prefix_args)
-conn.execute (CREATE_KEYWORDS_TABLE_SQL % prefix_args)
+conn.execute (CREATE_KEYWORD_TABLE_SQL % prefix_args)
 conn.execute (CREATE_PHRASES_TABLE_SQL % prefix_args)
 conn.execute (CREATE_KEYWORD_INDEX_SQL % prefix_args)
 conn.execute (CREATE_PHRASE_INDEX_SQL % prefix_args)
