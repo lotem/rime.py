@@ -67,7 +67,7 @@ class Context:
     def is_empty (self):
         return not self.keywords or self.keywords == [u'']
     def update_keywords (self):
-        self.__set_cursor (len (self.keywords) - 1)
+        self.__set_cursor (-1)
         self.__model.update (self)
         self.__cb.update_ui ()
     def select (self, index):
@@ -75,17 +75,18 @@ class Context:
         self.__set_cursor (self.cursor + s[1])
         self.__model.select (self, s)
         self.__cb.update_ui ()
-    def __set_cursor (self, pos):
+    def __set_cursor (self, pos, wrap=False):
         n = len (self.keywords)
-        pos %= n
-        if pos > 0 and pos == n - 1 and not self.keywords[pos] and self.schema.is_auto_prompt ():
-            pos -= 1
-        self.cursor = pos
+        if n > 1 and not self.keywords[n - 1] and self.schema.is_auto_prompt ():
+            n -= 1
+        if not wrap and pos >= n:
+            pos = n - 1
+        self.cursor = pos % n
     def set_cursor (self, pos):
         self.__set_cursor (pos)
         self.__cb.update_ui ()
     def move_cursor (self, offset):
-        self.__set_cursor (self.cursor + offset)
+        self.__set_cursor (self.cursor + offset, wrap=True)
         self.__cb.update_ui ()
     def get_preedit (self):
         return u''.join (self.preedit)
