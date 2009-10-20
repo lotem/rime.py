@@ -32,12 +32,19 @@ class RomanParser (Parser):
                 if self.__is_keyword (s):
                     keyword = s
                     k.append (s) 
-                    i = j
+                    delim = None
+                    if j < len (self.__input) and self.__input[j] in self.__delimiter:
+                        delim = self.__input[j]
+                        i = j + 1
+                    else:
+                        i = j
+                    k.append (delim)
                     break
             if not keyword:
                 remainder = u''.join (self.__input[i:])
                 break
-        ctx.keywords = k + [remainder]
+        ctx.aux_string = u''.join ([self.__delimiter[0] if x is None else x for x in k] + [remainder])
+        ctx.keywords = k[::2] + [remainder]
         print 'parse result:', ctx.keywords
         ctx.update_keywords ()
     def process (self, event, ctx):

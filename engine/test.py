@@ -112,8 +112,8 @@ def main ():
 
     e = TestEngine (u'Pinyin')
     #e.test ('zhongguo weida ')
-    e.test ('zhongzhouhua4 ')
-    #e.test ("pinyin-shuru'fa' ")
+    #e.test ('zhongzhouhua4 ')
+    e.test ("pinyin-shuru'fa' ")
 
 if __name__ == "__main__":
     main ()
