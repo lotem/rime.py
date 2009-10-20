@@ -30,6 +30,8 @@ class Schema:
         if r and r.startswith (u'[') and r.endswith (u']'):
             return r[1:-1]
         return r
+    def get_config_list (self, key):
+        return self.__db.read_config_list (key)
 
 class Parser:
     __parsers = dict ()

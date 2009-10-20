@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import re
 from ibus import keysyms
 from ibus import modifier
 
@@ -11,6 +12,7 @@ class RomanParser (Parser):
         self.__alphabet = schema.get_config_char_sequence (u'Alphabet') or u'abcdefghijklmnopqrstuvwxyz'
         self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
         self.__max_keyword_length = int (schema.get_config_value (u'MaxKeywordLength') or u'7')
+        self.__split_rules = [tuple (r.split ()) for r in schema.get_config_list (u'SplitRule')]
         db = schema.get_db ()
         self.__keywords = set (db.list_keywords ())
         self.__clear ()
@@ -29,6 +31,14 @@ class RomanParser (Parser):
             keyword = None
             for j in range (min (n, i + self.__max_keyword_length), i, -1):
                 s = u''.join (self.__input[i:j])
+                if j < n:
+                    split = False
+                    for r in self.__split_rules:
+                        if self.__input[j - 1] in r[0] and self.__input[j] in r[1]:
+                            split = True
+                            break
+                    if split:
+                        continue
                 if self.__is_keyword (s):
                     keyword = s
                     k.append (s) 

@@ -39,6 +39,11 @@ class DB:
         return r[0] if r else None
 
     @classmethod
+    def read_setting_list (cls, key):
+        r = cls.__conn.execute (cls.QUERY_SETTING_SQL, {'path': key}).fetchall ()
+        return [x[0] for x in r]
+
+    @classmethod
     def read_setting_items (cls, key):
         r = cls.__conn.execute (cls.QUERY_SETTING_ITEMS_SQL, {'pattern': key + '%'}).fetchall ()
         return [(x[0][len (key):], x[1]) for x in r]
@@ -111,6 +116,9 @@ class DB:
     def read_config_value (self, key):
         return DB.read_setting (self.__conf_path + key)
 
+    def read_config_list (self, key):
+        return DB.read_setting_list (self.__conf_path + key)
+        
     def list_keywords (self):
         return [x[0] for x in DB.__conn.execute (self.LIST_KEYWORDS_SQL, ()).fetchall ()]
 

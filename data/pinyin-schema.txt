@@ -4,3 +4,4 @@ Config/Pinyin/Parser = roman
 Config/Pinyin/AutoPrompt = yes
 Config/Pinyin/Delimiter = [ '-]
 Config/Pinyin/MaxKeywordLength = 6
+Config/Pinyin/SplitRule = ng aeiou
