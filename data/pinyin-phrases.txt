@@ -48099,7 +48099,6 @@
 従	0	zong
 徖	5	cong
 得	147269	de
-得	19827	de
 得	2948	dei
 得上	107	dei shang
 得上來	1	dei shang lai
