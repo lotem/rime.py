@@ -1,7 +1,5 @@
-er	ㄦ
 er	兒
 er	児
-eh	ㄝ
 eh	誒
 ou	歐
 ou	甌
@@ -9,7 +7,6 @@ ou	毆
 ou	嘔
 ou	謳
 ou	鷗
-ou	ㄡ
 ou	慪
 ou	區
 ou	熰
@@ -48,10 +45,8 @@ ou	醧
 ou	吽
 ou	齵
 eng	鞥
-eng	ㄥ
 ang	骯
 ang	腌
-ang	ㄤ
 ang	軮
 ang	雵
 ang	盎
@@ -70,7 +65,6 @@ an	諳
 an	氨
 an	銨
 an	胺
-an	ㄢ
 an	鵪
 an	媕
 an	侒
@@ -141,7 +135,6 @@ an	䮗
 an	雸
 an	玵
 an	啽
-b	ㄅ
 beng	崩
 beng	繃
 beng	伻
@@ -1213,7 +1206,6 @@ bin	殡
 bin	賔
 bin	髩
 bin	鬂
-d	ㄉ
 dou	都
 dou	兜
 dou	郖
@@ -2394,7 +2386,6 @@ er	尔
 er	迩
 er	儞
 er	尓
-4	ˋ
 er	二
 er	貳
 er	佴
@@ -2428,7 +2419,6 @@ zhi	梔
 zhi	祗
 zhi	氏
 zhi	枳
-zhi	ㄓ
 zhi	胝
 zhi	鴟
 zhi	卮
@@ -3904,10 +3894,8 @@ er	䦧
 er	髵
 er	隭
 er	轜
-5	˙
 a	阿
 a	啊
-a	ㄚ
 a	腌
 a	吖
 a	阿
@@ -3919,7 +3907,6 @@ ai	哀
 ai	埃
 ai	唉
 ai	哎
-ai	ㄞ
 ai	欸
 ai	矮
 ai	藹
@@ -3991,7 +3978,6 @@ ai	崕
 ai	凒
 ai	敱
 ai	嘊
-m	ㄇ
 mou	某
 mou	冇
 mou	踇
@@ -4930,7 +4916,6 @@ min	䪸
 min	賯
 min	鍲
 min	冺
-ri	ㄖ
 rou	糅
 rou	鍕
 rou	粈
@@ -5325,7 +5310,6 @@ ren	鈓
 ren	忈
 ren	秂
 ren	魜
-h	ㄏ
 hou	齁
 hou	呴
 hou	吼
@@ -6712,7 +6696,6 @@ hen	拫
 hen	鞎
 hen	含
 hen	噙
-k	ㄎ
 kou	摳
 kou	彄
 kou	芤
@@ -7378,7 +7361,6 @@ ken	硍
 ken	裉
 ken	啃
 ken	褃
-g	ㄍ
 gou	句
 gou	溝
 gou	勾
@@ -8561,7 +8543,6 @@ gen	閬
 gen	亘
 gen	珢
 gen	哏
-q	ㄑ
 q	胠
 q	啐
 qu	區
@@ -9946,7 +9927,6 @@ shi	溼
 shi	濕
 shi	獅
 shi	屍
-shi	ㄕ
 shi	蝨
 shi	虱
 shi	尸
@@ -10882,7 +10862,6 @@ shen	甚
 ci	疵
 ci	庛
 ci	雌
-ci	ㄘ
 ci	差
 ci	趀
 ci	骴
@@ -11411,7 +11390,6 @@ cen	侺
 cen	汵
 cen	筨
 o	喔
-o	ㄛ
 o	呵
 o	啊
 o	嚄
@@ -11428,7 +11406,6 @@ wu	鎢
 wu	鄔
 wu	洿
 wu	歍
-wu	ㄨ
 wu	惡
 wu	於
 wu	杇
@@ -12222,7 +12199,6 @@ wen	瘒
 e	阿
 e	婀
 e	痾
-e	ㄜ
 e	屙
 e	峉
 e	錒
@@ -12359,7 +12335,6 @@ e	䄉
 e	㘥
 e	鰪
 ao	凹
-ao	ㄠ
 ao	坳
 ao	柪
 ao	熬
@@ -12443,7 +12418,6 @@ yu	淤
 yu	迂
 yu	瘀
 yu	紆
-yu	ㄩ
 yu	毹
 yu	箊
 yu	扜
@@ -13228,7 +13202,6 @@ si	撕
 si	廝
 si	鷥
 si	嘶
-si	ㄙ
 si	澌
 si	緦
 si	偲
@@ -13815,15 +13788,12 @@ sen	幓
 sen	篸
 sen	穼
 sen	椮
-ei	ㄟ
 ei	欸
 en	恩
 en	嗯
-en	ㄣ
 en	蒽
 en	峎
 en	摁
-p	ㄆ
 pou	剖
 pou	吥
 pou	娝
@@ -14617,7 +14587,6 @@ pin	琕
 pin	滨
 pin	濵
 pin	薲
-j	ㄐ
 ju	居
 ju	拘
 ju	駒
@@ -16853,7 +16822,6 @@ jin	㯲
 jin	劤
 jin	濅
 jin	齽
-n	ㄋ
 nou	啂
 nou	耨
 nou	鎒
@@ -17449,7 +17417,6 @@ chi	癡
 chi	痴
 chi	嗤
 chi	喫
-chi	ㄔ
 chi	郗
 chi	魑
 chi	笞
@@ -18560,7 +18527,6 @@ yi	噫
 yi	漪
 yi	猗
 yi	咿
-yi	ㄧ
 yi	禕
 yi	繄
 yi	黟
@@ -20163,7 +20129,6 @@ yin	璌
 yin	峾
 yin	訔
 yin	鈝
-x	ㄒ
 xu	須
 xu	需
 xu	虛
@@ -21834,7 +21799,6 @@ xin	杺
 xin	攳
 xin	襑
 xin	鬵
-t	ㄊ
 tou	偷
 tou	媮
 tou	偸
@@ -22918,7 +22882,6 @@ tiao	萔
 tiao	樤
 tiao	鋚
 tiao	縧
-l	ㄌ
 lou	摟
 lou	瞜
 lou	簍
@@ -24648,7 +24611,6 @@ zi	孜
 zi	諮
 zi	貲
 zi	玆
-zi	ㄗ
 zi	輜
 zi	淄
 zi	齜
@@ -25290,7 +25252,6 @@ zei	賊
 zei	戝
 zen	怎
 zen	譖
-f	ㄈ
 fou	不
 fou	否
 fou	缶

@@ -1,5 +1,3 @@
-ㄅ	0	b
-ㄛ	0	o
 㒖	0	ou
 䇦	0	ying
 㸸	0	kou
@@ -12,8 +10,6 @@
 㐁	0	tian
 𠹌	0	neng
 𠅗	0	die
-ˇ	1	3
-ㄓ	1	zhi
 ○	1	ling
 兀	19	wu
 嗀	3	que
@@ -92301,7 +92297,7 @@
 皂靴	1	zao xue
 皃	0	mao
 的	14727	di
-的	147270	de
+的	147770	de
 的的確確	15	di di que que
 的確	1558	di que
 的確如此	12	di que ru ci
@@ -147069,8 +147065,8 @@
 麻麻糊糊	0	ma ma hu hu
 麻黃	17	ma huang
 麻黃素	4	ma huang su
-麼	2536	ma
-麽	0	ma
+麼	2536	mo
+麽	0	mo
 麾	344	hui
 麾下	26	hui xia
 麾軍	0	hui jun
