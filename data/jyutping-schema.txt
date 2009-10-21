@@ -5,5 +5,5 @@ Config/Jyutping/AutoPrompt = yes
 Config/Jyutping/Delimiter = [ '-]
 Config/Jyutping/MaxKeywordLength = 6
 Config/Jyutping/SplitRule = ptkmng aeiou
-Config/Jyutping/SplitRule = n g
+#Config/Jyutping/SplitRule = n g
 Config/Jyutping/SplitRule = gk w
