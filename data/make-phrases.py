@@ -14,9 +14,9 @@ import optparse
 def debug (*what):
     print >> sys.stderr, u'[DEBUG]: ', u' '.join (map (unicode, what))
 
-parser = optparse.OptionParser()
-parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, help='make lots of noice.')
-options, args = parser.parse_args()
+parser = optparse.OptionParser ()
+parser.add_option ('-v', '--verbose', action='store_true', dest='verbose', default=False, help='make lots of noice.')
+options, args = parser.parse_args ()
 
 if len (args) < 1:
     parser.error ('missing prefix')
@@ -42,7 +42,8 @@ for line in keyword_file:
         max_word_length = len (w)
 keyword_file.close ()
 
-print 'max-word-length: %d' % max_word_length
+if options.verbose:
+    print 'max-word-length: %d' % max_word_length
 
 source_file = open ('phrases.txt')
 phrase_file = open ('%s-phrases.txt' % prefix, 'w')
