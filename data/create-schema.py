@@ -143,7 +143,7 @@ if schema_file:
         if x.startswith (u'#'):
             continue
         try:
-            (path, value) = x.split (u' = ', 2)
+            (path, value) = x.split (u' = ', 1)
         except:
             print >> sys.stderr, 'error parsing (%s) %s' % (schema_file, x)
             exit ()
@@ -250,7 +250,7 @@ if phrase_file:
         if x.startswith (u'#'):
             continue
         try:
-            (phrase, freq_str, keyword) = x.split (u'\t', 3)
+            (phrase, freq_str, keyword) = x.split (u'\t', 2)
             freq = int (freq_str)
         except:
             print >> sys.stderr, 'error: invalid format (%s) %s' % (phrase_file, x)
