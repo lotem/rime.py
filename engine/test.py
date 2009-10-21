@@ -116,7 +116,7 @@ def main ():
     #e.test ("pinyin-shuru'fa' ")
     #e.test ("an'an anan chang'an changang2 ")
     #e.test ('xauxin xiauxin ')
-    e.test ('pin-yim zyoush hauyung ')
+    #e.test ('pin-yim zioush hauyung ')
 
 if __name__ == "__main__":
     main ()

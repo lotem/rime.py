@@ -48,12 +48,15 @@ class RomanParser (Parser):
         n = len (self.__input)
         while i < n:
             keyword = None
+            split_rule_index = 0
             for j in range (min (n, i + self.__max_keyword_length), i, -1):
                 s = u''.join (self.__input[i:j])
                 if j < n:
                     split = False
-                    for r in self.__split_rules:
+                    for t in range (split_rule_index, len (self.__split_rules)):
+                        r = self.__split_rules[t]
                         if self.__input[j - 1] in r[0] and self.__input[j] in r[1]:
+                            split_rule_index = t + 1
                             split = True
                             break
                     if split:
@@ -69,6 +72,7 @@ class RomanParser (Parser):
                         i = j
                     k.append (delim)
                     break
+                split_rule_index = 0
             if not keyword:
                 remainder = u''.join (self.__input[i:])
                 break

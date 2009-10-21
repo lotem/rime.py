@@ -107,7 +107,6 @@ class Model:
             t = ctx.sugg[t[0]]
         ctx.preedit = r
         # update candidates
-        #s = ctx.get_preedit ()
         ctx.candidates = []
         for pos in range (len (ctx.cand)):
             c = ctx.cand[pos]
@@ -115,8 +114,6 @@ class Model:
             for length in range (len (c), 0, -1):
                 for x in c[length - 1]:
                     y = x[0]
-                    #if s.startswith (y, pos):
-                    #    continue
                     if length >= 4 and any ([t[0].startswith (y) for t in a]): 
                         continue
                     a.append ((y, (pos, length, x)))
