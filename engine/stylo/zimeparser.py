@@ -81,7 +81,7 @@ class RomanParser (Parser):
             ctx.keywords = [self.__keywords[x] for x in k[::2]] + [remainder]
         else:
             ctx.keywords = k[::2] + [remainder]
-        print 'parse result:', ctx.keywords
+        #print 'parse result:', ctx.keywords
         ctx.update_keywords ()
     def process (self, event, ctx):
         if event.mask & modifier.RELEASE_MASK:

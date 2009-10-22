@@ -118,7 +118,7 @@ def main ():
     #e.test ('xauxin xiauxin ')
     #e.test ('pin-yim zioush hauyung ')
     #e.test ('gong{Page_Down}3chen5-tongxuo ')
-    #e.test ('woshi-gong{Page_Down}3chen5 ')
+    #e.test ('woshi-gong{Page_Down}3chen5-tongxuo ')
     #e.test ('zanmen-qu2-ta-jia2-zaishuo ')
 
 if __name__ == "__main__":

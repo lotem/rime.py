@@ -5,7 +5,7 @@ class Model:
     def __init__ (self):
         pass
     def update (self, ctx):
-        print 'update:', ctx.keywords
+        #print 'update:', ctx.keywords
         db = ctx.schema.get_db ()
         m = 0
         while m < min (len (ctx.keywords), len (ctx.kwd)) and ctx.keywords[m] == ctx.kwd[m]:
@@ -119,6 +119,7 @@ class Model:
                     a.append ((y, (pos, length, x)))
             ctx.candidates.append (a)
     def learn (self, ctx):
+        db = ctx.schema.get_db ()
         k = len (ctx.sugg) - 1
         while k > 0 and not ctx.sugg[k]:
             k -= 1
@@ -131,12 +132,12 @@ class Model:
             t = ctx.sugg[s]
         split_words = lambda x: x.split () if u' ' in x else list (x)
         flatten = lambda w, p: w + split_words (p[0])
-        self.__memorize (ctx.kwd[:k], reduce (flatten, r, []))
+        self.__memorize (db, ctx.kwd[:k], reduce (flatten, r, []))
         i = j = 0
         w = []
         def check_new_word ():
             if len (w) in range (2, 4) and i - j < k:
-                self.__memorize (ctx.kwd[j:i], w)
+                self.__memorize (db, ctx.kwd[j:i], w)
         for x in r:
             if x[1] == 1:
                 w.append (x[0])
@@ -146,5 +147,12 @@ class Model:
                 j = i + x[1]
             i += x[1]
         check_new_word ()
-    def __memorize (self, keywords, words):
-        print '__memorize: [%s] = [%s]' % (u' '.join (keywords), u' '.join (words))
+    def __memorize (self, db, keywords, words):
+        #print '__memorize: [%s] = [%s]' % (u' '.join (keywords), u' '.join (words))
+        join_words = lambda w: (u' ' if any ([len (x) > 1 for x in w]) else u'').join (w)
+        if len (keywords) <= 4:
+            db.store (keywords, join_words (words))
+        else:
+            for i in range (len (keywords) - 4 + 1):
+                db.store (keywords[i:i+4], join_words (words[i:i+4]))
+

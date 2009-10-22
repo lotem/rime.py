@@ -31,11 +31,13 @@ class DB:
     __last_flush_time = 0
 
     @classmethod
-    def open (cls, db_file):
+    def open (cls, db_file, read_only=False):
         cls.__conn = sqlite3.connect (db_file)
-        cls.__conn.execute (cls.CREATE_SETTING_TABLE_SQL)
-        cls.__conn.execute (cls.CREATE_SETTING_INDEX_SQL)
-        cls.flush (True)
+        cls.read_only = read_only
+        if not read_only:
+            cls.__conn.execute (cls.CREATE_SETTING_TABLE_SQL)
+            cls.__conn.execute (cls.CREATE_SETTING_INDEX_SQL)
+            cls.flush (True)
 
     @classmethod
     def read_setting (cls, key):
@@ -54,14 +56,13 @@ class DB:
 
     @classmethod
     def update_setting (cls, key, value):
-        try:
-            if cls.read_setting (key) is None:
-                cls.__conn.execute (cls.ADD_SETTING_SQL, {'path': key, 'value': value})
-            else:
-                cls.__conn.execute (cls.UPDATE_SETTING_SQL, {'path': key, 'value': value})
-            cls.flush (True)
-        except:
+        if cls.read_only:
             return False
+        if cls.read_setting (key) is None:
+            cls.__conn.execute (cls.ADD_SETTING_SQL, {'path': key, 'value': value})
+        else:
+            cls.__conn.execute (cls.UPDATE_SETTING_SQL, {'path': key, 'value': value})
+        cls.flush (True)
         return True
 
     @classmethod
@@ -113,12 +114,30 @@ class DB:
         ORDER BY freq DESC;
         """ % prefix
         )
+        self.PHRASE_EXIST_SQL = (
+        """
+        SELECT rowid FROM %(prefix)s_phrases
+        WHERE klen = 1 AND k0 = :k0 AND k1 IS NULL AND k2 IS NULL AND k3 IS NULL AND phrase = :phrase;
+        """ % prefix, 
+        """
+        SELECT rowid FROM %(prefix)s_phrases
+        WHERE klen = 2 AND k0 = :k0 AND k1 = :k1 AND k2 IS NULL AND k3 IS NULL AND phrase = :phrase;
+        """ % prefix, 
+        """
+        SELECT rowid FROM %(prefix)s_phrases
+        WHERE klen = 3 AND k0 = :k0 AND k1 = :k1 AND k2 = :k2 AND k3 IS NULL AND phrase = :phrase;
+        """ % prefix, 
+        """
+        SELECT rowid FROM %(prefix)s_phrases
+        WHERE klen = 4 AND k0 = :k0 AND k1 = :k1 AND k2 = :k2 AND k3 = :k3 AND phrase = :phrase;
+        """ % prefix 
+        )
         self.UPDATE_PHRASE_SQL = """
-        UPDATE %(prefix)s_phrases SET freq = ? 
+        UPDATE %(prefix)s_phrases SET freq = freq + 1 
         WHERE klen = :klen AND k0 = :k0 AND k1 = :k1 AND k2 = :k2 AND k3 = :k3 AND phrase = :phrase;
         """ % prefix
         self.ADD_PHRASE_SQL = """
-        INSERT INTO %(prefix)s_phrases VALUES (:klen, :k0, :k1, :k2, :k3, :phrase, :freq);
+        INSERT INTO %(prefix)s_phrases VALUES (:klen, :k0, :k1, :k2, :k3, :phrase, 1);
         """ % prefix
 
     def read_config_value (self, key):
@@ -137,4 +156,20 @@ class DB:
             args['k%d' % i] = key[i]
         r = DB.__conn.execute (self.QUERY_PHRASE_SQL[klen - 1], args).fetchall ()
         return r
+
+    def store (self, key, phrase):
+        #print 'store:', key, phrase
+        if DB.read_only:
+            return False
+        klen = len (key)
+        args = {'klen' : klen, 'phrase' : phrase}
+        for i in range (4):
+            args['k%d' % i] = key[i] if i < klen else None
+        if DB.__conn.execute (self.PHRASE_EXIST_SQL[klen - 1], args).fetchone ():
+            DB.__conn.execute (self.UPDATE_PHRASE_SQL, args)
+        else:
+            DB.__conn.execute (self.ADD_PHRASE_SQL, args)
+        DB.flush ()
+        return True
+
 
