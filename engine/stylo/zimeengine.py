@@ -76,6 +76,7 @@ class Engine:
             return True
         if keycode in (keysyms.space, keysyms.Return):
             self.__frontend.commit_string (self.__ctx.get_preedit ())
+            self.__model.learn (self.__ctx)
             self.__ctx.clear ()
             return True
         return True
@@ -84,7 +85,6 @@ class Engine:
         start = 0
         for x in ctx.preedit[:ctx.cursor]:
             start += len (x)
-        print ctx.preedit, ctx.cursor
         end = start + len (ctx.preedit[ctx.cursor])
         self.__frontend.update_preedit (ctx.get_preedit (), start, end)
         self.__frontend.update_aux_string (ctx.get_aux_string ())
@@ -130,7 +130,7 @@ class SchemaChooser:
         self.__frontend.update_candidates (self.__schema_list)
     def process_key_event (self, keycode, mask):
         if not self.__active:
-            if keycode == keysyms.grave:# and mask & modifier.CONTROL_MASK:
+            if keycode == keysyms.grave and mask & modifier.CONTROL_MASK:
                 self.__activate ()
                 return True
             return self.__engine.process_key_event (keycode, mask)

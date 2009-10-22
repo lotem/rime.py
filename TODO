@@ -9,3 +9,6 @@ take rows of adjacent singles that have length of 2 or 3 as new words.
 # engine
 punctuation.
 combo parser.
+# question
+about jyutping split rules.
+about hiding the cursor in candidate list.

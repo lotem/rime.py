@@ -54,11 +54,15 @@ class DB:
 
     @classmethod
     def update_setting (cls, key, value):
-        if cls.read_setting (key) is None:
-            cls.__conn.execute (cls.ADD_SETTING_SQL, {'path': key, 'value': value})
-        else:
-            cls.__conn.execute (cls.UPDATE_SETTING_SQL, {'path': key, 'value': value})
-        cls.flush (True)
+        try:
+            if cls.read_setting (key) is None:
+                cls.__conn.execute (cls.ADD_SETTING_SQL, {'path': key, 'value': value})
+            else:
+                cls.__conn.execute (cls.UPDATE_SETTING_SQL, {'path': key, 'value': value})
+            cls.flush (True)
+        except:
+            return False
+        return True
 
     @classmethod
     def flush (cls, immediate=False):

@@ -118,4 +118,33 @@ class Model:
                         continue
                     a.append ((y, (pos, length, x)))
             ctx.candidates.append (a)
-
+    def learn (self, ctx):
+        k = len (ctx.sugg) - 1
+        while k > 0 and not ctx.sugg[k]:
+            k -= 1
+        r = []
+        s = k
+        t = ctx.sugg[k]
+        while t[0] != -1:
+            r = [(t[1], s - t[0])] + r
+            s = t[0]
+            t = ctx.sugg[s]
+        split_words = lambda x: x.split () if u' ' in x else list (x)
+        flatten = lambda w, p: w + split_words (p[0])
+        self.__memorize (ctx.kwd[:k], reduce (flatten, r, []))
+        i = j = 0
+        w = []
+        def check_new_word ():
+            if len (w) in range (2, 4) and i - j < k:
+                self.__memorize (ctx.kwd[j:i], w)
+        for x in r:
+            if x[1] == 1:
+                w.append (x[0])
+            else:
+                check_new_word ()
+                w = []
+                j = i + x[1]
+            i += x[1]
+        check_new_word ()
+    def __memorize (self, keywords, words):
+        print '__memorize: [%s] = [%s]' % (u' '.join (keywords), u' '.join (words))
