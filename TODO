@@ -3,10 +3,12 @@ make-phrases script not handling words that exists only in keyword file.
 *starred keyword should be given zero freq and should not participate phrase interpretation.
 multi-character words should be separated from other words in a phrase by spaces.
 # model
-learning from user input: 
-record every 4-gram;
-take rows of adjacent singles that have length of 2 or 3 as new words.
+#learning from user input: 
+#record every 4-gram;
+#take rows of adjacent singles that have length of 2 or 3 as new words.
+sys-db / user-db
 # engine
+clear key.
 punctuation.
 combo parser.
 # question
