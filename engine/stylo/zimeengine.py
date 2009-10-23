@@ -39,10 +39,23 @@ class Engine:
         self.__ctx = Context (self, self.__model, self.__schema)
         self.update_ui ()
     def process_key_event (self, keycode, mask):
+        # disable engine when Caps Lock is on
+        if mask & modifier.LOCK_MASK:
+            return False
+        # ignore Num Lock
+        mask &= ~modifier.MOD2_MASK
+        # ignore hotkeys
+        if mask & (modifier.SHIFT_MASK | \
+            modifier.CONTROL_MASK | modifier.ALT_MASK | \
+            modifier.SUPER_MASK | modifier.HYPER_MASK | modifier.META_MASK
+            ):
+            return False
         if self.__parser.process (KeyEvent (keycode, mask), self.__ctx):
             return True
         if self.__ctx.is_empty ():
             return False
+        if mask & modifier.RELEASE_MASK:
+            return True
         if keycode == keysyms.Home:
             self.__ctx.set_cursor (0)
             return True
@@ -141,6 +154,14 @@ class SchemaChooser:
                 self.__activate ()
                 return True
             return self.__engine.process_key_event (keycode, mask)
+        # ignore hotkeys
+        if mask & (modifier.SHIFT_MASK | \
+            modifier.CONTROL_MASK | modifier.ALT_MASK | \
+            modifier.SUPER_MASK | modifier.HYPER_MASK | modifier.META_MASK
+            ):
+            return False
+        if mask & modifier.RELEASE_MASK:
+            return True
         # schema chooser menu
         if keycode == keysyms.Escape:
             self.__active = False

@@ -120,6 +120,7 @@ def main ():
     #e.test ('gong{Page_Down}3chen5-tongxuo ')
     #e.test ('woshi-gong{Page_Down}3chen5-tongxuo ')
     #e.test ('zanmen-qu2-ta-jia2-zaishuo ')
+    #e.test ('wozhishuo{Escape}ni')
 
 if __name__ == "__main__":
     main ()

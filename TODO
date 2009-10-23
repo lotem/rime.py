@@ -6,10 +6,10 @@ multi-character words should be separated from other words in a phrase by spaces
 #learning from user input: 
 #record every 4-gram;
 #take rows of adjacent singles that have length of 2 or 3 as new words.
-sort candidates by user freq.
+#sort candidates by user freq.
 # engine
-ommit key combos with modifiers.
-clear key.
+#ommit key combos with modifiers.
+#clear key.
 punctuation.
 combo parser.
 # question

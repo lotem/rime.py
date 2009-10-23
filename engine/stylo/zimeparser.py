@@ -86,6 +86,10 @@ class RomanParser (Parser):
     def process (self, event, ctx):
         if event.mask & modifier.RELEASE_MASK:
             return True
+        if event.keycode == keysyms.Escape:
+            self.__clear ()
+            ctx.clear ()
+            return True
         if event.keycode == keysyms.BackSpace:
             if self.__is_empty ():
                 return False
