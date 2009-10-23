@@ -132,10 +132,24 @@ class DB:
         WHERE klen = 4 AND k0 = :k0 AND k1 = :k1 AND k2 = :k2 AND k3 = :k3 AND phrase = :phrase;
         """ % prefix 
         )
-        self.UPDATE_PHRASE_SQL = """
+        self.UPDATE_PHRASE_SQL = (
+        """
         UPDATE %(prefix)s_phrases SET user_freq = user_freq + 1 
-        WHERE klen = :klen AND k0 = :k0 AND k1 = :k1 AND k2 = :k2 AND k3 = :k3 AND phrase = :phrase;
+        WHERE klen = 1 AND k0 = :k0 AND k1 IS NULL AND k2 IS NULL AND k3 IS NULL AND phrase = :phrase;
+        """ % prefix,
+        """
+        UPDATE %(prefix)s_phrases SET user_freq = user_freq + 1 
+        WHERE klen = 2 AND k0 = :k0 AND k1 = :k1 AND k2 IS NULL AND k3 IS NULL AND phrase = :phrase;
+        """ % prefix,
+        """
+        UPDATE %(prefix)s_phrases SET user_freq = user_freq + 1 
+        WHERE klen = 3 AND k0 = :k0 AND k1 = :k1 AND k2 = :k2 AND k3 IS NULL AND phrase = :phrase;
+        """ % prefix,
+        """
+        UPDATE %(prefix)s_phrases SET user_freq = user_freq + 1 
+        WHERE klen = 4 AND k0 = :k0 AND k1 = :k1 AND k2 = :k2 AND k3 = :k3 AND phrase = :phrase;
         """ % prefix
+        )
         self.ADD_PHRASE_SQL = """
         INSERT INTO %(prefix)s_phrases VALUES (:klen, :k0, :k1, :k2, :k3, :phrase, 0, 1);
         """ % prefix
@@ -166,7 +180,7 @@ class DB:
         for i in range (4):
             args['k%d' % i] = key[i] if i < klen else None
         if DB.__conn.execute (self.PHRASE_EXIST_SQL[klen - 1], args).fetchone ():
-            DB.__conn.execute (self.UPDATE_PHRASE_SQL, args)
+            DB.__conn.execute (self.UPDATE_PHRASE_SQL[klen - 1], args)
         else:
             DB.__conn.execute (self.ADD_PHRASE_SQL, args)
         DB.flush ()

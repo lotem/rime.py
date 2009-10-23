@@ -10,8 +10,8 @@ multi-character words should be separated from other words in a phrase by spaces
 # engine
 #ommit key combos with modifiers.
 #clear key.
+#combo parser.
 punctuation.
-combo parser.
 # question
 about jyutping split rules.
 about hiding the cursor in candidate list.
