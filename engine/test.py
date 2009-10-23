@@ -109,8 +109,9 @@ def main ():
     #e.process_key_event (96, 4)  # Ctrl+grave
     #e.test ('1')
     #e.test ('g4{Tab}.=,- ')
+    #e.test ('ji{Escape}ji353gji {Tab}{Escape}{Escape}')
 
-    e = TestEngine (u'Pinyin')
+    #e = TestEngine (u'Pinyin')
     #e.test ('zhongguo weida ')
     #e.test ('zhongzhouhua4 ')
     #e.test ("pinyin-shuru'fa' ")

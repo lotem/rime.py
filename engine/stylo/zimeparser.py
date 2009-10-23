@@ -34,8 +34,8 @@ class RomanParser (Parser):
             self.__keywords = reduce (apply_fuzzy_rule, fuzzy_rules, d)
         else:
             self.__keywords = set (keywords)
-        self.__clear ()
-    def __clear (self):
+        self.clear ()
+    def clear (self):
         self.__input = []
     def __is_empty (self):
         return len (self.__input) == 0
@@ -87,7 +87,7 @@ class RomanParser (Parser):
         if event.mask & modifier.RELEASE_MASK:
             return True
         if event.keycode == keysyms.Escape:
-            self.__clear ()
+            self.clear ()
             ctx.clear ()
             return True
         if event.keycode == keysyms.BackSpace:
@@ -97,7 +97,7 @@ class RomanParser (Parser):
             self.__parse (ctx)
             return True
         if event.keycode in (keysyms.space, keysyms.Return):
-            self.__clear ()
+            self.clear ()
             return False
         ch = event.get_char ()
         if ch in self.__alphabet or not self.__is_empty () and ch in self.__delimiter:
@@ -136,6 +136,10 @@ class GroupingParser (Parser):
             return True
         if ctx.cursor < len (ctx.keywords) - 1:
             return False
+        if event.keycode == keysyms.Escape:
+            self.clear ()
+            ctx.clear ()
+            return True
         if event.keycode == keysyms.space:
             if self.__is_empty ():
                 return False
