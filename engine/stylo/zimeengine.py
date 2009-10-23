@@ -14,12 +14,19 @@ import zimeparser
 
 def __initialize ():
     zimeparser.register_parsers ()
-    home_path = os.getenv ('HOME')
-    db_path = os.path.join (home_path, '.ibus', 'zime')
-    if not os.path.isdir (db_path):
-        os.makedirs (db_path)
-    db_file = os.path.join (db_path, 'zime.db')
-    DB.open (db_file)
+    IBUS_ZIME_LOCATION = os.getenv ('IBUS_ZIME_LOCATION')
+    HOME_PATH = os.getenv ('HOME')
+    db_path = os.path.join (HOME_PATH, '.ibus', 'zime')
+    user_db = os.path.join (db_path, 'zime.db')
+    if not os.path.exists (user_db):
+        sys_db = IBUS_ZIME_LOCATION and os.path.join (IBUS_ZIME_LOCATION, 'data', 'zime.db')
+        if sys_db and os.path.exists (sys_db):
+            DB.open (sys_db, read_only=True)
+            return
+        else:
+            if not os.path.isdir (db_path):
+                os.makedirs (db_path)
+    DB.open (user_db)
 
 __initialize ()
 

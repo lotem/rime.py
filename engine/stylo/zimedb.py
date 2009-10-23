@@ -87,31 +87,31 @@ class DB:
         """ % prefix
         self.QUERY_PHRASE_SQL = (
         """
-        SELECT phrase, sum(freq) AS total FROM
+        SELECT phrase, sum(freq) AS freq_total, sum(user_freq) AS user_freq_total FROM
         (
-        SELECT phrase, freq FROM %(prefix)s_phrases 
+        SELECT phrase, freq, user_freq FROM %(prefix)s_phrases 
         WHERE klen = 1 AND k0 = :k0 AND k1 IS NULL AND k2 IS NULL AND k3 IS NULL
         UNION 
-        SELECT phrase, 0 AS freq FROM %(prefix)s_keywords 
+        SELECT phrase, 0 AS freq, 0 AS user_freq FROM %(prefix)s_keywords 
         WHERE keyword = :k0
         )
         GROUP BY phrase
-        ORDER BY total DESC;
+        ORDER BY user_freq_total DESC, freq_total DESC;
         """ % prefix,
         """
         SELECT phrase, freq FROM %(prefix)s_phrases 
         WHERE klen = 2 AND k0 = :k0 AND k1 = :k1 AND k2 IS NULL AND k3 IS NULL
-        ORDER BY freq DESC;
+        ORDER BY user_freq DESC, freq DESC;
         """ % prefix,
         """
         SELECT phrase, freq FROM %(prefix)s_phrases 
         WHERE klen = 3 AND k0 = :k0 AND k1 = :k1 AND k2 = :k2 AND k3 IS NULL
-        ORDER BY freq DESC;
+        ORDER BY user_freq DESC, freq DESC;
         """ % prefix,
         """
         SELECT phrase, freq FROM %(prefix)s_phrases 
         WHERE klen = 4 AND k0 = :k0 AND k1 = :k1 AND k2 = :k2 AND k3 = :k3
-        ORDER BY freq DESC;
+        ORDER BY user_freq DESC, freq DESC;
         """ % prefix
         )
         self.PHRASE_EXIST_SQL = (
@@ -133,11 +133,11 @@ class DB:
         """ % prefix 
         )
         self.UPDATE_PHRASE_SQL = """
-        UPDATE %(prefix)s_phrases SET freq = freq + 1 
+        UPDATE %(prefix)s_phrases SET user_freq = user_freq + 1 
         WHERE klen = :klen AND k0 = :k0 AND k1 = :k1 AND k2 = :k2 AND k3 = :k3 AND phrase = :phrase;
         """ % prefix
         self.ADD_PHRASE_SQL = """
-        INSERT INTO %(prefix)s_phrases VALUES (:klen, :k0, :k1, :k2, :k3, :phrase, 1);
+        INSERT INTO %(prefix)s_phrases VALUES (:klen, :k0, :k1, :k2, :k3, :phrase, 0, 1);
         """ % prefix
 
     def read_config_value (self, key):

@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS %(prefix)s_phrases (
     k3 TEXT,
     phrase TEXT,
     freq INTEGER,
+    user_freq INTEGER,
     PRIMARY KEY (klen, k0, k1, k2, k3, phrase)
 );
 """
@@ -99,7 +100,7 @@ WHERE klen = ? AND k0 = ? AND k1 = ? AND k2 = ? AND k3 = ? AND phrase = ?;
 """
 
 ADD_PHRASE_SQL = """
-INSERT INTO %(prefix)s_phrases VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT INTO %(prefix)s_phrases VALUES (?, ?, ?, ?, ?, ?, ?, 0);
 """
 
 usage = 'usage: %prog [options] schema-file [keyword-file [phrase-file]]'
