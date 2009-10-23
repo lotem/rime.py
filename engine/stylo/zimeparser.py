@@ -130,6 +130,8 @@ class ComboParser (RomanParser):
         k = self.__get_combo_string ()
         self.clear ()
         if k == self.__combo_space:
+            ctx.aux_string = u''
+            ctx.set_cursor (-1)
             return fallback (KeyEvent (keysyms.space, 0, coined=True))
         if self.is_keyword (k):
             ctx.keywords[-1] = self.translate_keyword (k)
@@ -163,7 +165,8 @@ class ComboParser (RomanParser):
             self.__combo.add (ch)
             self.__held.add (ch)
             k = self.__get_combo_string ()
-            ctx.aux_string = u'[%s]' % k if k != self.__combo_space else u''
+            #ctx.aux_string = u'[%s]' % k if k != self.__combo_space else u''
+            ctx.aux_string = u'[%s]' % k
             ctx.update_keywords ()
             return True
         return fallback (event)
