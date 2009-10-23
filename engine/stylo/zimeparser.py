@@ -39,8 +39,13 @@ class RomanParser (Parser):
         self.__input = []
     def __is_empty (self):
         return len (self.__input) == 0
-    def __is_keyword (self, s):
-        return s in self.__keywords
+    def is_keyword (self, k):
+        return k in self.__keywords
+    def translate_keyword (self, k):
+        if k in self.__keywords:
+            return self.__keywords[k] if self.__use_keyword_mapping else k
+        else:
+            return k
     def __parse (self, ctx):
         k = []
         remainder = u''
@@ -61,7 +66,7 @@ class RomanParser (Parser):
                             break
                     if split:
                         continue
-                if self.__is_keyword (s):
+                if self.is_keyword (s):
                     keyword = s
                     k.append (s) 
                     delim = None
@@ -83,31 +88,85 @@ class RomanParser (Parser):
             ctx.keywords = k[::2] + [remainder]
         #print 'parse result:', ctx.keywords
         ctx.update_keywords ()
-    def process (self, event, ctx):
+    def process (self, event, ctx, fallback):
         if event.mask & modifier.RELEASE_MASK:
             return True
         if event.keycode == keysyms.Escape:
+            if self.__is_empty ():
+                return fallback (event)
             self.clear ()
             ctx.clear ()
             return True
         if event.keycode == keysyms.BackSpace:
             if self.__is_empty ():
-                return False
+                return fallback (event)
             self.__input.pop ()
             self.__parse (ctx)
             return True
         if event.keycode in (keysyms.space, keysyms.Return):
             self.clear ()
-            return False
+            return fallback (event)
         ch = event.get_char ()
         if ch in self.__alphabet or not self.__is_empty () and ch in self.__delimiter:
             self.__input.append (ch)
             self.__parse (ctx)
             return True
-        return False
+        return fallback (event)
 
-class ComboParser (Parser):
-    pass
+class ComboParser (RomanParser):
+    def __init__ (self, schema):
+        RomanParser.__init__ (self, schema)
+        self.__combo_keys = schema.get_config_char_sequence (u'ComboKeys') or u''
+        self.__combo_codes = schema.get_config_char_sequence (u'ComboCodes') or u''
+        self.__combo_max_length = min (len (self.__combo_keys), len (self.__combo_codes))
+        self.__combo_space = schema.get_config_value (u'ComboSpace')
+        self.clear ()
+    def clear (self):
+        self.__combo = set ()
+        self.__held = set ()
+    def __is_empty (self):
+        return not bool (self.__held)
+    def __commit_combo (self, ctx, fallback):
+        k = self.__get_combo_string ()
+        self.clear ()
+        if k == self.__combo_space:
+            return fallback (KeyEvent (keysyms.space, 0, coined=True))
+        if self.is_keyword (k):
+            ctx.keywords[-1] = self.translate_keyword (k)
+            ctx.keywords.append (u'')
+        else:
+            ctx.keywords[-1] = u'[%s]' % k
+        ctx.aux_string = u''
+        ctx.update_keywords ()
+        return True
+    def __get_combo_string (self):
+        return u''.join ( \
+            [self.__combo_codes[i] for i in range (self.__combo_max_length) \
+                if self.__combo_keys[i] in self.__combo])
+    def process (self, event, ctx, fallback):
+        if ctx.cursor < len (ctx.keywords) - 1:
+            return fallback (event)
+        if event.keycode == keysyms.Escape:
+            if self.__is_empty () and ctx.is_empty ():
+                return fallback (event)
+            self.clear ()
+            ctx.clear ()
+            return True
+        ch = event.get_char ()
+        if event.mask & modifier.RELEASE_MASK:
+            if ch in self.__held:
+                self.__held.remove (ch)
+                if self.__is_empty ():
+                    return self.__commit_combo (ctx, fallback)
+            return True
+        if ch in self.__combo_keys:
+            self.__combo.add (ch)
+            self.__held.add (ch)
+            k = self.__get_combo_string ()
+            ctx.aux_string = u'[%s]' % k if k != self.__combo_space else u''
+            ctx.update_keywords ()
+            return True
+        return fallback (event)
 
 class GroupingParser (Parser):
     def __init__ (self, schema):
@@ -118,12 +177,14 @@ class GroupingParser (Parser):
     def clear (self):
         self.__slots = [u''] * self.__group_count
         self.__cursor = 0
-    def process (self, event, ctx):
+    def __is_empty (self):
+        return not any (self.__slots)
+    def process (self, event, ctx, fallback):
         if event.mask & modifier.RELEASE_MASK:
             return True
         if event.keycode == keysyms.BackSpace:
             if self.__is_empty ():
-                return False
+                return fallback (event)
             j = self.__group_count - 1
             while j > 0 and not self.__slots[j]:
                 j -= 1
@@ -135,14 +196,16 @@ class GroupingParser (Parser):
             ctx.update_keywords ()
             return True
         if ctx.cursor < len (ctx.keywords) - 1:
-            return False
+            return fallback (event)
         if event.keycode == keysyms.Escape:
+            if self.__is_empty () and ctx.is_empty ():
+                return fallback (event)
             self.clear ()
             ctx.clear ()
             return True
         if event.keycode == keysyms.space:
             if self.__is_empty ():
-                return False
+                return fallback (event)
             self.clear ()
             ctx.keywords.append (u'')
             ctx.update_keywords ()
@@ -154,7 +217,7 @@ class GroupingParser (Parser):
             if k >= self.__group_count:
                 k = 0
             if k == self.__cursor:
-                return not self.__is_empty ()
+                return not self.__is_empty () or fallback (event)
         idx = self.__key_groups[k].index (ch)
         self.__slots[k] = self.__code_groups[k][idx]
         ctx.keywords[-1] = u''.join (self.__slots)
@@ -166,8 +229,6 @@ class GroupingParser (Parser):
             self.__cursor = k
         ctx.update_keywords ()
         return True
-    def __is_empty (self):
-        return not any (self.__slots)
 
 def register_parsers ():
     Parser.register ('roman', RomanParser)

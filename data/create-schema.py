@@ -138,13 +138,14 @@ schema = None
 prefix = None
 delim = None
 if schema_file:
+    equal_sign = re.compile (ur'\s*=\s*')
     f = open (schema_file, 'r')
     for line in f:
         x = line.strip ().decode ('utf-8')
         if x.startswith (u'#'):
             continue
         try:
-            (path, value) = x.split (u' = ', 1)
+            (path, value) = equal_sign.split (x, 1)
         except:
             print >> sys.stderr, 'error parsing (%s) %s' % (schema_file, x)
             exit ()

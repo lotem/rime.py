@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 
+import ibus
+from ibus import keysyms
+
 from zimedb import DB
 
 class KeyEvent:
-    def __init__ (self, keycode, mask):
+    def __init__ (self, keycode, mask, coined=False):
         self.keycode = keycode
         self.mask = mask
+        self.coined = coined
     def get_char (self):
         return unichr (self.keycode)
+    def __str__ (self):
+        return "<KeyEvent: '%s'(%x), %08x>" % (keysyms.keycode_to_name (self.keycode), self.keycode, self.mask)
 
 class Schema:
     def __init__ (self, name):

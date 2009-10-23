@@ -37,6 +37,7 @@ class Engine:
         self.__parser = Parser.create (self.__schema)
         self.__model = Model ()
         self.__ctx = Context (self, self.__model, self.__schema)
+        self.__fallback = lambda e: self.__process (e)
         self.update_ui ()
     def process_key_event (self, keycode, mask):
         # disable engine when Caps Lock is on
@@ -50,51 +51,57 @@ class Engine:
             modifier.SUPER_MASK | modifier.HYPER_MASK | modifier.META_MASK
             ):
             return False
-        if self.__parser.process (KeyEvent (keycode, mask), self.__ctx):
+        return self.__parser.process (KeyEvent (keycode, mask), self.__ctx, self.__fallback)
+    def __judge (self, event):
+        if event.coined:
+            if not event.mask:
+                self.__frontend.commit_string (event.get_char ())
             return True
+        return False
+    def __process (self, event):
         if self.__ctx.is_empty ():
-            return False
-        if mask & modifier.RELEASE_MASK:
+            return self.__judge (event)
+        if event.mask & modifier.RELEASE_MASK:
             return True
-        if keycode == keysyms.Home:
+        if event.keycode == keysyms.Home:
             self.__ctx.set_cursor (0)
             return True
-        if keycode == keysyms.End or keycode == keysyms.Escape:
+        if event.keycode == keysyms.End or event.keycode == keysyms.Escape:
             self.__ctx.set_cursor (-1)
             return True
-        if keycode == keysyms.Left:
+        if event.keycode == keysyms.Left:
             self.__ctx.move_cursor (-1)
             return True
-        if keycode == keysyms.Right or keycode == keysyms.Tab:
+        if event.keycode == keysyms.Right or event.keycode == keysyms.Tab:
             self.__ctx.move_cursor (1)
             return True
         candidates = self.__ctx.get_candidates ()
-        if keycode in (keysyms.Page_Up, keysyms.Up, keysyms.minus, keysyms.comma):
+        if event.keycode in (keysyms.Page_Up, keysyms.Up, keysyms.minus, keysyms.comma):
             if candidates and self.__frontend.page_up ():
                 return True
             return True
-        if keycode in (keysyms.Page_Down, keysyms.Down, keysyms.equal, keysyms.period):
+        if event.keycode in (keysyms.Page_Down, keysyms.Down, keysyms.equal, keysyms.period):
             if candidates and self.__frontend.page_down ():
                 return True
             return True
-        if keycode >= keysyms._1 and keycode <= keysyms._9:
+        if event.keycode >= keysyms._1 and event.keycode <= keysyms._9:
             if candidates:
-                index = self.__frontend.get_candidate_index (keycode - keysyms._1)
+                index = self.__frontend.get_candidate_index (event.keycode - keysyms._1)
                 self.__ctx.select (index)
             return True
-        if keycode == keysyms.BackSpace:
+        if event.keycode == keysyms.BackSpace:
             k = self.__ctx.keywords
             if len (k) < 1:
-                return False
+                return self.__judge (event)
             if k[-1]:
                 k[-1] = u''
             else:
                 if len (k) < 2:
-                    return False
+                    return self.__judge (event)
                 del k[-2]
             self.__ctx.update_keywords ()
             return True
-        if keycode in (keysyms.space, keysyms.Return):
+        if event.keycode in (keysyms.space, keysyms.Return):
             self.__frontend.commit_string (self.__ctx.get_preedit ())
             self.__model.learn (self.__ctx)
             self.__ctx.clear ()

@@ -1,8 +1,10 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # vim:set et sts=4 sw=4:
 
 import ibus
 from ibus import keysyms
+from ibus import modifier
 
 from stylo import zimeengine
 
@@ -13,7 +15,7 @@ class TestEngine:
         self.__backend = zimeengine.SchemaChooser (self, schema)
 
     def process_key_event (self, keycode, mask):
-        print "key_event: '%s' (%x), %x" % (keysyms.keycode_to_name (keycode), keycode, mask)
+        print "process_key_event: '%s'(%x), %08x" % (keysyms.keycode_to_name (keycode), keycode, mask)
         return self.__backend.process_key_event (keycode, mask)
 
     def commit_string (self, s):
@@ -102,11 +104,11 @@ def main ():
     #e.test ('5j/ 5. mp4{Left}2gj bj4 ')
     #e.test ('5j/ 5. mp4gj {Left}{Left}2bj4z83{Home}{Tab}{Tab}4')
     # test schema chooser menu
-    #e.process_key_event (96, 4)  # Ctrl+grave
+    #e.process_key_event (keysyms.grave, modifier.CONTROL_MASK)  # Ctrl+grave
     #e.test ('2')
-    #e.process_key_event (96, 4)  # Ctrl+grave
+    #e.process_key_event (keysyms.grave, modifier.CONTROL_MASK)  # Ctrl+grave
     #e.test ('{Page_Down}{Up}{Escape}')
-    #e.process_key_event (96, 4)  # Ctrl+grave
+    #e.process_key_event (keysyms.grave, modifier.CONTROL_MASK)  # Ctrl+grave
     #e.test ('1')
     #e.test ('g4{Tab}.=,- ')
     #e.test ('ji{Escape}ji353gji {Tab}{Escape}{Escape}')
@@ -122,6 +124,20 @@ def main ():
     #e.test ('woshi-gong{Page_Down}3chen5-tongxuo ')
     #e.test ('zanmen-qu2-ta-jia2-zaishuo ')
     #e.test ('wozhishuo{Escape}ni')
+
+    e = TestEngine (u'ComboPinyin')
+    e.process_key_event (keysyms.r, 0)
+    e.process_key_event (keysyms.j, 0)
+    e.process_key_event (keysyms.k, 0)
+    e.process_key_event (keysyms.l, 0)
+    e.process_key_event (keysyms.r, modifier.RELEASE_MASK)
+    e.process_key_event (keysyms.j, modifier.RELEASE_MASK)
+    e.process_key_event (keysyms.k, modifier.RELEASE_MASK)
+    e.process_key_event (keysyms.l, modifier.RELEASE_MASK)
+    e.process_key_event (keysyms.space, 0)
+    e.process_key_event (keysyms.space, modifier.RELEASE_MASK)
+    e.process_key_event (keysyms.space, 0)
+    e.process_key_event (keysyms.space, modifier.RELEASE_MASK)
 
 if __name__ == "__main__":
     main ()
