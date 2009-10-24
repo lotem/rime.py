@@ -9,6 +9,7 @@ from zimecore import *
 
 class RomanParser (Parser):
     def __init__ (self, schema):
+        Parser.__init__ (self, schema)
         self.__alphabet = schema.get_config_char_sequence (u'Alphabet') or u'abcdefghijklmnopqrstuvwxyz'
         self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
         self.__max_keyword_length = int (schema.get_config_value (u'MaxKeywordLength') or u'7')
@@ -34,7 +35,7 @@ class RomanParser (Parser):
             self.__keywords = reduce (apply_fuzzy_rule, fuzzy_rules, d)
         else:
             self.__keywords = set (keywords)
-        self.clear ()
+        self.__input = []
     def clear (self):
         self.__input = []
     def __is_empty (self):
@@ -104,7 +105,6 @@ class RomanParser (Parser):
             self.__parse (ctx)
             return True
         if event.keycode in (keysyms.space, keysyms.Return):
-            self.clear ()
             return fallback (event)
         ch = event.get_char ()
         if ch in self.__alphabet or not self.__is_empty () and ch in self.__delimiter:
@@ -120,10 +120,11 @@ class ComboParser (RomanParser):
         self.__combo_codes = schema.get_config_char_sequence (u'ComboCodes') or u''
         self.__combo_max_length = min (len (self.__combo_keys), len (self.__combo_codes))
         self.__combo_space = schema.get_config_value (u'ComboSpace')
-        self.clear ()
-    def clear (self):
         self.__combo = set ()
         self.__held = set ()
+    def clear (self):
+        self.__combo.clear ()
+        self.__held.clear ()
     def __is_empty (self):
         return not bool (self.__held)
     def __commit_combo (self, ctx, fallback):
@@ -131,6 +132,7 @@ class ComboParser (RomanParser):
         self.clear ()
         if k == self.__combo_space:
             ctx.aux_string = u''
+            # clear aux string
             ctx.set_cursor (-1)
             return fallback (KeyEvent (keysyms.space, 0, coined=True))
         if self.is_keyword (k):
@@ -173,6 +175,7 @@ class ComboParser (RomanParser):
 
 class GroupingParser (Parser):
     def __init__ (self, schema):
+        Parser.__init__ (self, schema)
         self.__key_groups = schema.get_config_value (u'KeyGroups').split ()
         self.__code_groups = schema.get_config_value (u'CodeGroups').split ()
         self.__group_count = len (self.__key_groups)

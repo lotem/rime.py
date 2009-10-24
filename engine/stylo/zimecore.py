@@ -52,6 +52,24 @@ class Parser:
         return cls.get_parser_class (schema.get_parser_name ()) (schema)
     def __init__ (self, schema):
         self.__schema = schema
+        punct_mapping = lambda (x, y): (x, [tuple (z.split (u'~', 1)) if u'~' in z else z for z in y.split ()])
+        self.__punct = dict ([punct_mapping (c.split (None, 1)) for c in schema.get_config_list (u'Punct')])
+    def get_schema (self):
+        return self.__schema
+    def check_punct (self, event):
+        ch = event.get_char ()
+        if ch in self.__punct:
+            p = self.__punct[ch]
+            if not p:
+                return None
+            x = p[0]
+            if isinstance (x, tuple):
+                y = x[0]
+                p[0] = (x[1], x[0])
+                return y
+            else:
+                return x
+        return None
 
 class Context:
     def __init__ (self, callback, model, schema):

@@ -46,7 +46,7 @@ class Engine:
         # ignore Num Lock
         mask &= ~modifier.MOD2_MASK
         # ignore hotkeys
-        if mask & (modifier.SHIFT_MASK | \
+        if mask & ( \
             modifier.CONTROL_MASK | modifier.ALT_MASK | \
             modifier.SUPER_MASK | modifier.HYPER_MASK | modifier.META_MASK
             ):
@@ -60,6 +60,10 @@ class Engine:
         return False
     def __process (self, event):
         if self.__ctx.is_empty ():
+            punct = self.__parser.check_punct (event)
+            if punct:
+                self.__frontend.commit_string (punct)
+                return True
             return self.__judge (event)
         if event.mask & modifier.RELEASE_MASK:
             return True
@@ -102,11 +106,20 @@ class Engine:
             self.__ctx.update_keywords ()
             return True
         if event.keycode in (keysyms.space, keysyms.Return):
-            self.__frontend.commit_string (self.__ctx.get_preedit ())
-            self.__model.learn (self.__ctx)
-            self.__ctx.clear ()
+            self.__commit ()
+            return True
+        punct = self.__parser.check_punct (event)
+        if punct:
+            # auto commit
+            self.__commit ()
+            self.__frontend.commit_string (punct)
             return True
         return True
+    def __commit (self):
+        self.__frontend.commit_string (self.__ctx.get_preedit ())
+        self.__model.learn (self.__ctx)
+        self.__ctx.clear ()
+        self.__parser.clear ()
     def update_ui (self):
         ctx = self.__ctx
         start = 0
