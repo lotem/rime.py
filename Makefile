@@ -10,4 +10,5 @@ uninstall:
 	rm /usr/lib/ibus/ibus-engine-zime
 	rm /usr/share/ibus/component/zime.xml
 clean:
-	-rm *~ data/*~ engine/*~ engine/stylo/*~ > /dev/null 2>&1
+	-find . -iname '*~' -delete
+	-find . -iname '*.py[co]' -delete
