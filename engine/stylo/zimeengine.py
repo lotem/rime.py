@@ -6,6 +6,7 @@ import time
 import ibus
 from ibus import keysyms
 from ibus import modifier
+from ibus import ascii
 
 from zimecore import *
 from zimedb import *
@@ -38,6 +39,9 @@ class Engine:
         self.__model = Model ()
         self.__ctx = Context (self, self.__model, self.__schema)
         self.__fallback = lambda e: self.__process (e)
+        self.__punct = None
+        self.__punct_key = 0
+        self.__punct_rep = 0
         self.update_ui ()
     def process_key_event (self, keycode, mask):
         # disable engine when Caps Lock is on
@@ -51,6 +55,26 @@ class Engine:
             modifier.SUPER_MASK | modifier.HYPER_MASK | modifier.META_MASK
             ):
             return False
+        if self.__punct:
+            if keycode not in (keysyms.Shift_L, keysyms.Shift_R) and not (mask & modifier.RELEASE_MASK):
+                if keycode == self.__punct_key:
+                    # next punct
+                    self.__punct_rep = (self.__punct_rep + 1) % len (self.__punct)
+                    punct = self.__punct[self.__punct_rep]
+                    self.__frontend.update_preedit (punct, 0, len (punct))
+                    return True
+                else:
+                    # clear punct prompt
+                    punct = self.__punct[self.__punct_rep]
+                    self.__punct = None
+                    self.__punct_key = 0
+                    self.__punct_rep = 0
+                    self.__frontend.update_preedit (u'', 0, 0)
+                    if keycode in (keysyms.Escape, keysyms.BackSpace):
+                        return True
+                    self.__frontend.commit_string (punct)
+                    if keycode in (keysyms.space, keysyms.Return):
+                        return True
         return self.__parser.process (KeyEvent (keycode, mask), self.__ctx, self.__fallback)
     def __judge (self, event):
         if event.coined:
@@ -60,9 +84,7 @@ class Engine:
         return False
     def __process (self, event):
         if self.__ctx.is_empty ():
-            punct = self.__parser.check_punct (event)
-            if punct:
-                self.__frontend.commit_string (punct)
+            if self.__handle_punct (event, commit=False):
                 return True
             return self.__judge (event)
         if event.mask & modifier.RELEASE_MASK:
@@ -108,13 +130,25 @@ class Engine:
         if event.keycode in (keysyms.space, keysyms.Return):
             self.__commit ()
             return True
-        punct = self.__parser.check_punct (event)
-        if punct:
-            # auto commit
-            self.__commit ()
-            self.__frontend.commit_string (punct)
+        # auto-commit
+        if self.__handle_punct (event, commit=True):
             return True
         return True
+    def __handle_punct (self, event, commit):
+        punct = self.__parser.check_punct (event)
+        if punct:
+            if commit:
+                self.__commit ()
+            if isinstance (punct, list):
+                self.__punct = punct
+                self.__punct_key = event.keycode
+                self.__punct_rep = 0
+                # TODO : set punct prompt
+                self.__frontend.update_preedit (punct[0], 0, len (punct[0]))
+            else:
+                self.__frontend.commit_string (punct)
+            return True
+        return False
     def __commit (self):
         self.__frontend.commit_string (self.__ctx.get_preedit ())
         self.__model.learn (self.__ctx)

@@ -140,7 +140,7 @@ def main ():
     #e.process_key_event (keysyms.space, modifier.RELEASE_MASK)
 
     #e = TestEngine (u'Pinyin')
-    #e.test ('wo! .')
+    #e.test ('wo! .<>[[]]""""')
     #e = TestEngine (u'Zhuyin')
     #e.test ('ji!3! >')
     #e = TestEngine (u'ComboPinyin')
