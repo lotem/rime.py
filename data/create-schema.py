@@ -195,10 +195,12 @@ if keyword_file:
         if x.startswith (u'#'):
             continue
         try:
-            (keyword, phrase) = x.split (None, 2)
+            (keyword, phrase) = x.split (None, 1)
         except:
             print >> sys.stderr, 'error: invalid format (%s) %s' % (keyword_file, x)
             exit ()
+        if phrase.startswith (u'*'):
+            phrase = phrase[1:]
         conn.execute (ADD_KEYWORD_SQL, (keyword, phrase))
     f.close ()
 
@@ -217,8 +219,8 @@ def query_keyword (keyword):
     r = conn.execute (QUERY_KEYWORD_SQL, (keyword, )).fetchall ()
     return [x[0] for x in r]
 
-def split_phrase (k, phrase):
-    #debug (u'split_phrase: %s %s' % (u' '.join (k), phrase))
+def __split (k, phrase):
+    #debug (u'__split: %s %s' % (u' '.join (k), phrase))
     if len (k) == 0 or len (phrase) == 0:
         return None
     r = filter (lambda x: phrase.startswith (x), query_keyword (k[0]))
@@ -229,7 +231,17 @@ def split_phrase (k, phrase):
         if s:
             return [w] + s
     return None
+
+def split_phrase (k, phrase):
+    if u' ' in phrase:
+        return phrase.split ()
+    else:
+        return __split (k, phrase)
     
+def join_phrase (words):
+    delimiter = u'' if all ([len (w) == 1 for w in words]) else u' '
+    return delimiter.join (words)
+
 def process_phrase (keyword, phrase, freq):
     k = keyword.split (delim)
     if len (k) <= 4:
@@ -242,7 +254,7 @@ def process_phrase (keyword, phrase, freq):
             exit ()
         i = 0
         while i <= len (k) - 4:
-            add_phrase (k[i:i + 4], ''.join (w[i:i + 4]), freq)
+            add_phrase (k[i:i + 4], join_phrase (w[i:i + 4]), freq)
             i += 1
 
 if phrase_file:

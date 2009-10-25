@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # vim:set et sts=4 sw=4:
 
+split_phrase = lambda x: x.split () if u' ' in x else list (x)
+join_phrase = lambda w: (u'' if all ([len (x) == 1 for x in w]) else u' ').join (w)
+
 class Model:
     def __init__ (self):
         pass
@@ -24,8 +27,9 @@ class Model:
             for i in range (max (0, n - 4), n):
                 r = db.lookup (ctx.kwd[i:])
                 for x in r:
+                    x = (split_phrase (x[0]) if n - i > 1 else [x[0]], x[1], x[2])
                     if n - i == 4 and self.__concatenated (ctx, i, x):
-                        continue
+                       continue
                     self.__add_candidate (ctx, i, n - i, x)
         self.__calculate (ctx)
     def select (self, ctx, s):
@@ -48,7 +52,7 @@ class Model:
             ok = False
             for y in c[j]:
                 if y[0][-3:] == x[0][:3]:
-                    self.__add_candidate (ctx, i, j + 2, (y[0] + x[0][-1], min (y[1], x[1])))
+                    self.__add_candidate (ctx, i, j + 2, (y[0] + [x[0][-1]], min (y[1], x[1])))
                     ok = True
             if ok:
                 return True
@@ -68,7 +72,7 @@ class Model:
                 sel[i] = Fixed
             sel[s[0] + s[1] - 1] = s
         def update_sugg (ctx, k, i, x):
-            w = ctx.sugg[i][2] + 1 + 1.0 / (x[1] + 1)
+            w = ctx.sugg[i][2] + 1 + 1.0 / (x[1] + x[2] + 1)
             if not ctx.sugg[k] or w < ctx.sugg[k][2]:
                 ctx.sugg[k] = (i, x[0], w)
         start = 0
@@ -101,9 +105,8 @@ class Model:
             k -= 1
         r = ctx.keywords[k:]
         t = ctx.sugg[k]
-        split_words = lambda x: x.split () if u' ' in x else list (x)
         while t[0] != -1:
-            r = split_words (t[1]) + r
+            r = t[1] + r
             t = ctx.sugg[t[0]]
         ctx.preedit = r
         # update candidates
@@ -113,7 +116,7 @@ class Model:
             a = []
             for length in range (len (c), 0, -1):
                 for x in c[length - 1]:
-                    y = x[0]
+                    y = u''.join (x[0])
                     if length >= 4 and any ([t[0].startswith (y) for t in a]): 
                         continue
                     a.append ((y, (pos, length, x)))
@@ -127,32 +130,30 @@ class Model:
         s = k
         t = ctx.sugg[k]
         while t[0] != -1:
-            r = [(t[1], s - t[0])] + r
+            r = [t[1]] + r
             s = t[0]
             t = ctx.sugg[s]
-        split_words = lambda x: x.split () if u' ' in x else list (x)
-        flatten = lambda w, p: w + split_words (p[0])
+        flatten = lambda ls, x: ls + x
         self.__memorize (db, ctx.kwd[:k], reduce (flatten, r, []))
         i = j = 0
         w = []
         def check_new_word ():
             if len (w) in range (2, 4) and i - j < k:
-                self.__memorize (db, ctx.kwd[j:i], w)
+                self.__memorize (db, ctx.kwd[j:i], reduce (flatten, w, []))
         for x in r:
-            if x[1] == 1:
-                w.append (x[0])
+            if len (x) == 1:
+                w.append (x)
             else:
                 check_new_word ()
                 w = []
-                j = i + x[1]
-            i += x[1]
+                j = i + len (x)
+            i += len (x)
         check_new_word ()
     def __memorize (self, db, keywords, words):
-        #print '__memorize: [%s] = [%s]' % (u' '.join (keywords), u' '.join (words))
-        join_words = lambda w: (u' ' if any ([len (x) > 1 for x in w]) else u'').join (w)
+        #print '__memorize:', keywords, words
         if len (keywords) <= 4:
-            db.store (keywords, join_words (words))
+            db.store (keywords, join_phrase (words))
         else:
             for i in range (len (keywords) - 4 + 1):
-                db.store (keywords[i:i+4], join_words (words[i:i+4]))
+                db.store (keywords[i:i+4], join_phrase (words[i:i+4]))
 

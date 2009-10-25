@@ -14,16 +14,15 @@ import optparse
 def debug (*what):
     print >> sys.stderr, u'[DEBUG]: ', u' '.join (map (unicode, what))
 
-parser = optparse.OptionParser ()
+usage = 'usage: %prog [options] prefix'
+parser = optparse.OptionParser (usage)
+parser.add_option ('-p', '--precise', action='store_true', dest='precise', default=False, help='generate comments on interpreted words only.')
 parser.add_option ('-v', '--verbose', action='store_true', dest='verbose', default=False, help='make lots of noice.')
 options, args = parser.parse_args ()
 
 if len (args) < 1:
     parser.error ('missing prefix')
 prefix = args[0]
-
-# TODO: read option
-delimiter = u' '
 
 max_word_length = 0
 word_map = dict ()
@@ -53,21 +52,24 @@ count = 0
 phrase = u''
 freq = 0
 
-def output_phrase (key):
-    print >> phrase_file, (u'%s\t%d\t%s' % (phrase, freq, key)).encode ('utf-8')
+def output_phrase (keywords, words):
+    global freq
+    delimiter = u'' if all ([len (w) == 1 for w in words]) else u' '
+    k = u' '.join (keywords)
+    p = delimiter.join (words)
+    print >> phrase_file, (u'%s\t%d\t%s' % (p, freq, k)).encode ('utf-8')
 
-def g (keywords, depth, start):
+def g (keywords, words, start):
     global count, phrase
     if start == len (phrase):
-        key = delimiter.join (keywords)
-        output_phrase (key)
+        output_phrase (keywords, words)
         count += 1
         return
     for i in range (start, min (len (phrase), start + max_word_length)):
         w = phrase[start:i + 1]
         if w in word_map:
             for k in word_map[w]:
-                g (keywords + [k], depth + 1, i + 1)
+                g (keywords + [k], words + [w], i + 1)
 
 for line in source_file:
     x = line.strip ().decode ('utf-8')
@@ -80,11 +82,13 @@ for line in source_file:
         print >> sys.stderr, 'error: invalid format (phrases.txt) %s' % x
         exit ()
     count = 0 
-    g ([], 0, 0)
+    g ([], [], 0)
     if count == 0:
         if options.verbose:
             print 'phrase %s is not interpreted.' % phrase
-    if count != 1:
+        if not options.precise:
+            print >> phrase_file, (u'# no possible interpretations for %s' % phrase).encode ('utf-8')
+    elif count > 1:
         print >> phrase_file, (u'# %d possible interpretations for %s' % (count, phrase)).encode ('utf-8')
 
 source_file.close ()

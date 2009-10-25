@@ -157,6 +157,7 @@ class Engine:
     def update_ui (self):
         ctx = self.__ctx
         start = 0
+        print ctx.preedit
         for x in ctx.preedit[:ctx.cursor]:
             start += len (x)
         end = start + len (ctx.preedit[ctx.cursor])

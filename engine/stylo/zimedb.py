@@ -99,17 +99,17 @@ class DB:
         ORDER BY user_freq_total DESC, freq_total DESC;
         """ % prefix,
         """
-        SELECT phrase, freq FROM %(prefix)s_phrases 
+        SELECT phrase, freq, user_freq FROM %(prefix)s_phrases 
         WHERE klen = 2 AND k0 = :k0 AND k1 = :k1 AND k2 IS NULL AND k3 IS NULL
         ORDER BY user_freq DESC, freq DESC;
         """ % prefix,
         """
-        SELECT phrase, freq FROM %(prefix)s_phrases 
+        SELECT phrase, freq, user_freq FROM %(prefix)s_phrases 
         WHERE klen = 3 AND k0 = :k0 AND k1 = :k1 AND k2 = :k2 AND k3 IS NULL
         ORDER BY user_freq DESC, freq DESC;
         """ % prefix,
         """
-        SELECT phrase, freq FROM %(prefix)s_phrases 
+        SELECT phrase, freq, user_freq FROM %(prefix)s_phrases 
         WHERE klen = 4 AND k0 = :k0 AND k1 = :k1 AND k2 = :k2 AND k3 = :k3
         ORDER BY user_freq DESC, freq DESC;
         """ % prefix

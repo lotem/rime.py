@@ -146,5 +146,9 @@ def main ():
     #e = TestEngine (u'ComboPinyin')
     #e.test ('!')
 
+    e = TestEngine (u'Test')
+    #e.test ('yorenyoxau2 yosiauxau yosiauxohxau ')
+    e.test ('cioqai-ni-shashou-qai-le-ya ')
+
 if __name__ == "__main__":
     main ()
