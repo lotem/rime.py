@@ -52,7 +52,7 @@ class Model:
             ok = False
             for y in c[j]:
                 if y[0][-3:] == x[0][:3]:
-                    self.__add_candidate (ctx, i, j + 2, (y[0] + [x[0][-1]], min (y[1], x[1])))
+                    self.__add_candidate (ctx, i, j + 2, (y[0] + [x[0][-1]], min (y[1], x[1]), min (y[2], x[2])))
                     ok = True
             if ok:
                 return True
