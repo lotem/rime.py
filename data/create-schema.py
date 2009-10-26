@@ -189,20 +189,25 @@ UPDATE_PHRASE_SQL %= prefix_args
 ADD_PHRASE_SQL %= prefix_args
 
 if keyword_file:
+    keyword_map = set ()
     f = open (keyword_file, 'r')
     for line in f:
         x = line.strip ().decode ('utf-8')
         if x.startswith (u'#'):
             continue
         try:
-            (keyword, phrase) = x.split (None, 1)
+            (keyword, word) = x.split (None, 1)
         except:
             print >> sys.stderr, 'error: invalid format (%s) %s' % (keyword_file, x)
             exit ()
-        if phrase.startswith (u'*'):
-            phrase = phrase[1:]
-        conn.execute (ADD_KEYWORD_SQL, (keyword, phrase))
+        if word.startswith (u'*'):
+            word = word[1:]
+        keyword_map.add ((keyword, word))
     f.close ()
+    for p in keyword_map:
+        conn.execute (ADD_KEYWORD_SQL, p)
+    if options.verbose:
+        print >> sys.stderr, '%d keyword mapping entries.' % len (keyword_map)
 
 def add_phrase (k, phrase, freq):
     args = [len (k)] + k[:]
@@ -242,7 +247,11 @@ def join_phrase (words):
     delimiter = u'' if all ([len (w) == 1 for w in words]) else u' '
     return delimiter.join (words)
 
+phrase_counter = 0
+
 def process_phrase (keyword, phrase, freq):
+    global phrase_counter
+    phrase_counter += 1
     k = keyword.split (delim)
     if len (k) <= 4:
         add_phrase (k, phrase, freq)
@@ -270,9 +279,12 @@ if phrase_file:
             print >> sys.stderr, 'error: invalid format (%s) %s' % (phrase_file, x)
             exit ()
         process_phrase (keyword, phrase, freq)
+        if options.verbose and phrase_counter % 1000 == 0:
+            print >> sys.stderr, '%dk phrases processed.' % (phrase_counter / 1000)
     f.close ()
 
 conn.commit ()
 conn.close ()
 
 print >> sys.stderr, 'done.'
+

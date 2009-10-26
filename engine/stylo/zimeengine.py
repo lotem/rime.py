@@ -223,11 +223,11 @@ class SchemaChooser:
             if self.__engine:
                 self.__engine.update_ui ()
             return True
-        if keycode == keysyms.Page_Up or keycode == keysyms.Up:
+        if keycode in (keysyms.Page_Up, keysyms.Up, keysyms.minus, keysyms.comma):
             if self.__frontend.page_up ():
                 return True
             return True
-        if keycode == keysyms.Page_Down or keycode == keysyms.Down:
+        if keycode in (keysyms.Page_Down, keysyms.Down, keysyms.equal, keysyms.period):
             if self.__frontend.page_down ():
                 return True
             return True

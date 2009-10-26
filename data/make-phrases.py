@@ -34,9 +34,9 @@ for line in keyword_file:
         continue
     k, w = x.split (None, 1)
     if w in word_map:
-        word_map[w].append (k)
+        word_map[w].add (k)
     else:
-        word_map[w] = [k]
+        word_map[w] = set ([k])
     if len (w) > max_word_length:
         max_word_length = len (w)
 keyword_file.close ()
