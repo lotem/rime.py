@@ -368,7 +368,7 @@ ba	䶕
 # only found in pinyin.txt
 ba	仈
 # no match in zhung.txt: be
-ba	伯
+#ba	伯
 ba	八
 # no match in zhung.txt: pa
 ba	叭
@@ -468,47 +468,33 @@ ba	魃
 ba	鮁
 # only found in pinyin.txt
 ba	鼥
-# no match in zhung.txt: be
-#bai	伯
-# no match in zhung.txt: me
-bai	佰
 bai	唄
 bai	庍
-# no match in zhung.txt: ba
-bai	把
 bai	拜
 # only found in pinyin.txt
 bai	拝
 bai	捭
 # no match in zhung.txt: be
-bai	掰
+be	掰
 # only found in pinyin.txt
-bai	搿
+be	搿
 # only found in pinyin.txt
 bai	摆
 bai	擺
 bai	敗
-# no match in zhung.txt: be
-bai	柏
-# no match in zhung.txt: be
-bai	栢
 # no match in zhung.txt: pai
 bai	湃
-# no match in zhung.txt: be
-bai	白
-# no match in zhung.txt: be
-bai	百
 bai	稗
 # only found in pinyin.txt
-bai	粨
+be	粨
 bai	粺
 # only found in pinyin.txt
-bai	絔
+be	絔
 # no match in zhung.txt: pi,bi
 bai	襬
 bai	贁
 # no match in zhung.txt: me
-bai	陌
+be	*陌
 # only found in pinyin.txt
 ban	㫠
 # no match in zhung.txt: bin
@@ -607,7 +593,7 @@ bang	稖
 bang	綁
 bang	縍
 # no match in zhung.txt: pang
-bang	膀
+bang	*膀
 # only found in pinyin.txt
 bang	艕
 bang	蒡
@@ -634,10 +620,6 @@ bau	保
 bau	儤
 # only found in pinyin.txt
 bau	刨
-# no match in zhung.txt: buo
-bau	剝
-# no match in zhung.txt: buo
-bau	剥
 bau	勽
 bau	包
 # no match in zhung.txt: pau
@@ -672,7 +654,7 @@ bau	曓
 bau	枹
 bau	瀑
 # no match in zhung.txt: pau
-bau	炮
+bau	*炮
 # only found in pinyin.txt
 bau	煲
 # only found in pinyin.txt
@@ -694,8 +676,6 @@ bau	礮
 bau	窇
 # only found in pinyin.txt
 bau	笣
-# no match in zhung.txt: buo
-bau	箔
 bau	緥
 bau	胞
 bau	苞
@@ -703,8 +683,6 @@ bau	菢
 bau	葆
 # only found in pinyin.txt
 bau	蕔
-# no match in zhung.txt: buo
-bau	薄
 bau	虣
 bau	袌
 # only found in pinyin.txt
@@ -840,8 +818,6 @@ bei	貝
 # only found in pinyin.txt
 bei	軰
 bei	輩
-# no match in zhung.txt: bi
-bei	避
 bei	邶
 # only found in pinyin.txt
 bei	郥
@@ -981,7 +957,7 @@ bi	仳
 bi	佊
 bi	佖
 # no match in zhung.txt: fu
-bi	佛
+bi	*佛
 bi	俾
 bi	偪
 bi	匕
@@ -1550,7 +1526,7 @@ buo	䗚
 buo	亳
 be	伯
 # no match in zhung.txt: me
-#be|buo	佰
+be	佰
 # only found in pinyin.txt
 #be|buo	侼
 be	僰
@@ -5923,7 +5899,7 @@ fan	橎
 fan	氾
 fan	汎
 # no match in zhung.txt: sian,shai,sin
-fan	汛
+fan	*汛
 fan	汳
 fan	泛
 # only found in pinyin.txt
@@ -6351,42 +6327,24 @@ feng	麷
 fiau	覅
 # only found in pinyin.txt
 fuo	仏
-# no match in zhung.txt: fu
-fuo	佛
-# no match in zhung.txt: fu
-fuo	坲
+fu	佛
+fu	坲
 # only found in pinyin.txt
 fung	甮
-# no match in zhung.txt: bu,fu
-fou	不
 # no match in zhung.txt: peng
 fou	剻
-# no match in zhung.txt: bi,fu
-fou	否
-# no match in zhung.txt: fu
-fou	复
-# no match in zhung.txt: fu
-fou	復
-# no match in zhung.txt: e,fu
-fou	殕
-# no match in zhung.txt: fu
-fou	浮
-# no match in zhung.txt: fu
-fou	紑
-# no match in zhung.txt: fu
-fou	缶
-# no match in zhung.txt: fu
-fou	缹
+fu	否
+fu	殕
+fu	紑
+fu	缶
+fu	缹
 # no match in zhung.txt: xang
-fou	缻
-# no match in zhung.txt: fu
-fou	罘
-# no match in zhung.txt: fu
-fou	芣
+fu	缻
+fu	罘
+fu	芣
 # only found in pinyin.txt
 fou	雬
-# no match in zhung.txt: fu
-fou	鴀
+fu	鴀
 # only found in pinyin.txt
 fu	㕶
 fu	㠸
@@ -6395,7 +6353,7 @@ fu	㤔
 fu	㷆
 # only found in pinyin.txt
 fu	䪖
-fu	不
+fu	*不
 fu	乀
 # only found in pinyin.txt
 fu	仅
@@ -6786,7 +6744,7 @@ gai	絠
 gai	絯
 gai	胲
 # no match in zhung.txt: jai
-gai	芥
+gai	*芥
 gai	荄
 # only found in pinyin.txt
 gai	葢
@@ -11502,8 +11460,6 @@ ziau	蟭
 # only found in pinyin.txt
 #jau|ziau	覚
 jau	覺
-# no match in zhung.txt: lu,jo
-#jau|ziau	角
 # no match in zhung.txt: wu,xo,yo
 #jau|ziau	觷
 jau	訆
@@ -11538,7 +11494,7 @@ ziau	鐎
 # no match in zhung.txt: ciau
 #jau|ziau	顦
 # only found in pinyin.txt
-#jau|ziau	餃
+jau	餃
 jau	驕
 jau	鮫
 jau	鱎
@@ -11549,7 +11505,7 @@ ziau	鷦
 jau	鷮
 jau	鸄
 # no match in zhung.txt: yau
-#jau|ziau	齩
+jau	齩
 # only found in pinyin.txt
 #zie|ziuo|je|zieo|jeo|juo	㔾
 # no match in zhung.txt: zhe
@@ -11567,14 +11523,14 @@ jau	鸄
 # no match in zhung.txt: jai
 #zie|ziuo|je|zieo|jeo|juo	丯
 # no match in zhung.txt: jai
-#zie|ziuo|je|zieo|jeo|juo	介
+jai	介
 # no match in zhung.txt: jai
-#zie|ziuo|je|zieo|jeo|juo	价
+jai	价
 zie	借
 zie	倢
 je	偈
 # no match in zhung.txt: xai,jai
-#zie|ziuo|je|zieo|jeo|juo	偕
+jai	*偕
 # only found in pinyin.txt
 #zie|ziuo|je|zieo|jeo|juo	偼
 je	傑
@@ -11613,7 +11569,7 @@ zie	嗟
 # only found in pinyin.txt
 #zie|ziuo|je|zieo|jeo|juo	姉
 # no match in zhung.txt: zy
-#zie|ziuo|je|zieo|jeo|juo	姊
+zie	姊
 zie	姐
 zie	婕
 # only found in pinyin.txt
@@ -11627,14 +11583,12 @@ zie	婕
 je	孑
 # no match in zhung.txt: jai
 #zie|ziuo|je|zieo|jeo|juo	尬
-# no match in zhung.txt: jai
-#zie|ziuo|je|zieo|jeo|juo	屆
-# no match in zhung.txt: jai
-#zie|ziuo|je|zieo|jeo|juo	届
+jai	屆
+jai	届
 # only found in pinyin.txt
 #zie|ziuo|je|zieo|jeo|juo	岊
 # only found in pinyin.txt
-#zie|ziuo|je|zieo|jeo|juo	岕
+jai	岕
 zie	崨
 # no match in zhung.txt: keo
 #zie|ziuo|je|zieo|jeo|juo	嵑
@@ -11652,7 +11606,7 @@ zie	幯
 # no match in zhung.txt: ji,jai
 #zie|ziuo|je|zieo|jeo|juo	悈
 # no match in zhung.txt: jai
-#zie|ziuo|je|zieo|jeo|juo	戒
+jai	戒
 zie	截
 # no match in zhung.txt: ja
 #zie|ziuo|je|zieo|jeo|juo	扴
@@ -11686,7 +11640,7 @@ je	桀
 je	桔
 je	梜
 # no match in zhung.txt: xai
-#zie|ziuo|je|zieo|jeo|juo	械
+jai	械
 zie	椄
 # only found in pinyin.txt
 #zie|ziuo|je|zieo|jeo|juo	楐
@@ -11698,7 +11652,7 @@ je	榤
 # no match in zhung.txt: ja
 #zie|ziuo|je|zieo|jeo|juo	檞
 # no match in zhung.txt: zhe
-#zie|ziuo|je|zieo|jeo|juo	櫛
+zie	櫛
 je	櫭
 # only found in pinyin.txt
 #zie|ziuo|je|zieo|jeo|juo	毑
@@ -11708,13 +11662,13 @@ je	櫭
 #zie|ziuo|je|zieo|jeo|juo	洯
 # only found in pinyin.txt
 #zie|ziuo|je|zieo|jeo|juo	渇
-je	渴
+je	*渴
 # no match in zhung.txt: xai,jai
 #zie|ziuo|je|zieo|jeo|juo	湝
 je	滐
 je	潔
 # no match in zhung.txt: zhe
-#zie|ziuo|je|zieo|jeo|juo	瀄
+zie	瀄
 # only found in pinyin.txt
 #zie|ziuo|je|zieo|jeo|juo	煯
 je	犗
@@ -11728,7 +11682,7 @@ je	狤
 # no match in zhung.txt: xai
 #zie|ziuo|je|zieo|jeo|juo	瑎
 # no match in zhung.txt: jai
-#zie|ziuo|je|zieo|jeo|juo	界
+jai	界
 # only found in pinyin.txt
 #zie|ziuo|je|zieo|jeo|juo	畍
 zie	疌
@@ -11738,7 +11692,7 @@ zie	疌
 #zie|ziuo|je|zieo|jeo|juo	痎
 zie	癤
 # no match in zhung.txt: jai
-#zie|ziuo|je|zieo|jeo|juo	皆
+jai	皆
 zie	睫
 # no match in zhung.txt: xa,ja,jai
 #zie|ziuo|je|zieo|jeo|juo	砎
@@ -11773,7 +11727,7 @@ je	羯
 # no match in zhung.txt: chuan
 #zie|ziuo|je|zieo|jeo|juo	舛
 # no match in zhung.txt: jai
-#zie|ziuo|je|zieo|jeo|juo	芥
+jai	芥
 # no match in zhung.txt: chuan
 #zie|ziuo|je|zieo|jeo|juo	荈
 # only found in pinyin.txt
@@ -11802,7 +11756,7 @@ zie	蠞
 # no match in zhung.txt: ziue
 #zie|ziuo|je|zieo|jeo|juo	蠽
 # no match in zhung.txt: ja,jai
-#zie|ziuo|je|zieo|jeo|juo	街
+je	街
 je	衱
 # no match in zhung.txt: xai,jai
 #zie|ziuo|je|zieo|jeo|juo	衸
@@ -11812,7 +11766,7 @@ je	袺
 #zie|ziuo|je|zieo|jeo|juo	裌
 zie	褯
 # no match in zhung.txt: xa,ja
-#zie|ziuo|je|zieo|jeo|juo	解
+je	解
 # only found in pinyin.txt
 #zie|ziuo|je|zieo|jeo|juo	觧
 je	訐
@@ -12423,7 +12377,7 @@ jou	齨
 #ju|ziu	㖸
 # only found in pinyin.txt
 #ju|ziu	㵵
-ziu	且
+ziu	*且
 # no match in zhung.txt: hou
 #ju|ziu	佝
 # only found in pinyin.txt
@@ -13160,7 +13114,7 @@ jun	麕
 # no match in zhung.txt: hun
 #ziun|jun	鼲
 # no match in zhung.txt: gui,jou
-#ziun|jun	龜
+jun	龜
 # only found in pinyin.txt
 #ziun|jun	𣽊
 # only found in pinyin.txt
@@ -14516,20 +14470,12 @@ lui	䢮
 lui	傫
 lui	儡
 lui	儽
-# no match in zhung.txt: le
-lui	勒
 lui	厽
-# no match in zhung.txt: lie,li
-lui	唳
 lui	垒
 lui	壘
 # only found in pinyin.txt
 lui	壨
 lui	嫘
-# no match in zhung.txt: lie,li
-lui	戾
-# no match in zhung.txt: lie,li
-lui	捩
 # only found in pinyin.txt
 lui	擂
 lui	攂
@@ -14573,8 +14519,6 @@ lui	纝
 lui	罍
 lui	羸
 lui	耒
-# no match in zhung.txt: le
-lui	肋
 # only found in pinyin.txt
 lui	腂
 # only found in pinyin.txt
@@ -15930,7 +15874,7 @@ lu	虂
 lu	虜
 lu	螰
 lu	蠦
-lu	角
+lu	*角
 # only found in pinyin.txt
 lu	觮
 lu	觻
@@ -19717,7 +19661,7 @@ qi	汽
 # no match in zhung.txt: yi
 #qi|ci	沂
 # no match in zhung.txt: cie
-#qi|ci	沏
+ci	沏
 qi	泣
 ci	洓
 qi	淇
@@ -19726,7 +19670,7 @@ qi	湆
 # only found in pinyin.txt
 #qi|ci	湇
 # no match in zhung.txt: zi
-#qi|ci	湒
+ci	湒
 qi	溪
 # only found in pinyin.txt
 #qi|ci	滊
@@ -19735,9 +19679,9 @@ ci	漆
 #qi|ci	濝
 qi	炁
 # only found in pinyin.txt
-#qi|ci	焏
+qi	焏
 # no match in zhung.txt: xi
-#qi|ci	熂
+qi	熂
 # only found in pinyin.txt
 #qi|ci	犵
 # only found in pinyin.txt
@@ -20814,42 +20758,42 @@ qung	睘
 qung	穹
 qung	窮
 # only found in pinyin.txt
-#ciung|qung	竆
+qung	竆
 # only found in pinyin.txt
-#ciung|qung	笻
+qung	笻
 qung	筇
 qung	舼
 qung	芎
 # only found in pinyin.txt
-#ciung|qung	蒆
+qung	蒆
 qung	藑
 qung	藭
 qung	蛩
 qung	褧
 # no match in zhung.txt: jue
-#ciung|qung	觼
+qung	觼
 # no match in zhung.txt: xuan,juan
-#ciung|qung	讂
+qung	讂
 qung	赹
 # no match in zhung.txt: qang
-#ciung|qung	跫
+qung	跫
 qung	輁
 qung	邛
 qung	銎
 qung	顈
 # only found in pinyin.txt
-#qou|ciou	㕤
+qou	㕤
 # only found in pinyin.txt
-#qou|ciou	㚱
+qou	㚱
 # only found in pinyin.txt
-#qou|ciou	㞗
+qou	㞗
 # only found in pinyin.txt
-#qou|ciou	㳋
+qou	㳋
 qou	䊵
 qou	丘
 qou	丠
 # only found in pinyin.txt
-#qou|ciou	亀
+qou	亀
 qou	仇
 qou	俅
 # only found in pinyin.txt
@@ -20867,7 +20811,7 @@ qou	叴
 # no match in zhung.txt: ziau
 #qou|ciou	噍
 # no match in zhung.txt: siou
-#qou|ciou	囚
+ciou	囚
 # only found in pinyin.txt
 #qou|ciou	坵
 # only found in pinyin.txt
@@ -20991,15 +20935,15 @@ ciou	鰍
 ciou	鶖
 qou	鼽
 # no match in zhung.txt: gui,jou
-#qou|ciou	龜
+qou	*龜
 # only found in pinyin.txt
-#qou|ciou	龝
+qou	龝
 # no match in zhung.txt: qe
 #qu|ciu	㾀
 # no match in zhung.txt: zhuo
 #qu|ciu	䖦
 # no match in zhung.txt: ziu,cie
-#qu|ciu	且
+ciu	*且
 ciu	伹
 # no match in zhung.txt: qe
 #qu|ciu	佉
@@ -21010,7 +20954,7 @@ qu	劬
 # only found in pinyin.txt
 #qu|ciu	匷
 # only found in pinyin.txt
-#qu|ciu	区
+qu	区
 qu	區
 # only found in pinyin.txt
 #qu|ciu	厷
@@ -21111,25 +21055,25 @@ qu	袪
 ciu	覰
 ciu	覷
 # only found in pinyin.txt
-#qu|ciu	覻
+ciu	覻
 # only found in pinyin.txt
-#qu|ciu	詓
+#qu	詓
 qu	詘
 # only found in pinyin.txt
-#qu|ciu	誳
+#qu	誳
 qu	豦
 # no match in zhung.txt: chu
 #qu|ciu	貙
 ciu	趄
 # only found in pinyin.txt
-#qu|ciu	趋
+ciu	趋
 ciu	趣
 ciu	趨
 # no match in zhung.txt: ju
 #qu|ciu	跔
 qu	躣
 # only found in pinyin.txt
-#qu|ciu	躯
+qu	躯
 qu	軀
 qu	軥
 # no match in zhung.txt: je
@@ -21172,20 +21116,20 @@ ciuan	佺
 ciuan	全
 quan	券
 # only found in pinyin.txt
-#ciuan|quan	劝
+quan	劝
 # only found in pinyin.txt
-#ciuan|quan	勌
+quan	勌
 # only found in pinyin.txt
-#ciuan|quan	勧
+quan	勧
 quan	勸
 quan	卷
 # only found in pinyin.txt
-#ciuan|quan	呟
+quan	呟
 quan	圈
 # only found in pinyin.txt
-#ciuan|quan	圏
+quan	圏
 # only found in pinyin.txt
-#ciuan|quan	姾
+ciuan	姾
 quan	婘
 quan	孉
 # only found in pinyin.txt
@@ -21193,21 +21137,21 @@ quan	孉
 # no match in zhung.txt: guan
 #ciuan|quan	巏
 # only found in pinyin.txt
-#ciuan|quan	巻
+quan	巻
 quan	弮
 ciuan	恮
 ciuan	悛
 # only found in pinyin.txt
-#ciuan|quan	惓
+quan	惓
 quan	拳
 # only found in pinyin.txt
-#ciuan|quan	搼
+quan	搼
 quan	棬
 # only found in pinyin.txt
-#ciuan|quan	権
+quan	権
 quan	權
 # no match in zhung.txt: juan
-#ciuan|quan	汱
+quan	汱
 ciuan	泉
 # only found in pinyin.txt
 #ciuan|quan	洤
@@ -21258,7 +21202,7 @@ ciuan	詮
 quan	踡
 ciuan	輇
 # only found in pinyin.txt
-#ciuan|quan	醛
+ciuan	醛
 ciuan	銓
 ciuan	鐉
 quan	顴
@@ -21295,7 +21239,7 @@ qo	愨
 #cio|que|qo|ciue	抾
 qo	搉
 # no match in zhung.txt: jo
-#cio|que|qo|ciue	榷
+qo	榷
 qo	殻
 qo	殼
 qo	毃
@@ -23616,7 +23560,7 @@ su	㩋
 # only found in pinyin.txt
 su	㯈
 # no match in zhung.txt: siu
-su	俗
+siu	俗
 su	傃
 # only found in pinyin.txt
 su	僳
@@ -23691,22 +23635,20 @@ su	簌
 # only found in pinyin.txt
 su	粛
 # no match in zhung.txt: siu
-su	粟
+siu	粟
 su	素
 # only found in pinyin.txt
 su	縤
 # no match in zhung.txt: shu
-su	縮
+chu	縮
 # no match in zhung.txt: siu
-su	肅
+siu	肅
 su	膆
 # no match in zhung.txt: siu
-su	蓿
+siu	蓿
 su	蔌
-# no match in zhung.txt: shu
-su	蔬
 # no match in zhung.txt: ji
-su	薊
+#su	薊
 su	藗
 su	蘇
 # only found in pinyin.txt
@@ -23963,7 +23905,7 @@ suo	璅
 suo	簑
 suo	索
 # no match in zhung.txt: shu
-suo	縮
+#suo	縮
 suo	莎
 suo	莏
 # no match in zhung.txt: shu
@@ -27632,7 +27574,7 @@ sie	些
 # no match in zhung.txt: je,ji
 #xuo|siuo|sie|sieo|xeo|xe	偈
 # no match in zhung.txt: xai,jai
-#xuo|siuo|sie|sieo|xeo|xe	偕
+xai	偕
 sie	偰
 # only found in pinyin.txt
 #xuo|siuo|sie|sieo|xeo|xe	写
@@ -27801,26 +27743,26 @@ xe	褉
 sie	褻
 xe	襭
 # no match in zhung.txt: xa,ja
-#xuo|siuo|sie|sieo|xeo|xe	解
+xe	解
 # only found in pinyin.txt
 #xuo|siuo|sie|sieo|xeo|xe	觧
 # no match in zhung.txt: xai
-#xuo|siuo|sie|sieo|xeo|xe	諧
+xai	諧
 sie	謝
 # no match in zhung.txt: xai
 #xuo|siuo|sie|sieo|xeo|xe	譮
 sie	躞
 # no match in zhung.txt: xa
-#xuo|siuo|sie|sieo|xeo|xe	邂
+xe	邂
 sie	邪
 # no match in zhung.txt: xai,xa
-#xuo|siuo|sie|sieo|xeo|xe	鞋
+xe	鞋
 sie	鞢
 # no match in zhung.txt: xa
 #xuo|siuo|sie|sieo|xeo|xe	鞵
 # no match in zhung.txt: xai
 #xuo|siuo|sie|sieo|xeo|xe	韰
-xe	頁
+xe	*頁
 xe	頡
 # no match in zhung.txt: xai
 #xuo|siuo|sie|sieo|xeo|xe	駭
@@ -27891,7 +27833,7 @@ xin	焮
 #sin|xin	膷
 xin	舋
 # only found in pinyin.txt
-#sin|xin	芯
+sin	芯
 # no match in zhung.txt: shen
 #sin|xin	莘
 # no match in zhung.txt: zin
@@ -27916,7 +27858,7 @@ xin	鑫
 sin	阠
 sin	顖
 # no match in zhung.txt: xing
-#sin|xin	馨
+xin	馨
 # only found in pinyin.txt
 #sin|xin	馸
 # no match in zhung.txt: sing
@@ -27924,7 +27866,7 @@ sin	顖
 sin	鬵
 xing	侀
 # no match in zhung.txt: heng
-#sing|xing	倖
+xing	倖
 xing	刑
 # only found in pinyin.txt
 #sing|xing	啈
@@ -27937,40 +27879,40 @@ xing	娙
 xing	婞
 xing	嬹
 # no match in zhung.txt: heng
-#sing|xing	幸
+xing	幸
 xing	形
 sing	性
 xing	悻
 sing	惺
 # only found in pinyin.txt
-#sing|xing	擤
+sing	擤
 sing	星
 sing	曐
 # no match in zhung.txt: heng
-#sing|xing	杏
+xing	杏
 # no match in zhung.txt: heng
-#sing|xing	洐
+xing	洐
 xing	涬
 sing	渻
 # no match in zhung.txt: xung
-#sing|xing	滎
+xing	滎
 # no match in zhung.txt: yung
-#sing|xing	濴
+xing	濴
 # only found in pinyin.txt
-#sing|xing	烆
+xing	烆
 # only found in pinyin.txt
-#sing|xing	煋
+sing	煋
 # no match in zhung.txt: sheng
-#sing|xing	狌
+sing	狌
 sing	猩
 # only found in pinyin.txt
-#sing|xing	瑆
+sing	瑆
 # only found in pinyin.txt
-#sing|xing	皨
+sing	皨
 sing	省
 sing	睲
 # no match in zhung.txt: xuan,xung
-#sing|xing	矎
+xing	矎
 xing	硎
 sing	篂
 # only found in pinyin.txt
@@ -27990,22 +27932,22 @@ xing	興
 #sing|xing	莕
 xing	蛵
 # no match in zhung.txt: heng,hang
-#sing|xing	行
+xing	行
 sing	觪
 # only found in pinyin.txt
 #sing|xing	觲
 xing	邢
 # no match in zhung.txt: qan
-#sing|xing	郉
+xing	郉
 sing	醒
 xing	鈃
 xing	鉶
 # only found in pinyin.txt
-#sing|xing	銒
+xing	銒
 xing	鋞
 xing	陘
 # no match in zhung.txt: qan,an
-#sing|xing	雃
+xing	雃
 sing	餳
 xing	馨
 # only found in pinyin.txt
@@ -28024,11 +27966,11 @@ xung	匈
 # no match in zhung.txt: xuan
 #xung|siung	夐
 # only found in pinyin.txt
-#xung|siung	忷
+xung	忷
 xung	恟
 xung	敻
 # only found in pinyin.txt
-#xung|siung	汹
+xung	汹
 xung	洶
 # no match in zhung.txt: gu
 #xung|siung	焸
@@ -28053,7 +27995,7 @@ xung	詾
 #xou|siou	㳜
 xou	休
 # only found in pinyin.txt
-#xou|siou	俢
+siou	俢
 siou	修
 xou	咻
 xou	嗅
@@ -28084,9 +28026,9 @@ siou	琇
 siou	秀
 siou	糔
 # only found in pinyin.txt
-#xou|siou	綉
+siou	綉
 # only found in pinyin.txt
-#xou|siou	繍
+siou	繍
 siou	繡
 siou	羞
 siou	脩
@@ -28124,7 +28066,7 @@ siou	饈
 xou	髤
 xou	髹
 # only found in pinyin.txt
-#xou|siou	鱃
+siou	鱃
 # no match in zhung.txt: yau
 #xou|siou	鴞
 xou	鵂
@@ -28162,19 +28104,19 @@ xu	喣
 # no match in zhung.txt: ou
 #siu|xu	嘔
 # only found in pinyin.txt
-#siu|xu	嘘
+xu	嘘
 # no match in zhung.txt: xou
-#siu|xu	嘼
+xu	嘼
 xu	噓
 # only found in pinyin.txt
-#siu|xu	垿
+siu	垿
 # no match in zhung.txt: qu
-#siu|xu	墟
+xu	墟
 # no match in zhung.txt: si
-#siu|xu	壻
+siu	壻
 xu	姁
 # no match in zhung.txt: si
-#siu|xu	婿
+siu	婿
 siu	嬃
 # no match in zhung.txt: rhu
 #siu|xu	嬬
@@ -28185,14 +28127,14 @@ siu	徐
 xu	怴
 siu	恤
 # only found in pinyin.txt
-#siu|xu	惐
+xu	惐
 xu	慉
 siu	戌
 # no match in zhung.txt: wu,ku
 #siu|xu	扝
 siu	揟
 # only found in pinyin.txt
-#siu|xu	敍
+siu	敍
 siu	敘
 xu	旭
 # only found in pinyin.txt
@@ -28222,9 +28164,9 @@ xu	洫
 xu	淢
 siu	湑
 # only found in pinyin.txt
-#siu|xu	溆
+siu	溆
 # no match in zhung.txt: hu
-#siu|xu	滸
+xu	滸
 siu	漵
 # only found in pinyin.txt
 #siu|xu	潊
@@ -28254,9 +28196,9 @@ siu	絮
 #siu|xu	綇
 siu	緒
 # only found in pinyin.txt
-#siu|xu	緖
+siu	緖
 # only found in pinyin.txt
-#siu|xu	縃
+siu	縃
 # no match in zhung.txt: siuan
 #siu|xu	繏
 siu	繻
@@ -28282,11 +28224,11 @@ siu	蝑
 # no match in zhung.txt: sie
 #siu|xu	衺
 # no match in zhung.txt: ciu
-#siu|xu	覰
+#siu	覰
 # no match in zhung.txt: ciu
-#siu|xu	覷
+#siu	覷
 # only found in pinyin.txt
-#siu|xu	覻
+#siu	覻
 xu	訏
 xu	許
 siu	訹
@@ -28590,46 +28532,46 @@ siun	恂
 siun	旬
 xun	曛
 # only found in pinyin.txt
-#xun|siun	杊
+xun	杊
 # no match in zhung.txt: sin
-#xun|siun	枔
+siun	枔
 siun	栒
 siun	槆
 # no match in zhung.txt: sin
-#xun|siun	樳
+siun	樳
 # only found in pinyin.txt
-#xun|siun	橁
+siun	橁
 siun	殉
 # only found in pinyin.txt
 #xun|siun	殾
 # only found in pinyin.txt
-#xun|siun	毥
+siun	毥
 # no match in zhung.txt: sian,shai,sin
-#xun|siun	汛
+siun	汛
 siun	洵
 # no match in zhung.txt: sun
-#xun|siun	潠
+siun	潠
 # no match in zhung.txt: sin
-#xun|siun	潯
+siun	潯
 siun	灥
 xun	焄
 xun	熏
 # no match in zhung.txt: cian,tan
-#xun|siun	燂
+siun	燂
 # no match in zhung.txt: sian
-#xun|siun	燅
+siun	燅
 # no match in zhung.txt: sian
-#xun|siun	燖
+siun	燖
 xun	燻
 xun	爋
 # only found in pinyin.txt
-#xun|siun	狥
+siun	狥
 xun	獯
 siun	珣
 # only found in pinyin.txt
-#xun|siun	璕
+siun	璕
 # no match in zhung.txt: siuan
-#xun|siun	璿
+siun	璿
 # only found in pinyin.txt
 #xun|siun	畃
 # only found in pinyin.txt
@@ -28648,7 +28590,7 @@ xun	葷
 # no match in zhung.txt: zin
 #xun|siun	蕈
 # only found in pinyin.txt
-#xun|siun	薫
+xun	薫
 xun	薰
 # only found in pinyin.txt
 #xun|siun	蘍
@@ -28657,7 +28599,7 @@ xun	薰
 # no match in zhung.txt: tan,sin
 #xun|siun	襑
 # no match in zhung.txt: sin
-#xun|siun	訊
+siun	訊
 xun	訓
 # no match in zhung.txt: sin
 #xun|siun	訙
@@ -28667,7 +28609,7 @@ siun	詢
 siun	迅
 siun	迿
 # no match in zhung.txt: sun
-#xun|siun	遜
+siun	遜
 siun	郇
 xun	醺
 # only found in pinyin.txt
@@ -28682,7 +28624,7 @@ siun	馴
 # no match in zhung.txt: yin,sin
 #xun|siun	鱏
 # only found in pinyin.txt
-#xun|siun	鱘
+siun	鱘
 # no match in zhung.txt: ja
 ya	㾏
 ya	䰲
@@ -29546,58 +29488,58 @@ ye	暍
 ye	曄
 ye	曅
 # only found in pinyin.txt
-#ye|yai	曗
+ye	曗
 # no match in zhung.txt: yi
-#ye|yai	曳
+ye	曳
 # no match in zhung.txt: yi
-#ye|yai	曵
+ye	曵
 ye	枼
 # only found in pinyin.txt
-#ye|yai	枽
+ye	枽
 ye	椰
 ye	楪
 ye	業
 ye	殗
 ye	殜
 # only found in pinyin.txt
-#ye|yai	洂
+ye	洂
 # no match in zhung.txt: yi
-#ye|yai	液
+ye	液
 # only found in pinyin.txt
-#ye|yai	漜
+ye	漜
 ye	澲
 # no match in zhung.txt: yi
-#ye|yai	焲
+ye	焲
 ye	煠
 ye	燁
 ye	爗
 ye	爺
 # no match in zhung.txt: die
-#ye|yai	牃
+ye	牃
 # no match in zhung.txt: sie
-#ye|yai	琊
+ye	琊
 ye	瑘
 # only found in pinyin.txt
-#ye|yai	痷
+ye	痷
 ye	皣
 ye	瞱
 # only found in pinyin.txt
-#ye|yai	瞸
+ye	瞸
 # no match in zhung.txt: eo
-#ye|yai	礏
+ye	礏
 # no match in zhung.txt: sie
-#ye|yai	絏
+ye	絏
 ye	耶
 # no match in zhung.txt: yi
-#ye|yai	腋
+ye	腋
 ye	葉
 # only found in pinyin.txt
-#ye|yai	蝢
+ye	蝢
 # only found in pinyin.txt
-#ye|yai	蠂
+ye	蠂
 ye	蠮
 # no match in zhung.txt: sie
-#ye|yai	衺
+ye	衺
 ye	裛
 ye	謁
 yai	譺
@@ -29609,16 +29551,16 @@ ye	鋣
 ye	鍱
 ye	鎁
 # only found in pinyin.txt
-#ye|yai	鎑
+ye	鎑
 # only found in pinyin.txt
-#ye|yai	鐷
+ye	鐷
 ye	靨
 # no match in zhung.txt: sheo,sie
-#ye|yai	韘
+ye	韘
 # no match in zhung.txt: xe
-#ye|yai	頁
+ye	頁
 # no match in zhung.txt: qin,an
-#ye|yai	顉
+ye	顉
 ye	餣
 ye	饁
 ye	驜
@@ -29808,7 +29750,7 @@ yi	攺
 yi	敡
 yi	斁
 # no match in zhung.txt: shy
-yi	施
+yi	*施
 # only found in pinyin.txt
 yi	旑
 yi	旖
@@ -30227,7 +30169,7 @@ yin	戭
 # only found in pinyin.txt
 yin	摿
 # no match in zhung.txt: yun
-yin	暈
+yin	*暈
 # only found in pinyin.txt
 yin	朄
 # only found in pinyin.txt
@@ -30314,8 +30256,6 @@ yin	螾
 yin	蟫
 # only found in pinyin.txt
 yin	裀
-# no match in zhung.txt: yan
-yin	言
 yin	訔
 yin	訡
 yin	誾
@@ -30383,7 +30323,7 @@ ying	䣐
 # only found in pinyin.txt
 ying	偀
 # no match in zhung.txt: yan
-ying	偐
+ying	*偐
 # only found in pinyin.txt
 ying	僌
 # only found in pinyin.txt
