@@ -102,12 +102,20 @@ class Engine:
             self.__ctx.move_cursor (1)
             return True
         candidates = self.__ctx.get_candidates ()
-        if event.keycode in (keysyms.Page_Up, keysyms.Up, keysyms.minus, keysyms.comma):
+        if event.keycode in (keysyms.Page_Up, keysyms.minus, keysyms.comma):
             if candidates and self.__frontend.page_up ():
                 return True
             return True
-        if event.keycode in (keysyms.Page_Down, keysyms.Down, keysyms.equal, keysyms.period):
+        if event.keycode in (keysyms.Page_Down, keysyms.equal, keysyms.period):
             if candidates and self.__frontend.page_down ():
+                return True
+            return True
+        if event.keycode == keysyms.Up:
+            if candidates and self.__frontend.cursor_up ():
+                return True
+            return True
+        if event.keycode == keysyms.Down:
+            if candidates and self.__frontend.cursor_down ():
                 return True
             return True
         if event.keycode >= keysyms._1 and event.keycode <= keysyms._9:
@@ -223,12 +231,20 @@ class SchemaChooser:
             if self.__engine:
                 self.__engine.update_ui ()
             return True
-        if keycode in (keysyms.Page_Up, keysyms.Up, keysyms.minus, keysyms.comma):
+        if keycode in (keysyms.Page_Up, keysyms.minus, keysyms.comma):
             if self.__frontend.page_up ():
                 return True
             return True
-        if keycode in (keysyms.Page_Down, keysyms.Down, keysyms.equal, keysyms.period):
+        if keycode in (keysyms.Page_Down, keysyms.equal, keysyms.period):
             if self.__frontend.page_down ():
+                return True
+            return True
+        if keycode == keysyms.Up:
+            if self.__frontend.cursor_up ():
+                return True
+            return True
+        if keycode == keysyms.Down:
+            if self.__frontend.cursor_down ():
                 return True
             return True
         if keycode >= keysyms._1 and keycode <= keysyms._9:

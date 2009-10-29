@@ -76,6 +76,18 @@ class ZimeEngine (ibus.EngineBase):
             return True
         return False
 
+    def cursor_up (self):
+        if self.__lookup_table.cursor_up ():
+            self.update_lookup_table (self.__lookup_table, True, True)
+            return True
+        return False
+
+    def cursor_down (self):
+        if self.__lookup_table.cursor_down ():
+            self.update_lookup_table (self.__lookup_table, True, True)
+            return True
+        return False
+
     def get_candidate_index (self, index):
         index += self.__lookup_table.get_current_page_start ()
         return index
