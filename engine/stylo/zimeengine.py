@@ -89,39 +89,43 @@ class Engine:
             return self.__judge (event)
         if event.mask & modifier.RELEASE_MASK:
             return True
-        if event.keycode == keysyms.Home:
+        if event.keycode == keysyms.Home or event.keycode in (keysyms.u, keysyms.U):
             self.__ctx.set_cursor (0)
             return True
-        if event.keycode == keysyms.Escape:
+        if event.keycode == keysyms.Escape or event.keycode in (keysyms.p, keysyms.P):
             self.__ctx.set_cursor (-1)
             return True
-        if event.keycode == keysyms.End:
+        if event.keycode == keysyms.End or event.keycode in (keysyms.o, keysyms.O):
             k = self.__ctx.keywords
             if len (k) > 1 and not k[-1]:
                 self.__ctx.set_cursor (-2)
             else:
                 self.__ctx.set_cursor (-1)
             return True
-        if event.keycode == keysyms.Left:
+        if event.keycode == keysyms.Left or event.keycode == keysyms.Tab and event.mask & modifier.SHIFT_MASK or \
+            event.keycode in (keysyms.j, keysyms.J):
             self.__ctx.move_cursor (-1)
             return True
-        if event.keycode == keysyms.Right or event.keycode == keysyms.Tab:
+        if event.keycode == keysyms.Right or event.keycode == keysyms.Tab or \
+            event.keycode in (keysyms.l, keysyms.L):
             self.__ctx.move_cursor (1)
             return True
         candidates = self.__ctx.get_candidates ()
-        if event.keycode in (keysyms.Page_Up, keysyms.minus, keysyms.comma):
+        if event.keycode in (keysyms.Page_Up, keysyms.minus, keysyms.comma) or \
+            event.keycode in (keysyms.y, keysyms.Y):
             if candidates and self.__frontend.page_up ():
                 return True
             return True
-        if event.keycode in (keysyms.Page_Down, keysyms.equal, keysyms.period):
+        if event.keycode in (keysyms.Page_Down, keysyms.equal, keysyms.period) or \
+            event.keycode in (keysyms.h, keysyms.H):
             if candidates and self.__frontend.page_down ():
                 return True
             return True
-        if event.keycode == keysyms.Up:
+        if event.keycode == keysyms.Up or event.keycode in (keysyms.i, keysyms.I):
             if candidates and self.__frontend.cursor_up ():
                 return True
             return True
-        if event.keycode == keysyms.Down:
+        if event.keycode == keysyms.Down or event.keycode in (keysyms.k, keysyms.K):
             if candidates and self.__frontend.cursor_down ():
                 return True
             return True
