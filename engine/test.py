@@ -91,6 +91,11 @@ class TestEngine:
         print u'index = %d' % index
         return index
 
+    def get_candidate_cursor_pos (self):
+        index = self.__lookup_table.get_cursor_pos ()
+        print u'cursor_pos = %d' % index
+        return index
+
     def test (self, string):
         name = ''
         is_name = False

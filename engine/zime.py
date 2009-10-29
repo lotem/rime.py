@@ -88,6 +88,10 @@ class ZimeEngine (ibus.EngineBase):
             return True
         return False
 
+    def get_candidate_cursor_pos (self):
+        index = self.__lookup_table.get_cursor_pos ()
+        return index
+
     def get_candidate_index (self, index):
         index += self.__lookup_table.get_current_page_start ()
         return index

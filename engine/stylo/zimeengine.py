@@ -92,8 +92,15 @@ class Engine:
         if event.keycode == keysyms.Home:
             self.__ctx.set_cursor (0)
             return True
-        if event.keycode == keysyms.End or event.keycode == keysyms.Escape:
+        if event.keycode == keysyms.Escape:
             self.__ctx.set_cursor (-1)
+            return True
+        if event.keycode == keysyms.End:
+            k = self.__ctx.keywords
+            if len (k) > 1 and not k[-1]:
+                self.__ctx.set_cursor (-2)
+            else:
+                self.__ctx.set_cursor (-1)
             return True
         if event.keycode == keysyms.Left:
             self.__ctx.move_cursor (-1)
@@ -125,8 +132,6 @@ class Engine:
             return True
         if event.keycode == keysyms.BackSpace:
             k = self.__ctx.keywords
-            if len (k) < 1:
-                return self.__judge (event)
             if k[-1]:
                 k[-1] = u''
             else:
@@ -135,7 +140,14 @@ class Engine:
                 del k[-2]
             self.__ctx.update_keywords ()
             return True
-        if event.keycode in (keysyms.space, keysyms.Return):
+        if event.keycode == keysyms.space:
+            if candidates:
+                index = self.__frontend.get_candidate_cursor_pos ()
+                self.__ctx.select (index)
+            else:
+                self.__commit ()
+            return True
+        if event.keycode == keysyms.Return:
             self.__commit ()
             return True
         # auto-commit
@@ -249,10 +261,15 @@ class SchemaChooser:
             return True
         if keycode >= keysyms._1 and keycode <= keysyms._9:
             index = self.__frontend.get_candidate_index (keycode - keysyms._1)
-            if index < len (self.__schema_list):
-                schema_name = self.__schema_list[index][1]
-                self.choose (schema_name)
+            self.__choose_schema_by_index (index)
             return True
+        if keycode in (keysyms.space, keysyms.Return):
+            index = self.__frontend.get_candidate_cursor_pos ()
+            self.__choose_schema_by_index (index)
+            return True    
         return True
-        
+    def __choose_schema_by_index (self, index):
+        if index < len (self.__schema_list):
+            schema_name = self.__schema_list[index][1]
+            self.choose (schema_name)
 
