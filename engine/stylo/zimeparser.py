@@ -104,7 +104,11 @@ class RomanParser (Parser):
             self.__input.pop ()
             self.__parse (ctx)
             return True
-        if event.keycode in (keysyms.space, keysyms.Return):
+        if event.keycode == keysyms.space:
+            if not self.__is_empty () and self.__input[-1] in self.__alphabet:
+                self.__input.append (self.__delimiter[0])
+            return fallback (event)
+        if event.keycode == keysyms.Return:
             return fallback (event)
         ch = event.get_char ()
         if ch in self.__alphabet or not self.__is_empty () and ch in self.__delimiter:
