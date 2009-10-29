@@ -105,6 +105,10 @@ class Model:
             k -= 1
         r = ctx.keywords[k:]
         t = ctx.sugg[k]
+        # last phrase's start pos
+        ctx.prompt_pos = t[0] if r == [u''] else len (ctx.keywords) - 1
+        print len (ctx.kwd), len (ctx.keywords), r
+        print 'prompt_pos:', ctx.prompt_pos
         while t[0] != -1:
             r = t[1] + r
             t = ctx.sugg[t[0]]

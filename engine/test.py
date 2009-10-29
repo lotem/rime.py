@@ -170,7 +170,8 @@ def main ():
     #e.test ('cioqai-ni-shashou-qai-le-ya ')
 
     e = TestEngine (u'Pinyin')
-    e.test ('guantasanqi-ershiyi ')
+    #e.test ('guantasanqi-ershiyi ')
+    e.test ('wozaixiechengshipspspspspsp')
 
 if __name__ == "__main__":
     main ()

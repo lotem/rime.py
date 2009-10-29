@@ -84,6 +84,7 @@ class Context:
         self.kwd = []
         self.cand = []
         self.sugg = [(-1, u'', 0)]
+        self.prompt_pos = -1
         self.preedit = [u'']
         self.candidates = [None]
         self.selection = []
@@ -94,8 +95,11 @@ class Context:
     def is_empty (self):
         return not self.keywords or self.keywords == [u'']
     def update_keywords (self):
-        self.__set_cursor (-1)
         self.__model.update (self)
+        if self.schema.is_auto_prompt ():
+            self.__set_cursor (self.prompt_pos)
+        else:
+            self.__set_cursor (-1)
         self.__cb.update_ui ()
     def select (self, index):
         s = self.get_candidates ()[index][1]
@@ -104,8 +108,6 @@ class Context:
         self.__cb.update_ui ()
     def __set_cursor (self, pos, wrap=False):
         n = len (self.keywords)
-        if n > 1 and not self.keywords[n - 1] and self.schema.is_auto_prompt ():
-            n -= 1
         if not wrap and pos >= n:
             pos = n - 1
         self.cursor = pos % n
