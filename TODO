@@ -12,7 +12,8 @@
 #clear key.
 #combo parser.
 #punctuation.
-up/down keys move candidate selection; space key selects highlighted candidate unless at the end of the context.
+#preedit cursor not visible in firefox.
+#up/down keys move candidate selection; space key selects highlighted candidate unless at the end of the context.
 in auto-prompt mode, place the cursor at the beginning of the last proposed phrase.
 # questions
 #about jyutping split rules.

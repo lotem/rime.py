@@ -36,15 +36,20 @@ class ZimeEngine (ibus.EngineBase):
             return
         preedit_attrs = ibus.AttrList ()
         length = len (s)
-        if 0 < start:
-            preedit_attrs.append (ibus.AttributeBackground (ibus.RGB (255, 255, 128), 0, start))
-            preedit_attrs.append (ibus.AttributeForeground (ibus.RGB (0, 0, 0), 0, start))
+        # pretty colors. but setting backgound color causes problems in some apps.
+        #if 0 < start:
+        #    preedit_attrs.append (ibus.AttributeBackground (ibus.RGB (255, 255, 128), 0, start))
+        #    preedit_attrs.append (ibus.AttributeForeground (ibus.RGB (0, 0, 0), 0, start))
+        #if start < end:
+        #    preedit_attrs.append (ibus.AttributeBackground (ibus.RGB (0, 0, 0), start, end))
+        #    preedit_attrs.append (ibus.AttributeForeground (ibus.RGB (255, 255, 128), start, end))
+        #if end < length:
+        #    preedit_attrs.append (ibus.AttributeBackground (ibus.RGB (255, 255, 128), end, length))
+        #    preedit_attrs.append (ibus.AttributeForeground (ibus.RGB (0, 0, 0), end, length))
+        preedit_attrs.append (ibus.AttributeUnderline (ibus.ATTR_UNDERLINE_SINGLE, 0, length))
         if start < end:
             preedit_attrs.append (ibus.AttributeBackground (ibus.RGB (0, 0, 0), start, end))
-            preedit_attrs.append (ibus.AttributeForeground (ibus.RGB (255, 255, 128), start, end))
-        if end < length:
-            preedit_attrs.append (ibus.AttributeBackground (ibus.RGB (255, 255, 128), end, length))
-            preedit_attrs.append (ibus.AttributeForeground (ibus.RGB (0, 0, 0), end, length))
+            preedit_attrs.append (ibus.AttributeForeground (ibus.RGB (255, 255, 255), start, end))
         super (ZimeEngine, self).update_preedit_text (ibus.Text (s, preedit_attrs), length, True)
 
     def update_aux_string (self, s):
