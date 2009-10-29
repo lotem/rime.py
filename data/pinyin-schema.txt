@@ -30,6 +30,7 @@ Config/Pinyin/FuzzyRule = ^yi$ i
 Config/Pinyin/FuzzyRule = ^yi?([^u]) i\1
 Config/Pinyin/FuzzyRule = ^w v
 Config/Pinyin/FuzzyRule = ^wu? u
+# punctuation
 Config/Pinyin/Punct = , ，
 Config/Pinyin/Punct = . 。
 Config/Pinyin/Punct = < 《 〈
@@ -62,3 +63,13 @@ Config/Pinyin/Punct = [ 「 【 ［
 Config/Pinyin/Punct = ] 」 】 ］
 Config/Pinyin/Punct = { 『 ｛
 Config/Pinyin/Punct = } 』 ｝
+# edit keys
+Config/Pinyin/EditKey = I Up
+Config/Pinyin/EditKey = K Down
+Config/Pinyin/EditKey = J Left
+Config/Pinyin/EditKey = L Right
+Config/Pinyin/EditKey = Y Page_Up
+Config/Pinyin/EditKey = H Page_Down
+Config/Pinyin/EditKey = U Home
+Config/Pinyin/EditKey = O End
+Config/Pinyin/EditKey = P Escape

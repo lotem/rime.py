@@ -56,6 +56,8 @@ class Parser:
                                            (2, y.split (u'~', 1)) if u'~' in y else \
                                            (1, y))
         self.__punct = dict ([punct_mapping (c.split (None, 1)) for c in schema.get_config_list (u'Punct')])
+        key_mapping = lambda (x, y): (keysyms.name_to_keycode (x), keysyms.name_to_keycode (y))
+        self.__edit_keys = dict([key_mapping (c.split (None, 1)) for c in schema.get_config_list (u'EditKey')])
     def get_schema (self):
         return self.__schema
     def check_punct (self, event):
@@ -70,6 +72,10 @@ class Parser:
                 return x[-1]
             else:
                 return p[1]
+        return None
+    def check_edit_key (self, event):
+        if not event.coined and event.keycode in self.__edit_keys:
+            return KeyEvent (self.__edit_keys[event.keycode], 0, coined=True)
         return None
 
 class Context:

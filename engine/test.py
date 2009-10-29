@@ -171,7 +171,8 @@ def main ():
 
     e = TestEngine (u'Pinyin')
     #e.test ('guantasanqi-ershiyi ')
-    e.test ('wozaixiechengshipspspspspsp')
+    #e.test ('wozaixiechengshipspspspspsp')
+    #e.test ('woyoulailaHP')
 
 if __name__ == "__main__":
     main ()

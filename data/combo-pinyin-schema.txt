@@ -48,6 +48,7 @@ Config/ComboPinyin/FuzzyRule = ^gsh gs
 Config/ComboPinyin/FuzzyRule = ao$ aio
 Config/ComboPinyin/FuzzyRule = Ei$ ui
 Config/ComboPinyin/FuzzyRule = nG$ G
+# punctuation
 Config/ComboPinyin/Punct = , ，
 Config/ComboPinyin/Punct = . 。
 Config/ComboPinyin/Punct = < 《 〈
@@ -80,3 +81,13 @@ Config/ComboPinyin/Punct = [ 「 【 ［
 Config/ComboPinyin/Punct = ] 」 】 ］
 Config/ComboPinyin/Punct = { 『 ｛
 Config/ComboPinyin/Punct = } 』 ｝
+# edit keys
+Config/ComboPinyin/EditKey = I Up
+Config/ComboPinyin/EditKey = K Down
+Config/ComboPinyin/EditKey = J Left
+Config/ComboPinyin/EditKey = L Right
+Config/ComboPinyin/EditKey = Y Page_Up
+Config/ComboPinyin/EditKey = H Page_Down
+Config/ComboPinyin/EditKey = U Home
+Config/ComboPinyin/EditKey = O End
+Config/ComboPinyin/EditKey = P Escape

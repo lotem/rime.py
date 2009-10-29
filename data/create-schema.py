@@ -142,7 +142,7 @@ if schema_file:
     f = open (schema_file, 'r')
     for line in f:
         x = line.strip ().decode ('utf-8')
-        if x.startswith (u'#'):
+        if not x or x.startswith (u'#'):
             continue
         try:
             (path, value) = equal_sign.split (x, 1)
@@ -193,7 +193,7 @@ if keyword_file:
     f = open (keyword_file, 'r')
     for line in f:
         x = line.strip ().decode ('utf-8')
-        if x.startswith (u'#'):
+        if not x or x.startswith (u'#'):
             continue
         try:
             (keyword, word) = x.split (None, 1)
@@ -270,7 +270,7 @@ if phrase_file:
     f = open (phrase_file, 'r')
     for line in f:
         x = line.strip ().decode ('utf-8')
-        if x.startswith (u'#'):
+        if not x or x.startswith (u'#'):
             continue
         try:
             (phrase, freq_str, keyword) = x.split (u'\t', 2)

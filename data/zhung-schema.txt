@@ -12,6 +12,7 @@ Config/Zhung/FuzzyRule = ^rh r
 Config/Zhung/FuzzyRule = ([iyjqx])o$ \1uo
 Config/Zhung/FuzzyRule = eo$ o
 Config/Zhung/FuzzyRule = au$ ao
+# punctuation
 Config/Zhung/Punct = , ，
 Config/Zhung/Punct = . 。
 Config/Zhung/Punct = < 《 〈
@@ -44,3 +45,13 @@ Config/Zhung/Punct = [ 「 【 ［
 Config/Zhung/Punct = ] 」 】 ］
 Config/Zhung/Punct = { 『 ｛
 Config/Zhung/Punct = } 』 ｝
+# edit keys
+Config/Zhung/EditKey = I Up
+Config/Zhung/EditKey = K Down
+Config/Zhung/EditKey = J Left
+Config/Zhung/EditKey = L Right
+Config/Zhung/EditKey = Y Page_Up
+Config/Zhung/EditKey = H Page_Down
+Config/Zhung/EditKey = U Home
+Config/Zhung/EditKey = O End
+Config/Zhung/EditKey = P Escape

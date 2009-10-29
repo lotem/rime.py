@@ -7,6 +7,7 @@ Config/Jyutping/MaxKeywordLength = 6
 Config/Jyutping/SplitRule = ptkmng aeiou
 #Config/Jyutping/SplitRule = n g
 Config/Jyutping/SplitRule = gk w
+# punctuation
 Config/Jyutping/Punct = , ，
 Config/Jyutping/Punct = . 。
 Config/Jyutping/Punct = < 《 〈
@@ -39,3 +40,13 @@ Config/Jyutping/Punct = [ 「 【 ［
 Config/Jyutping/Punct = ] 」 】 ］
 Config/Jyutping/Punct = { 『 ｛
 Config/Jyutping/Punct = } 』 ｝
+# edit keys
+Config/Jyutping/EditKey = I Up
+Config/Jyutping/EditKey = K Down
+Config/Jyutping/EditKey = J Left
+Config/Jyutping/EditKey = L Right
+Config/Jyutping/EditKey = Y Page_Up
+Config/Jyutping/EditKey = H Page_Down
+Config/Jyutping/EditKey = U Home
+Config/Jyutping/EditKey = O End
+Config/Jyutping/EditKey = P Escape
