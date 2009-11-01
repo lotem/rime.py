@@ -3,7 +3,7 @@ to install:
 0. install IBus: 
 http://ibus.googlecode.com/
 
-1. in your shell: 
+1. run shell command: 
 cd ibus-zime
 sudo make install
 
@@ -14,7 +14,7 @@ cd data
 ./create-schema.py -k combo-pinyin-schema.txt
 ./make-phrases.py jyutping
 ./create-schema.py jyutping-schema.txt jyutping-keywords.txt jyutping-phrases.txt
-# your resulting SQLite database is located in ~/.ibus/zime/zime.db
+# the resulting SQLite database is located at ~/.ibus/zime/zime.db
 
 3. restart IBus and enable ZIME engine in IBus preferences.
 
