@@ -8543,8 +8543,6 @@ gen	閬
 gen	亘
 gen	珢
 gen	哏
-q	胠
-q	啐
 qu	區
 qu	屈
 qu	驅

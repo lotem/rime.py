@@ -152,8 +152,8 @@ class ComboParser (RomanParser):
             [self.__combo_codes[i] for i in range (self.__combo_max_length) \
                 if self.__combo_keys[i] in self.__combo])
     def process (self, event, ctx, fallback):
-        if ctx.cursor < len (ctx.keywords) - 1:
-            return fallback (event)
+        #if ctx.cursor < len (ctx.keywords) - 1:
+        #    return fallback (event)
         if event.keycode == keysyms.Escape:
             if self.__is_empty () and ctx.is_empty ():
                 return fallback (event)

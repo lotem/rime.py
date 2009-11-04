@@ -112,11 +112,16 @@ class Engine:
             self.__ctx.move_cursor (1)
             return True
         candidates = self.__ctx.get_candidates ()
-        if event.keycode in (keysyms.Page_Up, keysyms.minus, keysyms.comma):
+        if candidates:
+            if event.keycode in (keysyms.minus, keysyms.comma) and self.__frontend.page_up ():
+                return True
+            if event.keycode in (keysyms.equal, keysyms.period) and self.__frontend.page_down ():
+                return True
+        if event.keycode == keysyms.Page_Up:
             if candidates and self.__frontend.page_up ():
                 return True
             return True
-        if event.keycode in (keysyms.Page_Down, keysyms.equal, keysyms.period):
+        if event.keycode == keysyms.Page_Down:
             if candidates and self.__frontend.page_down ():
                 return True
             return True
@@ -132,7 +137,11 @@ class Engine:
             if candidates:
                 index = self.__frontend.get_candidate_index (event.keycode - keysyms._1)
                 self.__ctx.select (index)
-            return True
+                return True
+            else:
+                # auto-commit
+                self.__commit ()
+                return self.__judge (event)
         if event.keycode == keysyms.BackSpace:
             k = self.__ctx.keywords
             if k[-1]:
