@@ -189,7 +189,7 @@ class Engine:
     def update_ui (self):
         ctx = self.__ctx
         start = 0
-        print ctx.preedit
+        #print ctx.preedit
         for x in ctx.preedit[:ctx.cursor]:
             start += len (x)
         end = start + len (ctx.preedit[ctx.cursor])
@@ -200,13 +200,10 @@ class Engine:
 class SchemaChooser:
     def __init__ (self, frontend, schema_name=None):
         self.__frontend = frontend
-        self.__reset ()
+        self.__engine = None
+        self.__deactivate ()
         self.__load_schema_list ()
         self.choose (schema_name)
-    def __reset (self):
-        self.__active = True
-        self.__schema_list = []
-        self.__engine = None
     def __load_schema_list (self):
         s = DB.read_setting_items (u'Schema/')
         t = dict ()
@@ -221,22 +218,25 @@ class SchemaChooser:
             c = s.index (schema_name)
         elif len (s) > 0:
             c = 0
-        if c == -1:
-            self.__frontend.update_aux_string (u'無方案')
-            self.__reset ()
-        else:
+        if c != -1:
             now = time.time ()        
             DB.update_setting (u'SchemaChooser/LastUsed/%s' % s[c], unicode (now))
-            self.__active = False
-            self.__schema_list = []
+            self.__deactivate ()
             self.__engine = Engine (self.__frontend, s[c])
     def __activate (self):
         self.__active = True
         self.__load_schema_list ()
         self.__frontend.update_aux_string (u'方案選單')
         self.__frontend.update_candidates (self.__schema_list)
+    def __deactivate (self):
+        self.__active = False
+        self.__schema_list = []
     def process_key_event (self, keycode, mask):
+        if not self.__engine:
+            self.__frontend.update_aux_string (u'無方案')
+            return False
         if not self.__active:
+            # Ctrl-` calls schema chooser menu
             if keycode == keysyms.grave and mask & modifier.CONTROL_MASK:
                 self.__activate ()
                 return True
@@ -251,8 +251,8 @@ class SchemaChooser:
             return True
         # schema chooser menu
         if keycode == keysyms.Escape:
-            self.__active = False
             if self.__engine:
+                self.__deactivate ()
                 self.__engine.update_ui ()
             return True
         if keycode in (keysyms.Page_Up, keysyms.minus, keysyms.comma):

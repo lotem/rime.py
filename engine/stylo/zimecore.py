@@ -94,7 +94,7 @@ class Context:
         self.preedit = [u'']
         self.candidates = [None]
         self.selection = []
-        self.aux_string = u''
+        self.aux = None
     def clear (self):
         self.__reset ()
         self.__cb.update_ui ()
@@ -126,8 +126,11 @@ class Context:
     def get_preedit (self):
         return u''.join (self.preedit)
     def get_aux_string (self):
-        if self.aux_string:
-            return self.aux_string
+        if self.aux:
+            if callable (self.aux):
+                return self.aux (self.cursor)
+            else:
+                return self.aux
         k = self.cursor
         if k < len (self.keywords) - 1 or self.schema.is_auto_prompt ():
             return self.keywords[k]

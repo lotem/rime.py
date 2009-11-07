@@ -22,8 +22,8 @@ class ZimeEngine (ibus.EngineBase):
         self.__lookup_table = ibus.LookupTable ()
         self.__backend = zimeengine.SchemaChooser (self)
 
-    def process_key_event (self, keycode, mask):
-        return self.__backend.process_key_event (keycode, mask)
+    def process_key_event (self, keyval, keycode, mask):
+        return self.__backend.process_key_event (keyval, mask)
 
     def commit_string (self, s):
         #print u'commit: [%s]' % s

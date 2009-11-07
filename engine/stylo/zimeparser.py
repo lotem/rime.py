@@ -82,7 +82,7 @@ class RomanParser (Parser):
             if not keyword:
                 remainder = u''.join (self.__input[i:])
                 break
-        ctx.aux_string = u''.join ([self.__delimiter[0] if x is None else x for x in k] + [remainder])
+        ctx.aux = lambda p: u''.join ([self.__delimiter[0] if x is None else x for x in k[p * 2:]] + [remainder])
         if self.__use_keyword_mapping:
             ctx.keywords = [self.__keywords[x] for x in k[::2]] + [remainder]
         else:
@@ -102,6 +102,8 @@ class RomanParser (Parser):
             if self.__is_empty ():
                 return fallback (event)
             self.__input.pop ()
+            if self.__input and self.__input[-1] in self.__delimiter:
+                self.__input.pop ()
             self.__parse (ctx)
             return True
         if event.keycode == keysyms.space:
@@ -134,17 +136,14 @@ class ComboParser (RomanParser):
     def __commit_combo (self, ctx, fallback):
         k = self.__get_combo_string ()
         self.clear ()
+        ctx.aux = lambda k: u' '.join (ctx.keywords[k:])
         if k == self.__combo_space:
-            ctx.aux_string = u''
-            # clear aux string
-            ctx.set_cursor (-1)
             return fallback (KeyEvent (keysyms.space, 0, coined=True))
         if self.is_keyword (k):
             ctx.keywords[-1] = self.translate_keyword (k)
             ctx.keywords.append (u'')
         else:
             ctx.keywords[-1] = u'[%s]' % k
-        ctx.aux_string = u''
         ctx.update_keywords ()
         return True
     def __get_combo_string (self):
@@ -171,9 +170,10 @@ class ComboParser (RomanParser):
             self.__combo.add (ch)
             self.__held.add (ch)
             k = self.__get_combo_string ()
-            #ctx.aux_string = u'[%s]' % k if k != self.__combo_space else u''
-            ctx.aux_string = u'[%s]' % k
-            ctx.update_keywords ()
+            #ctx.aux = u'[%s]' % k if k != self.__combo_space else None
+            ctx.aux = u'[%s]' % k
+            # update aux string
+            ctx.set_cursor (ctx.cursor)
             return True
         return fallback (event)
 
