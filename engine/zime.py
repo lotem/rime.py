@@ -19,7 +19,8 @@ class ZimeEngine (ibus.EngineBase):
 
     def __init__ (self, conn, object_path):
         super (ZimeEngine, self).__init__ (conn, object_path)
-        self.__lookup_table = ibus.LookupTable ()
+        self.__page_size = 5
+        self.__lookup_table = ibus.LookupTable (self.__page_size)
         self.__backend = zimeengine.SchemaChooser (self)
 
     def process_key_event (self, keyval, keycode, mask):
@@ -98,8 +99,9 @@ class ZimeEngine (ibus.EngineBase):
         return index
 
     def get_candidate_index (self, index):
-        index += self.__lookup_table.get_current_page_start ()
-        return index
+        if index >= self.__page_size:
+            return -1
+        return index + self.__lookup_table.get_current_page_start ()
 
     @classmethod
     def CONFIG_VALUE_CHANGED (cls, bus, section, name, value):

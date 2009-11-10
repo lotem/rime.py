@@ -49,11 +49,21 @@ class Engine:
             return False
         # ignore Num Lock
         mask &= ~modifier.MOD2_MASK
-        # ignore hotkeys
+        # process hotkeys
         if mask & ( \
             modifier.CONTROL_MASK | modifier.ALT_MASK | \
             modifier.SUPER_MASK | modifier.HYPER_MASK | modifier.META_MASK
             ):
+            if mask & ~modifier.RELEASE_MASK == modifier.CONTROL_MASK and keycode >= keysyms._1 and keycode <= keysyms._9:
+                candidates = self.__ctx.get_candidates ()
+                if candidates:
+                    if mask & modifier.RELEASE_MASK == 0:
+                        # delete phrase
+                        index = self.__frontend.get_candidate_index (keycode - keysyms._1)
+                        if index >= 0 and index < len (candidates):
+                            self.__ctx.delete_phrase (candidates[index][1])
+                    return True
+            # ignore other hotkeys
             return False
         if self.__punct:
             if keycode not in (keysyms.Shift_L, keysyms.Shift_R) and not (mask & modifier.RELEASE_MASK):
@@ -136,7 +146,8 @@ class Engine:
         if event.keycode >= keysyms._1 and event.keycode <= keysyms._9:
             if candidates:
                 index = self.__frontend.get_candidate_index (event.keycode - keysyms._1)
-                self.__ctx.select (index)
+                if index >= 0 and index < len (candidates):
+                    self.__ctx.select (candidates[index][1])
                 return True
             else:
                 # auto-commit
@@ -155,7 +166,8 @@ class Engine:
         if event.keycode == keysyms.space:
             if candidates:
                 index = self.__frontend.get_candidate_cursor_pos ()
-                self.__ctx.select (index)
+                if index >= 0 and index < len (candidates):
+                    self.__ctx.select (candidates[index][1])
             else:
                 self.__commit ()
             return True
@@ -281,7 +293,7 @@ class SchemaChooser:
             return True    
         return True
     def __choose_schema_by_index (self, index):
-        if index < len (self.__schema_list):
+        if index >= 0 and index < len (self.__schema_list):
             schema_name = self.__schema_list[index][1]
             self.choose (schema_name)
 

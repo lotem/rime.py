@@ -134,24 +134,24 @@ class DB:
         )
         self.UPDATE_PHRASE_SQL = (
         """
-        UPDATE %(prefix)s_phrases SET user_freq = user_freq + 1 
+        UPDATE %(prefix)s_phrases SET user_freq = user_freq + :n 
         WHERE klen = 1 AND k0 = :k0 AND k1 IS NULL AND k2 IS NULL AND k3 IS NULL AND phrase = :phrase;
         """ % prefix,
         """
-        UPDATE %(prefix)s_phrases SET user_freq = user_freq + 1 
+        UPDATE %(prefix)s_phrases SET user_freq = user_freq + :n 
         WHERE klen = 2 AND k0 = :k0 AND k1 = :k1 AND k2 IS NULL AND k3 IS NULL AND phrase = :phrase;
         """ % prefix,
         """
-        UPDATE %(prefix)s_phrases SET user_freq = user_freq + 1 
+        UPDATE %(prefix)s_phrases SET user_freq = user_freq + :n 
         WHERE klen = 3 AND k0 = :k0 AND k1 = :k1 AND k2 = :k2 AND k3 IS NULL AND phrase = :phrase;
         """ % prefix,
         """
-        UPDATE %(prefix)s_phrases SET user_freq = user_freq + 1 
+        UPDATE %(prefix)s_phrases SET user_freq = user_freq + :n 
         WHERE klen = 4 AND k0 = :k0 AND k1 = :k1 AND k2 = :k2 AND k3 = :k3 AND phrase = :phrase;
         """ % prefix
         )
         self.ADD_PHRASE_SQL = """
-        INSERT INTO %(prefix)s_phrases VALUES (:klen, :k0, :k1, :k2, :k3, :phrase, 0, 1);
+        INSERT INTO %(prefix)s_phrases VALUES (:klen, :k0, :k1, :k2, :k3, :phrase, 0, :n);
         """ % prefix
 
     def read_config_value (self, key):
@@ -176,7 +176,7 @@ class DB:
         if DB.read_only:
             return False
         klen = len (key)
-        args = {'klen' : klen, 'phrase' : phrase}
+        args = {'klen' : klen, 'phrase' : phrase, 'n' : 1}
         for i in range (4):
             args['k%d' % i] = key[i] if i < klen else None
         if DB.__conn.execute (self.PHRASE_EXIST_SQL[klen - 1], args).fetchone ():
@@ -186,4 +186,14 @@ class DB:
         DB.flush ()
         return True
 
-
+    def delete (self, key, phrase, n):
+        #print 'delete:', key, phrase
+        if DB.read_only:
+            return False
+        klen = len (key)
+        args = {'klen' : klen, 'phrase' : phrase, 'n' : -n - 1}
+        for i in range (4):
+            args['k%d' % i] = key[i] if i < klen else None
+        DB.__conn.execute (self.UPDATE_PHRASE_SQL[klen - 1], args)
+        DB.flush ()
+        return True

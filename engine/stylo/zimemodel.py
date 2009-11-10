@@ -72,7 +72,11 @@ class Model:
                 sel[i] = Fixed
             sel[s[0] + s[1] - 1] = s
         def update_sugg (ctx, k, i, x):
-            w = ctx.sugg[i][2] + 1 + 1.0 / (x[1] + x[2] + 1)
+            # formula
+            if x[2] >= 0:
+                w = ctx.sugg[i][2] + 0.5 + 1.0 / (x[1] + x[2] + 1)
+            else:
+                w = ctx.sugg[i][2] + 0.5 + 1.0 / (x[1] + 1)
             if not ctx.sugg[k] or w < ctx.sugg[k][2]:
                 ctx.sugg[k] = (i, x[0], w)
         start = 0
@@ -118,6 +122,8 @@ class Model:
             a = []
             for length in range (len (c), 0, -1):
                 for x in c[length - 1]:
+                    if x[2] < 0:
+                        continue
                     y = u''.join (x[0])
                     if length >= 4 and any ([t[0].startswith (y) for t in a]): 
                         continue
@@ -158,4 +164,20 @@ class Model:
         else:
             for i in range (len (keywords) - 4 + 1):
                 db.store (keywords[i:i+4], join_phrase (words[i:i+4]))
-
+    def delete_phrase (self, ctx, c):
+        db = ctx.schema.get_db ()
+        keywords = ctx.kwd[c[0]:c[0] + c[1]]
+        words = c[2][0]
+        if len (keywords) <= 4:
+            db.delete (keywords, join_phrase (words), c[2][2])
+        else:
+            for i in range (len (keywords) - 4 + 1):
+                db.delete (keywords[i:i+4], join_phrase (words[i:i+4]), c[2][2])
+        # update context
+        j = 0
+        for i in range (len (ctx.kwd) - c[0] + 1):
+            if ctx.kwd[i:i + c[0]] == keywords:
+                j = i
+                break
+        del ctx.kwd[j:]
+        self.update (ctx)

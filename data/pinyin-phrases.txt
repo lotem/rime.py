@@ -128273,15 +128273,10 @@
 這件事	698	zhe jian shi
 這位	2115	zhe wei
 這位是	22	zhe wei shi
-這個	1	zhe ge
 這個	25909	zhe ge
-這個人	1	zhe ge ren
 這個人	580	zhe ge ren
-這個字	1	zhe ge zi
 這個字	580	zhe ge zi
-這個月	1	zhe ge yue
 這個月	174	zhe ge yue
-這個詞	1	zhe ge ci
 這個詞	580	zhe ge ci
 這兒	1012	zhe er
 這兒是	27	zhe er shi

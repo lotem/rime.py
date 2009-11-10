@@ -107,8 +107,7 @@ class Context:
         else:
             self.__set_cursor (-1)
         self.__cb.update_ui ()
-    def select (self, index):
-        s = self.get_candidates ()[index][1]
+    def select (self, s):
         self.__set_cursor (self.cursor + s[1])
         self.__model.select (self, s)
         self.__cb.update_ui ()
@@ -140,4 +139,7 @@ class Context:
         if k >= len (self.candidates):
             return None
         return self.candidates[k]
+    def delete_phrase (self, cand):
+        self.__model.delete_phrase (self, cand)
+        self.__cb.update_ui ()
 
