@@ -123,9 +123,11 @@ class Engine:
             return True
         candidates = self.__ctx.get_candidates ()
         if candidates:
-            if event.keycode in (keysyms.minus, keysyms.comma) and self.__frontend.page_up ():
+            if event.keycode in (keysyms.minus, keysyms.comma):
+                self.__frontend.page_up ()
                 return True
-            if event.keycode in (keysyms.equal, keysyms.period) and self.__frontend.page_down ():
+            if event.keycode in (keysyms.equal, keysyms.period):
+                self.__frontend.page_down ()
                 return True
         if event.keycode == keysyms.Page_Up:
             if candidates and self.__frontend.page_up ():
