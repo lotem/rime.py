@@ -10,7 +10,6 @@ from ibus import ascii
 
 from zimecore import *
 from zimedb import *
-from zimemodel import *
 import zimeparser
 
 def __initialize ():
@@ -18,9 +17,9 @@ def __initialize ():
     IBUS_ZIME_LOCATION = os.getenv ('IBUS_ZIME_LOCATION')
     HOME_PATH = os.getenv ('HOME')
     db_path = os.path.join (HOME_PATH, '.ibus', 'zime')
-    user_db = os.path.join (db_path, 'zime.db')
+    user_db = os.path.join (db_path, 'stylo.db')
     if not os.path.exists (user_db):
-        sys_db = IBUS_ZIME_LOCATION and os.path.join (IBUS_ZIME_LOCATION, 'data', 'zime.db')
+        sys_db = IBUS_ZIME_LOCATION and os.path.join (IBUS_ZIME_LOCATION, 'data', 'stylo.db')
         if sys_db and os.path.exists (sys_db):
             DB.open (sys_db, read_only=True)
             return
@@ -36,8 +35,7 @@ class Engine:
         self.__frontend = frontend
         self.__schema = Schema (name)
         self.__parser = Parser.create (self.__schema)
-        self.__model = Model ()
-        self.__ctx = Context (self, self.__model, self.__schema)
+        self.__ctx = Context (self, self.__schema)
         self.__fallback = lambda e: self.__process (e)
         self.__punct = None
         self.__punct_key = 0
@@ -197,8 +195,7 @@ class Engine:
         return False
     def __commit (self):
         self.__frontend.commit_string (self.__ctx.get_preedit ())
-        self.__model.learn (self.__ctx)
-        self.__ctx.clear ()
+        self.__ctx.commit ()
         self.__parser.clear ()
     def update_ui (self):
         ctx = self.__ctx

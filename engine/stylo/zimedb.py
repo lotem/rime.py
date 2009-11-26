@@ -27,7 +27,7 @@ class DB:
     UPDATE settings SET value = :value WHERE path == :path;
     """
 
-    FLUSH_INTERVAL = 5 * 60  # 5 minutes
+    FLUSH_INTERVAL = 3 * 60  # 3 minutes
     __last_flush_time = 0
 
     @classmethod

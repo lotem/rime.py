@@ -4,6 +4,7 @@ import ibus
 from ibus import keysyms
 
 from zimedb import DB
+from zimemodel import Model
 
 class KeyEvent:
     def __init__ (self, keycode, mask, coined=False):
@@ -79,10 +80,10 @@ class Parser:
         return None
 
 class Context:
-    def __init__ (self, callback, model, schema):
+    def __init__ (self, callback, schema):
         self.__cb = callback
-        self.__model = model
         self.schema = schema
+        self.__model = Model ()
         self.__reset ()
     def __reset (self):
         self.keywords = [u'']
@@ -100,6 +101,9 @@ class Context:
         self.__cb.update_ui ()
     def is_empty (self):
         return not self.keywords or self.keywords == [u'']
+    def commit (self):
+        self.__model.learn (self)
+        self.clear ()
     def update_keywords (self):
         self.__model.update (self)
         if self.schema.is_auto_prompt ():

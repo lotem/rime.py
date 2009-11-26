@@ -27647,7 +27647,6 @@
 問題是	831	wen ti shi
 問題重重	20	wen ti chong chong
 問鼎	78	wen ding
-啐	1	q
 啐	33	cui
 啑	3	jie
 啒	0	hu
@@ -117884,7 +117883,7 @@
 要麼	4	yao me
 要點	4633	yao dian
 覂	784	feng
-覃	10	q一en
+覃	10	qin
 覃	156	tan
 覃	156	xun
 覅	8	fiao
@@ -126172,7 +126171,7 @@
 較少	325	jiao shao
 較差	100	jiao cha
 較常	100	jiao chang
-較強	100	jiaoqiang
+較強	100	jiao qiang
 較快	306	jiao kuai
 較慢	100	jiao man
 較新	100	jiao xin

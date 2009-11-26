@@ -63,7 +63,7 @@ CREATE_KEYWORD_INDEX_SQL = """
 CREATE INDEX IF NOT EXISTS %(prefix)s_keyword_index ON %(prefix)s_keywords (keyword);
 """
 
-CREATE_PHRASES_TABLE_SQL = """
+CREATE_PHRASE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS %(prefix)s_phrases (
     klen INTEGER,
     k0 TEXT, 
@@ -126,7 +126,7 @@ if not options.db_file:
     db_path = os.path.join (home_path, '.ibus', 'zime')
     if not os.path.isdir (db_path):
         os.makedirs (db_path)
-    db_file = os.path.join (db_path, 'zime.db')
+    db_file = os.path.join (db_path, 'stylo.db')
 else:
     db_file = options.db_file
 
@@ -159,7 +159,7 @@ if schema_file:
         else:
             if not prefix and path == u'Config/%s/Prefix' % schema:
                 prefix = value
-                print >> sys.stderr, 'schema prefix: %s' % prefix
+                print >> sys.stderr, 'dict prefix: %s' % prefix
             if not delim and path == u'Config/%s/Delimiter' % schema:
                 if value[0] == u'[' and value[-1] == u']':
                     delim = value[1]
@@ -178,7 +178,7 @@ if not options.keep:
     conn.execute (DROP_KEYWORD_TABLE_SQL % prefix_args)
     conn.execute (DROP_PHRASES_TABLE_SQL % prefix_args)
 conn.execute (CREATE_KEYWORD_TABLE_SQL % prefix_args)
-conn.execute (CREATE_PHRASES_TABLE_SQL % prefix_args)
+conn.execute (CREATE_PHRASE_TABLE_SQL % prefix_args)
 conn.execute (CREATE_KEYWORD_INDEX_SQL % prefix_args)
 conn.execute (CREATE_PHRASE_INDEX_SQL % prefix_args)
 
