@@ -148,8 +148,9 @@ class Context:
         y = x[1][-1]  # take the longest phrase that starts at cursor_pos
         self.__update_selection (x[0], y[0], y[1])
     def __update_selection (self, i, j, c):
-        self.sel.append ([i, j, c[0]])
-        self.__candidates = [(t[0], t) for t in sorted (c, cmp=lambda a, b: -cmp (a[1], b[1]))]
+        candidates = [(t[0], t) for t in sorted (c, cmp=lambda a, b: -cmp (a[1], b[1]))]
+        self.sel.append ([i, j, candidates[0][1]])
+        self.__candidates = candidates
         self.__cb.update_ui ()
     def back (self):
         self.sel.pop ()
