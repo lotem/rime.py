@@ -26,10 +26,10 @@ Config/Pinyin/FuzzyRule = ^([jqx])u \1yu
 Config/Pinyin/FuzzyRule = ^([nl])ue$ \1yue
 Config/Pinyin/FuzzyRule = ^([nl])v$ \1yu
 Config/Pinyin/FuzzyRule = ao$ au
-Config/Pinyin/FuzzyRule = ^yi$ i
-Config/Pinyin/FuzzyRule = ^yi?([^u]) i\1
+#Config/Pinyin/FuzzyRule = ^yi$ i
+#Config/Pinyin/FuzzyRule = ^yi?([^u]) i\1
 Config/Pinyin/FuzzyRule = ^w v
-Config/Pinyin/FuzzyRule = ^wu? u
+#Config/Pinyin/FuzzyRule = ^wu? u
 # punctuation
 Config/Pinyin/Punct = , ，
 Config/Pinyin/Punct = . 。
