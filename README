@@ -9,16 +9,16 @@ sudo make install
 
 2. install the schema of your choice:
 cd data
-./create-schema.py pinyin-schema.txt pinyin-keywords.txt pinyin-phrases.txt
-./create-schema.py zhuyin-schema.txt zhuyin-keywords.txt zhuyin-phrases.txt
-./create-schema.py -k combo-pinyin-schema.txt
+./stylo-create-schema.py pinyin-schema.txt pinyin-keywords.txt pinyin-phrases.txt
+./stylo-create-schema.py zhuyin-schema.txt zhuyin-keywords.txt zhuyin-phrases.txt
+./stylo-create-schema.py -k combo-pinyin-schema.txt
 ./make-phrases.py jyutping
-./create-schema.py jyutping-schema.txt jyutping-keywords.txt jyutping-phrases.txt
-# the resulting SQLite database is located at ~/.ibus/zime/zime.db
+./stylo-create-schema.py jyutping-schema.txt jyutping-keywords.txt jyutping-phrases.txt
+# the resulting SQLite database is located at ~/.ibus/zime/stylo.db
 
-3. restart IBus and enable ZIME engine in IBus preferences.
+3. restart IBus and enable engine `ZIME Stylo' in IBus preferences.
 
 4. when ZIME is running, type Ctrl+` to call schema chooser.
 
-documentation is coming, later.
+a new engine `Plume' is under development.
 questions go to chen.sst@gmail.com
