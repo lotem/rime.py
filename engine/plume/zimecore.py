@@ -89,6 +89,7 @@ class Context:
         self.__model = Model (schema)
         self.schema = schema
         self.__reset ()
+        self.clear_context_info ()
     def __reset (self, clearInput=True):
         self.state = Context.EDIT
         if clearInput:
@@ -97,6 +98,8 @@ class Context:
         self.sel = []
         self.cand = []
         self.__candidates = []
+    def clear_context_info (self):
+        self.last_phrase = None
     def clear (self):
         self.__reset ()
         self.__cb.update_ui ()
@@ -106,7 +109,10 @@ class Context:
     def is_empty (self):
         return not self.input
     def commit (self):
-        self.__model.train (self)
+        if self.state == Context.CONVERT:
+            self.__model.train (self)
+        else:
+            self.clear_context_info ()
         self.clear ()
     def clear_error (self):
         del self.input[self.sel[-1][0]:]

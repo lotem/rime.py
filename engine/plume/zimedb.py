@@ -93,14 +93,35 @@ class DB:
         SELECT kwds FROM %(prefix)s_keys WHERE length = 1;
         """ % prefix_args
         self.QUERY_G1_SQL = """
-        SELECT phrase, freq, p_id FROM %(prefix)s_g1, %(prefix)s_keys k, %(prefix)s_phrases p 
+        SELECT phrase, freq, kwds, p_id FROM %(prefix)s_g1, %(prefix)s_keys k, %(prefix)s_phrases p 
         WHERE length = :length AND kwds = :kwds AND k.id = k_id AND p_id = p.id
         ORDER BY freq DESC;
         """ % prefix_args
         self.QUERY_G2_SQL = """
-        SELECT freq, p1_id, p2_id FROM %(prefix)s_g2, %(prefix)s_keys k, %(prefix)s_phrases p1, %(prefix)s_phrases p2 
+        SELECT freq, kwds, p1_id, p2_id FROM %(prefix)s_g2, %(prefix)s_keys k, %(prefix)s_phrases p1, %(prefix)s_phrases p2 
         WHERE length = :length AND kwds = :kwds AND k.id = k_id AND p1_id = p1.id AND p2_id = p2.id
         ORDER BY freq DESC;
+        """ % prefix_args
+        self.UPDATE_G1_SQL = """
+        UPDATE %(prefix)s_g1 SET freq = freq + 1 
+        WHERE k_id IN (SELECT id FROM %(prefix)s_keys WHERE kwds = :kwds) AND p_id = :p_id;
+        """ % prefix_args
+        self.G2_EXIST_SQL = """
+        SELECT freq FROM %(prefix)s_g2 
+        WHERE k_id = :k_id AND p1_id = :p1_id AND p2_id = :p2_id;
+        """ % prefix_args
+        self.UPDATE_G2_SQL = """
+        UPDATE %(prefix)s_g2 SET freq = freq + 1 
+        WHERE k_id = :k_id AND p1_id = :p1_id AND p2_id = :p2_id;
+        """ % prefix_args
+        self.ADD_G2_SQL = """
+        INSERT INTO %(prefix)s_g2 VALUES (:k_id, :p1_id, :p2_id, 1);
+        """ % prefix_args
+        self.QUERY_KEY_SQL = """
+        SELECT id FROM %(prefix)s_keys WHERE length = :length AND kwds = :kwds;
+        """ % prefix_args
+        self.ADD_KEY_SQL = """
+        INSERT INTO %(prefix)s_keys VALUES (NULL, :length, :kwds);
         """ % prefix_args
 
     def read_config_value (self, key):
@@ -121,32 +142,32 @@ class DB:
     def lookup_bigram (self, key):
         length = len (key)
         args = {'length' : length, 'kwds' : u' '.join (key)}
-        r = [(x[0], x[1:]) for x in DB.__conn.execute (self.QUERY_G2_SQL, args).fetchall ()]
+        r = [(x[0], x[2:]) for x in DB.__conn.execute (self.QUERY_G2_SQL, args).fetchall ()]
         return r
 
-    def store (self, key, phrase):
-        #print 'store:', key, phrase
+    def update_unigram (self, a):
+        #print 'update_unigram:', a
         if DB.read_only:
-            return False
-        #klen = len (key)
-        #args = {'klen' : klen, 'phrase' : phrase, 'n' : 1}
-        #for i in range (4):
-        #    args['k%d' % i] = key[i] if i < klen else None
-        #if DB.__conn.execute (self.PHRASE_EXIST_SQL[klen - 1], args).fetchone ():
-        #    DB.__conn.execute (self.UPDATE_PHRASE_SQL[klen - 1], args)
-        #else:
-        #    DB.__conn.execute (self.ADD_PHRASE_SQL, args)
-        #DB.flush ()
-        return True
+            return
+        args = {'kwds' : a[2], 'p_id' : a[3]}
+        DB.__conn.execute (self.UPDATE_G1_SQL, args)
+        DB.flush ()
 
-    def delete (self, key, phrase, n):
-        #print 'delete:', key, phrase
+    def update_bigram (self, a, b):
+        #print 'update_bigram:', a, b
         if DB.read_only:
-            return False
-        #klen = len (key)
-        #args = {'klen' : klen, 'phrase' : phrase, 'n' : -n - 1}
-        #for i in range (4):
-        #    args['k%d' % i] = key[i] if i < klen else None
-        #DB.__conn.execute (self.UPDATE_PHRASE_SQL[klen - 1], args)
-        #DB.flush ()
-        return True
+            return
+        kwds = u' '.join ([a[2], b[2]])
+        args = {'length' : len (kwds), 'kwds' : kwds} 
+        while True:
+            r = DB.__conn.execute (self.QUERY_KEY_SQL, args).fetchone ()
+            if r:
+                break
+            DB.__conn.execute (self.ADD_KEY_SQL, args)
+        args = {'k_id' : r[0], 'p1_id' : a[3], 'p2_id' : b[3]}
+        if DB.__conn.execute (self.G2_EXIST_SQL, args).fetchone ():
+            DB.__conn.execute (self.UPDATE_G2_SQL, args)
+        else:
+            DB.__conn.execute (self.ADD_G2_SQL, args)
+        DB.flush ()
+

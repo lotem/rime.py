@@ -103,7 +103,9 @@ class Engine:
         self.__frontend.update_preedit (u'', 0, 0)
         if commit:
             self.__frontend.commit_string (punct)
+            self.__ctx.clear_context_info ()
     def __judge (self, event):
+        self.__ctx.clear_context_info ()
         if event.coined:
             if not event.mask:
                 self.__frontend.commit_string (event.get_char ())

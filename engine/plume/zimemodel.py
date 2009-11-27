@@ -117,4 +117,11 @@ class Model:
         #            print z[0], 
         #        print
     def train (self, ctx):
-        pass
+        last = ctx.last_phrase
+        for s in ctx.sel:
+            if last:
+                self.__db.update_bigram (last, s[2])
+            last = s[2]
+            self.__db.update_unigram (s[2])
+        ctx.last_phrase = last
+

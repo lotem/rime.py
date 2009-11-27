@@ -200,6 +200,8 @@ def main ():
     #e.test ('aspasp {BackSpace}{Escape}')
     #e.test ('changanjiushixian {BackSpace}{BackSpace}{Tab}{Tab} {Left}{Right} ....5{Escape}')
     #e.test ('pinyim-shurufa {BackSpace} {BackSpace}{BackSpace}{BackSpace}{Escape}')
+    e.test ('pinyim-shurufa   ')
+    e.test ('pinyim-shurufa   ')
 
 if __name__ == "__main__":
     main ()
