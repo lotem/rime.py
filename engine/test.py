@@ -51,18 +51,29 @@ class TestEngine:
             #self.hide_lookup_table ()
             pass
         else:
-            i = 0
             for c in candidates:
                 self.__lookup_table.append_candidate (ibus.Text (c[0]))
-                if i < 5:
-                    print u'candidate: %d. %s' % (i + 1, candidates[i][0])
-                i += 1
             #self.update_lookup_table (self.__lookup_table, True, True)
+            self.__candidates = candidates
+            self.__update_lookup_table ()
+
+    def __update_lookup_table (self):
+        start = self.__lookup_table.get_current_page_start ()
+        end = start + self.__lookup_table.get_page_size ()
+        cursor_pos = start + self.__lookup_table.get_cursor_pos_in_current_page ()
+        c = self.__candidates
+        for i in range (len (c)):
+            if i < start:
+                continue
+            if i >= end:
+                break
+            print u'candidate: %d%s %s' % (i + 1, u'*' if i == cursor_pos else u'.', c[i][0])
             
     def page_up (self):
         if self.__lookup_table.page_up ():
             print u'page_up.'
             #self.update_lookup_table (self.__lookup_table, True, True)
+            self.__update_lookup_table ()
             return True
         return False
 
@@ -70,6 +81,7 @@ class TestEngine:
         if self.__lookup_table.page_down ():
             print u'page_down.'
             #self.update_lookup_table (self.__lookup_table, True, True)
+            self.__update_lookup_table ()
             return True
         return False
 
@@ -77,6 +89,7 @@ class TestEngine:
         if self.__lookup_table.cursor_up ():
             print u'cursor_up.'
             #self.update_lookup_table (self.__lookup_table, True, True)
+            self.__update_lookup_table ()
             return True
         return False
 
@@ -84,6 +97,7 @@ class TestEngine:
         if self.__lookup_table.cursor_down ():
             print u'cursor_down.'
             #self.update_lookup_table (self.__lookup_table, True, True)
+            self.__update_lookup_table ()
             return True
         return False
 
@@ -94,7 +108,7 @@ class TestEngine:
 
     def get_candidate_cursor_pos (self):
         index = self.__lookup_table.get_cursor_pos ()
-        print u'cursor_pos = %d' % index
+        print u'candidate_cursor_pos = %d' % index
         return index
 
     def test (self, string):
@@ -182,7 +196,10 @@ def main ():
     #print db.lookup_phrase ('yi yi'.split ())
 
     e = TestEngine (u'Pinyin')
-    e.test ('pinyin-shurufa ')
+    #e.test ('zhunghuarenmingungheguo-vansui {Return}{Return}')
+    #e.test ('aspasp {BackSpace}{Escape}')
+    #e.test ('changanjiushixian {BackSpace}{BackSpace}{Tab}{Tab} {Left}{Right} ....5{Escape}')
+    #e.test ('pinyim-shurufa {BackSpace} {BackSpace}{BackSpace}{BackSpace}{Escape}')
 
 if __name__ == "__main__":
     main ()
