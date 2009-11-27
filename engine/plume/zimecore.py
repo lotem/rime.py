@@ -183,10 +183,12 @@ class Context:
                 return self.aux (self.cursor)
             else:
                 return self.aux
+        if self.state == Context.CONVERT and self.sel:
+            s = self.sel[-1]
+            return u''.join (self.input[s[0]:s[1]])
         return u''
     def get_candidates (self):
         return self.__candidates
     def delete_phrase (self, cand):
-        self.__model.delete_phrase (self, cand)
-        self.__cb.update_ui ()
+        pass
 
