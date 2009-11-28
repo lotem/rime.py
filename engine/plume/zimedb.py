@@ -92,6 +92,9 @@ class DB:
         self.LIST_KEYWORDS_SQL = """
         SELECT kwds FROM %(prefix)s_keys WHERE length = 1;
         """ % prefix_args
+        self.QUERY_G0_SQL = """
+        SELECT freq FROM %(prefix)s_g0;
+        """ % prefix_args
         self.QUERY_G1_SQL = """
         SELECT phrase, freq, kwds, p_id FROM %(prefix)s_g1, %(prefix)s_keys k, %(prefix)s_phrases p 
         WHERE length = :length AND kwds = :kwds AND k.id = k_id AND p_id = p.id
@@ -101,6 +104,9 @@ class DB:
         SELECT freq, kwds, p1_id, p2_id FROM %(prefix)s_g2, %(prefix)s_keys k, %(prefix)s_phrases p1, %(prefix)s_phrases p2 
         WHERE length = :length AND kwds = :kwds AND k.id = k_id AND p1_id = p1.id AND p2_id = p2.id
         ORDER BY freq DESC;
+        """ % prefix_args
+        self.UPDATE_G0_SQL = """
+        UPDATE %(prefix)s_g0 SET freq = freq + :n;
         """ % prefix_args
         self.UPDATE_G1_SQL = """
         UPDATE %(prefix)s_g1 SET freq = freq + 1 
@@ -133,6 +139,10 @@ class DB:
     def list_keywords (self):
         return [x[0] for x in DB.__conn.execute (self.LIST_KEYWORDS_SQL, ()).fetchall ()]
 
+    def lookup_freq_total (self):
+        r = DB.__conn.execute (self.QUERY_G0_SQL).fetchone ()
+        return r[0] if r else 1
+
     def lookup_phrase (self, key):
         length = len (key)
         args = {'length' : length, 'kwds' : u' '.join (key)}
@@ -140,34 +150,41 @@ class DB:
         return r
 
     def lookup_bigram (self, key):
+        #print 'lookup_bigram:', key
         length = len (key)
         args = {'length' : length, 'kwds' : u' '.join (key)}
-        r = [(x[0], x[2:]) for x in DB.__conn.execute (self.QUERY_G2_SQL, args).fetchall ()]
+        r = [(x[0], x[1], x[2:]) for x in DB.__conn.execute (self.QUERY_G2_SQL, args).fetchall ()]
         return r
 
+    def update_freq_total (self, n):
+        #print 'update_freq_total:', n
+        if DB.read_only:
+            return
+        args = {'n' : n}
+        DB.__conn.execute (self.UPDATE_G0_SQL, args)
+        DB.flush ()
+        
     def update_unigram (self, a):
         #print 'update_unigram:', a
         if DB.read_only:
             return
-        args = {'kwds' : a[2], 'p_id' : a[3]}
+        args = {'kwds' : a[0], 'p_id' : a[1]}
         DB.__conn.execute (self.UPDATE_G1_SQL, args)
-        DB.flush ()
 
     def update_bigram (self, a, b):
         #print 'update_bigram:', a, b
         if DB.read_only:
             return
-        kwds = u' '.join ([a[2], b[2]])
-        args = {'length' : len (kwds), 'kwds' : kwds} 
+        key = a[0].split (u' ') + b[0].split (u' ')
+        args = {'length' : len (key), 'kwds' : u' '.join (key)} 
         while True:
             r = DB.__conn.execute (self.QUERY_KEY_SQL, args).fetchone ()
             if r:
                 break
             DB.__conn.execute (self.ADD_KEY_SQL, args)
-        args = {'k_id' : r[0], 'p1_id' : a[3], 'p2_id' : b[3]}
+        args = {'k_id' : r[0], 'p1_id' : a[1], 'p2_id' : b[1]}
         if DB.__conn.execute (self.G2_EXIST_SQL, args).fetchone ():
             DB.__conn.execute (self.UPDATE_G2_SQL, args)
         else:
             DB.__conn.execute (self.ADD_G2_SQL, args)
-        DB.flush ()
 

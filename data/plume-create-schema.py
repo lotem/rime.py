@@ -168,7 +168,7 @@ if not prefix:
 prefix_args = {'prefix' : prefix}
 if not options.keep:
     conn.executescript (DROP_DICT_SQLS % prefix_args)
-conn.executescript (CREATE_DICT_SQLS % prefix_args)
+    conn.executescript (CREATE_DICT_SQLS % prefix_args)
 
 QUERY_KEY_SQL = """
 SELECT id FROM %(prefix)s_keys WHERE length = :length AND kwds = :kwds;

@@ -85,11 +85,14 @@ class Model:
         # path finding
         b = [n]
         c = {}
+        sugg = []
+        total = self.__db.lookup_freq_total ()
         for i in reversed (p):
             ok = False
             for j in b:
                 if i < j and a[j][i]:
                     ok = True
+                    s = []
                     for k in b:
                         if not (j == k or j < k and (j, k) in c):
                             continue
@@ -105,23 +108,49 @@ class Model:
                                 paths.append (new_path)  
                                 r = self.__db.lookup_phrase (new_path)
                                 if r:
+                                    pa = sorted (
+                                        [(x[0], float (x[1]) / total, [(x[2], x[3])]) for x in r], 
+                                        cmp=lambda a, b: -cmp (a[1], b[1])
+                                        )
                                     cc = _get (_get (ctx.cand, i), k)
-                                    cc += r
+                                    cc += pa
+                                    opt = pa[0]
+                                    if k < n:
+                                        succ = _get (sugg, k)
+                                        if succ:
+                                            opt = (opt[0] + succ[0][0], 
+                                                   opt[1] / total * succ[0][1], 
+                                                   opt[2] + succ[0][2])
+                                        else:
+                                            opt = None
+                                    if opt:
+                                        ss = _get (sugg, i)
+                                        if not ss:
+                                            ss.append (opt)
+                                        elif ss[0][1] < opt[1]:
+                                            ss[0] = opt
+                                        else:
+                                            pass
+                                # TODO
+                                #r = self.__db.lookup_bigram (new_path)
+                                #if r:
+                                #    pass
             if ok:
                 b.append (i)
-        # debug
-        #for x in ctx.cand:
-        #    for y in x[1]:
-        #        print '(%d, %d) [%s]' % (x[0], y[0], u''.join (ctx.input[x[0]:y[0]]))
-        #        for z in y[1]:
-        #            print z[0], 
-        #        print
+        # TODO
+        for x in sugg:
+            if x[1]:
+                cc = _get (_get (ctx.cand, x[0]), n)
+                if not cc:
+                    cc.append (x[1][0])
     def train (self, ctx):
-        last = ctx.last_phrase
-        for s in ctx.sel:
-            if last:
-                self.__db.update_bigram (last, s[2])
-            last = s[2]
-            self.__db.update_unigram (s[2])
-        ctx.last_phrase = last
+        p = ctx.last_phrase
+        a = [x for s in ctx.sel for x in s[2][2]]
+        for x in a:
+            if p:
+                self.__db.update_bigram (p, x)
+            p = x
+            self.__db.update_unigram (x)
+        ctx.last_phrase = p
+        self.__db.update_freq_total (len (a))
 
