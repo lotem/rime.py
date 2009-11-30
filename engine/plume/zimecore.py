@@ -121,14 +121,18 @@ class Context:
     def next (self):
         if self.state != Context.CONVERT:
             return False
+        if not self.sel:
+            return False
         s = self.sel.pop ()
         x = _get (self.cand, s[0])
         for y in x[1]:
             if y[0] > s[1]:
                 self.__update_selection (x[0], y[0], y[1])
                 return True
-        self.sel.append (s)
-        return False
+        # wrap
+        y = x[1][0]
+        self.__update_selection (x[0], y[0], y[1])
+        return True
     def previous (self):
         if self.state != Context.CONVERT:
             return False
