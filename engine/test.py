@@ -201,8 +201,8 @@ def main ():
     #e.test ('changanjiushixian {BackSpace}{BackSpace}{Tab}{Tab} {Left}{Right} ....5{Escape}')
     #e.test ('pinyim-shurufa {BackSpace} {BackSpace}{BackSpace}{BackSpace}{Escape}')
     #e.test ('pinyim-shurufa {BackSpace}{BackSpace} {BackSpace} {Escape}')
-    e.test ('wo-xihuan  ')
-    e.test ('pinyim-shurufa  ')
+    #e.test ('wo-xihuan  ')
+    #e.test ('pinyim-shurufa  ')
 
 if __name__ == "__main__":
     main ()

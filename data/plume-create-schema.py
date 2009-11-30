@@ -17,7 +17,7 @@ def debug (*what):
     print >> sys.stderr, u'[DEBUG]: ', u' '.join (map (unicode, what))
 
 
-CREATE_SETTING_SQLS = """
+INIT_PLUME_DB_SQLS = """
 CREATE TABLE IF NOT EXISTS setting_paths (
     id INTEGER PRIMARY KEY,
     path TEXT UNIQUE
@@ -25,6 +25,10 @@ CREATE TABLE IF NOT EXISTS setting_paths (
 CREATE TABLE IF NOT EXISTS setting_values (
     path_id INTEGER,
     value TEXT
+);
+CREATE TABLE IF NOT EXISTS phrases (
+    id INTEGER PRIMARY KEY,
+    phrase TEXT UNIQUE
 );
 """
 
@@ -34,32 +38,30 @@ CREATE TABLE IF NOT EXISTS %(prefix)s_keys (
     length INTEGER,
     kwds TEXT UNIQUE
 );
-CREATE TABLE IF NOT EXISTS %(prefix)s_phrases (
-    id INTEGER PRIMARY KEY,
-    phrase TEXT UNIQUE
-);
 CREATE TABLE IF NOT EXISTS %(prefix)s_g0 (
     freq INTEGER
 );
 INSERT INTO %(prefix)s_g0 VALUES (0);
 CREATE TABLE IF NOT EXISTS %(prefix)s_g1 (
+    id INTEGER PRIMARY KEY,
     k_id INTEGER,
     p_id INTEGER,
-    freq INTEGER,
-    PRIMARY KEY (k_id, p_id)
+    freq INTEGER
 );
 CREATE TABLE IF NOT EXISTS %(prefix)s_g2 (
     k_id INTEGER,
-    p1_id INTEGER,
-    p2_id INTEGER,
-    freq INTEGER,
-    PRIMARY KEY (k_id, p1_id, p2_id)
+    u1_id INTEGER,
+    u2_id INTEGER,
+    freq INTEGER
 );
+CREATE UNIQUE INDEX IF NOT EXISTS %(prefix)s_g1_idx ON %(prefix)s_g1 (k_id, p_id);
+CREATE UNIQUE INDEX IF NOT EXISTS %(prefix)s_g2_idx ON %(prefix)s_g2 (k_id, u1_id, u2_id);
 """
 
 DROP_DICT_SQLS = """
+DROP INDEX IF EXISTS %(prefix)s_g1_idx;
+DROP INDEX IF EXISTS %(prefix)s_g2_idx;
 DROP TABLE IF EXISTS %(prefix)s_keys;
-DROP TABLE IF EXISTS %(prefix)s_phrases;
 DROP TABLE IF EXISTS %(prefix)s_g0;
 DROP TABLE IF EXISTS %(prefix)s_g1;
 DROP TABLE IF EXISTS %(prefix)s_g2;
@@ -82,6 +84,14 @@ INSERT INTO setting_paths VALUES (NULL, :path);
 
 ADD_SETTING_VALUE_SQL = """
 INSERT INTO setting_values VALUES (:path_id, :value);
+"""
+
+QUERY_PHRASE_SQL = """
+SELECT id FROM phrases WHERE phrase = :phrase;
+"""
+
+ADD_PHRASE_SQL = """
+INSERT INTO phrases VALUES (NULL, :phrase);
 """
 
 usage = 'usage: %prog [options] schema-file [keyword-file [phrase-file]]'
@@ -110,7 +120,7 @@ else:
     db_file = options.db_file
 
 conn = sqlite3.connect (db_file)
-conn.executescript (CREATE_SETTING_SQLS)
+conn.executescript (INIT_PLUME_DB_SQLS)
 
 schema = None
 prefix = None
@@ -171,19 +181,11 @@ if not options.keep:
     conn.executescript (CREATE_DICT_SQLS % prefix_args)
 
 QUERY_KEY_SQL = """
-SELECT id FROM %(prefix)s_keys WHERE length = :length AND kwds = :kwds;
+SELECT id FROM %(prefix)s_keys WHERE kwds = :kwds;
 """ % prefix_args
 
 ADD_KEY_SQL = """
 INSERT INTO %(prefix)s_keys VALUES (NULL, :length, :kwds);
-""" % prefix_args
-
-QUERY_PHRASE_SQL = """
-SELECT id FROM %(prefix)s_phrases WHERE phrase = :phrase;
-""" % prefix_args
-
-ADD_PHRASE_SQL = """
-INSERT INTO %(prefix)s_phrases VALUES (NULL, :phrase);
 """ % prefix_args
 
 INC_G0_SQL = """
@@ -199,19 +201,19 @@ SELECT freq FROM %(prefix)s_g1 WHERE k_id = :k_id AND p_id = :p_id;
 """ % prefix_args
 
 ADD_G1_SQL = """
-INSERT INTO %(prefix)s_g1 VALUES (:k_id, :p_id, :freq);
+INSERT INTO %(prefix)s_g1 VALUES (NULL, :k_id, :p_id, :freq);
 """ % prefix_args
 
 INC_G2_SQL = """
-UPDATE %(prefix)s_g2 SET freq = freq + :freq WHERE k_id = :k_id AND p1_id = :p1_id AND p2_id = :p2_id;
+UPDATE %(prefix)s_g2 SET freq = freq + :freq WHERE k_id = :k_id AND u1_id = :u1_id AND u2_id = :u2_id;
 """ % prefix_args
 
 QUERY_G2_SQL = """
-SELECT freq FROM %(prefix)s_g2 WHERE k_id = :k_id AND p1_id = :p1_id AND p2_id = :p2_id;
+SELECT freq FROM %(prefix)s_g2 WHERE k_id = :k_id AND u1_id = :u1_id AND u2_id = :u2_id;
 """ % prefix_args
 
 ADD_G2_SQL = """
-INSERT INTO %(prefix)s_g2 VALUES (:k_id, :p1_id, :p2_id, :freq);
+INSERT INTO %(prefix)s_g2 VALUES (:k_id, :u1_id, :u2_id, :freq);
 """ % prefix_args
 
 def get_or_insert_key (kwds):
@@ -245,8 +247,8 @@ def inc_g1 (k_id, p_id, freq):
     else:
         conn.execute (ADD_G1_SQL, args)
 
-def inc_g2 (k_id, p1_id, p2_id, freq):
-    args = {'k_id' : k_id, 'p1_id' : p1_id, 'p2_id' : p2_id, 'freq' : freq}
+def inc_g2 (k_id, u1_id, u2_id, freq):
+    args = {'k_id' : k_id, 'u1_id' : u1_id, 'u2_id' : u2_id, 'freq' : freq}
     if conn.execute (QUERY_G2_SQL, args).fetchone ():
         if freq > 0:
             conn.execute (INC_G2_SQL, args)

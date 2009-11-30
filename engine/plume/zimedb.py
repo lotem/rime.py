@@ -5,7 +5,7 @@ import time
 
 class DB:
 
-    CREATE_SETTING_SQLS = """
+    INIT_PLUME_DB_SQLS = """
     CREATE TABLE IF NOT EXISTS setting_paths (
         id INTEGER PRIMARY KEY,
         path TEXT UNIQUE
@@ -13,6 +13,10 @@ class DB:
     CREATE TABLE IF NOT EXISTS setting_values (
         path_id INTEGER,
         value TEXT
+    );
+    CREATE TABLE IF NOT EXISTS phrases (
+        id INTEGER PRIMARY KEY,
+        phrase TEXT UNIQUE
     );
     """
     QUERY_SETTING_SQL = """
@@ -42,7 +46,7 @@ class DB:
         cls.__conn = sqlite3.connect (db_file)
         cls.read_only = read_only
         if not read_only:
-            cls.__conn.executescript (cls.CREATE_SETTING_SQLS)
+            cls.__conn.executescript (cls.INIT_PLUME_DB_SQLS)
             cls.flush (True)
 
     @classmethod
@@ -96,13 +100,13 @@ class DB:
         SELECT freq FROM %(prefix)s_g0;
         """ % prefix_args
         self.QUERY_G1_SQL = """
-        SELECT phrase, freq, kwds, p_id FROM %(prefix)s_g1, %(prefix)s_keys k, %(prefix)s_phrases p 
-        WHERE length = :length AND kwds = :kwds AND k.id = k_id AND p_id = p.id
+        SELECT freq, g1.id, kwds, phrase FROM %(prefix)s_g1 g1, %(prefix)s_keys k, phrases p 
+        WHERE kwds = :kwds AND k.id = k_id AND p_id = p.id
         ORDER BY freq DESC;
         """ % prefix_args
         self.QUERY_G2_SQL = """
-        SELECT freq, kwds, p1_id, p2_id FROM %(prefix)s_g2, %(prefix)s_keys k, %(prefix)s_phrases p1, %(prefix)s_phrases p2 
-        WHERE length = :length AND kwds = :kwds AND k.id = k_id AND p1_id = p1.id AND p2_id = p2.id
+        SELECT freq, u1_id, u2_id FROM %(prefix)s_g2, %(prefix)s_keys k
+        WHERE kwds = :kwds AND k.id = k_id
         ORDER BY freq DESC;
         """ % prefix_args
         self.UPDATE_G0_SQL = """
@@ -110,21 +114,21 @@ class DB:
         """ % prefix_args
         self.UPDATE_G1_SQL = """
         UPDATE %(prefix)s_g1 SET freq = freq + 1 
-        WHERE k_id IN (SELECT id FROM %(prefix)s_keys WHERE kwds = :kwds) AND p_id = :p_id;
+        WHERE id = :id;
         """ % prefix_args
         self.G2_EXIST_SQL = """
         SELECT freq FROM %(prefix)s_g2 
-        WHERE k_id = :k_id AND p1_id = :p1_id AND p2_id = :p2_id;
+        WHERE k_id = :k_id AND u1_id = :u1_id AND u2_id = :u2_id;
         """ % prefix_args
         self.UPDATE_G2_SQL = """
         UPDATE %(prefix)s_g2 SET freq = freq + 1 
-        WHERE k_id = :k_id AND p1_id = :p1_id AND p2_id = :p2_id;
+        WHERE k_id = :k_id AND u1_id = :u1_id AND u2_id = :u2_id;
         """ % prefix_args
         self.ADD_G2_SQL = """
-        INSERT INTO %(prefix)s_g2 VALUES (:k_id, :p1_id, :p2_id, 1);
+        INSERT INTO %(prefix)s_g2 VALUES (:k_id, :u1_id, :u2_id, 1);
         """ % prefix_args
         self.QUERY_KEY_SQL = """
-        SELECT id FROM %(prefix)s_keys WHERE length = :length AND kwds = :kwds;
+        SELECT id FROM %(prefix)s_keys WHERE kwds = :kwds;
         """ % prefix_args
         self.ADD_KEY_SQL = """
         INSERT INTO %(prefix)s_keys VALUES (NULL, :length, :kwds);
@@ -146,14 +150,14 @@ class DB:
     def lookup_phrase (self, key):
         length = len (key)
         args = {'length' : length, 'kwds' : u' '.join (key)}
-        r = [tuple(x) for x in DB.__conn.execute (self.QUERY_G1_SQL, args).fetchall ()]
+        r = DB.__conn.execute (self.QUERY_G1_SQL, args).fetchall ()
         return r
 
     def lookup_bigram (self, key):
         #print 'lookup_bigram:', key
         length = len (key)
         args = {'length' : length, 'kwds' : u' '.join (key)}
-        r = [(x[0], x[1], x[2:]) for x in DB.__conn.execute (self.QUERY_G2_SQL, args).fetchall ()]
+        r = DB.__conn.execute (self.QUERY_G2_SQL, args).fetchall ()
         return r
 
     def update_freq_total (self, n):
@@ -168,21 +172,21 @@ class DB:
         #print 'update_unigram:', a
         if DB.read_only:
             return
-        args = {'kwds' : a[0], 'p_id' : a[1]}
+        args = {'id' : a[0]}
         DB.__conn.execute (self.UPDATE_G1_SQL, args)
 
     def update_bigram (self, a, b):
         #print 'update_bigram:', a, b
         if DB.read_only:
             return
-        key = a[0].split (u' ') + b[0].split (u' ')
+        key = a[1].split (u' ') + b[1].split (u' ')
         args = {'length' : len (key), 'kwds' : u' '.join (key)} 
         while True:
             r = DB.__conn.execute (self.QUERY_KEY_SQL, args).fetchone ()
             if r:
                 break
             DB.__conn.execute (self.ADD_KEY_SQL, args)
-        args = {'k_id' : r[0], 'p1_id' : a[1], 'p2_id' : b[1]}
+        args = {'k_id' : r[0], 'u1_id' : a[0], 'u2_id' : b[0]}
         if DB.__conn.execute (self.G2_EXIST_SQL, args).fetchone ():
             DB.__conn.execute (self.UPDATE_G2_SQL, args)
         else:

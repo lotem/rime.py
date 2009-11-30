@@ -3,16 +3,18 @@
 
 import re
 
-def _get (c, k):
+def _get (c, k, create=True):
     for i in range (len (c)):
         if c[i][0] == k:
             return c[i][1]
         if c[i][0] > k:
             r = []
-            c.insert (i, (k, r))
+            if create:
+                c.insert (i, (k, r))
             return r
     r = []
-    c.append ((k, r))
+    if create:
+        c.append ((k, r))
     return r
 
 class Model:
@@ -86,13 +88,15 @@ class Model:
         b = [n]
         c = {}
         sugg = []
-        total = self.__db.lookup_freq_total ()
+        unig = {}
+        big = {}
+        total = self.__db.lookup_freq_total () + 0.1
+        penalty = 1e-3
         for i in reversed (p):
             ok = False
             for j in b:
                 if i < j and a[j][i]:
                     ok = True
-                    s = []
                     for k in b:
                         if not (j == k or j < k and (j, k) in c):
                             continue
@@ -105,44 +109,60 @@ class Model:
                             if len (path) < Model.MAX_PHRASE_LENGTH:
                                 # path being an array of strings
                                 new_path = [a[j][i]] + path
+                                #print 'debug:', new_path
                                 paths.append (new_path)  
+                                r = self.__db.lookup_bigram (new_path)
+                                if r:
+                                    for x in r:
+                                        if x[1] in big:
+                                            ss = big[x[1]] 
+                                        else:
+                                            ss = big[x[1]] = {}
+                                        ss[x[2]] = (x[0] + 0.1) / total
                                 r = self.__db.lookup_phrase (new_path)
                                 if r:
-                                    pa = sorted (
-                                        [(x[0], float (x[1]) / total, [(x[2], x[3])]) for x in r], 
-                                        cmp=lambda a, b: -cmp (a[1], b[1])
-                                        )
-                                    cc = _get (_get (ctx.cand, i), k)
-                                    cc += pa
-                                    opt = pa[0]
-                                    if k < n:
-                                        succ = _get (sugg, k)
-                                        if succ:
-                                            opt = (opt[0] + succ[0][0], 
-                                                   opt[1] / total * succ[0][1], 
-                                                   opt[2] + succ[0][2])
-                                        else:
-                                            opt = None
-                                    if opt:
-                                        ss = _get (sugg, i)
-                                        if not ss:
-                                            ss.append (opt)
-                                        elif ss[0][1] < opt[1]:
-                                            ss[0] = opt
-                                        else:
-                                            pass
-                                # TODO
-                                #r = self.__db.lookup_bigram (new_path)
-                                #if r:
-                                #    pass
+                                    for x in r:
+                                        prob = (x[0] + 0.1) / total
+                                        unig[x[1]] = prob
+                                        e = (prob, x[3], [(x[1], x[2])], 0)
+                                        s = _get (_get (sugg, i), k)
+                                        s.append (e)
+                                        if k == n:
+                                            continue
+                                        succ = big[x[1]] if x[1] in big else {}
+                                        opt = (0.0, u'', [])
+                                        for y in _get (_get (sugg, k, False), n, False):
+                                            u = y[2][0][0]
+                                            if u in succ:
+                                                prob = succ[u] / unig[u] * y[0]
+                                                rank = 1
+                                            else:
+                                                prob = e[0] * y[0] * penalty
+                                                rank = 2
+                                            if prob > opt[0]:
+                                                opt = (prob, e[1] + y[1], e[2] + y[2], max (e[3], y[3], rank)) 
+                                        if opt[2]:
+                                            s = _get (_get (sugg, i), n)
+                                            s.append (opt)
             if ok:
                 b.append (i)
-        # TODO
-        for x in sugg:
-            if x[1]:
-                cc = _get (_get (ctx.cand, x[0]), n)
-                if not cc:
-                    cc.append (x[1][0])
+        ctx.cand = sugg 
+    def calculate_candidates (self, ctx, c):
+        # TODO: ajust candidate order in regard to the previous phrase
+        result = []
+        count = 3
+        rank = 2
+        for t in sorted (c, cmp=lambda a, b: -cmp (a[0], b[0])):
+            r = t[3]
+            if r > rank or any ([x[0] == t[1] for x in result]):
+                continue
+            rank = 1
+            if r > 0:
+                if count == 0:
+                    continue
+                count -= 1
+            result.append ((t[1], t))
+        return result
     def train (self, ctx):
         p = ctx.last_phrase
         a = [x for s in ctx.sel for x in s[2][2]]
