@@ -1,24 +1,39 @@
-to install:
+hi. 
+
+ibus-zime consists of two ditinct IM engines, namely Stylo, the whole-sentence-based, and Plume, the phrase-based.
+
+how to install:
 
 0. install IBus: 
 http://ibus.googlecode.com/
 
-1. run shell command: 
+1. run the shell commands: 
 cd ibus-zime
 sudo make install
 
 2. install the schema of your choice:
 cd data
+# pinyin
 ./stylo-create-schema.py pinyin-schema.txt pinyin-keywords.txt pinyin-phrases.txt
+# bopomofo zhuyin
 ./stylo-create-schema.py zhuyin-schema.txt zhuyin-keywords.txt zhuyin-phrases.txt
+# combo pinyin (refer to ZIME project home page)
 ./stylo-create-schema.py -k combo-pinyin-schema.txt
+# jyutping (cantonese)
 ./make-phrases.py jyutping
 ./stylo-create-schema.py jyutping-schema.txt jyutping-keywords.txt jyutping-phrases.txt
-# the resulting SQLite database is located at ~/.ibus/zime/stylo.db
+# kuank-hiunn (middle chinese)
+./make-phrases.py kuankhiunn
+./stylo-create-schema.py kuankhiunn-schema.txt kuankhiunn-keywords.txt kuankhiunn-phrases.txt
+# feel free to define your own schema.
+# the sample text files provided are good for both engines. 
+# (but currently Plume has no support for zhuyin and combo pinyin yet)
+# change `stylo-' to `plume-' in the commands above to initialize the database for Plume engine.
+# the resulting SQLite database is located at ~/.ibus/zime/stylo.db, or ~/.ibus/zime/plume.db.
 
-3. restart IBus and enable engine `ZIME Stylo' in IBus preferences.
+3. restart IBus and enable ZIME engine(s) in IBus preferences.
 
-4. when ZIME is running, type Ctrl+` to call schema chooser.
+4. when ZIME is active, you can always type Ctrl+` to call schema chooser menu.
 
-a new engine `Plume' is under development.
+sorry for the temporary absense of documentation.
 questions go to chen.sst@gmail.com

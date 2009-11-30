@@ -21,3 +21,6 @@ Shift switch.
 #about jyutping split rules.
 #about hiding the cursor in candidate list -- that's OK
 about Shift+Tab
+# plume
+ajust candidate order in regard to previously selected phrase.
+true fuzzy input.
