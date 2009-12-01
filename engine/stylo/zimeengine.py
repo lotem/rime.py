@@ -148,6 +148,8 @@ class Engine:
                 index = self.__frontend.get_candidate_index (event.keycode - keysyms._1)
                 if index >= 0 and index < len (candidates):
                     self.__ctx.select (candidates[index][1])
+                    if self.__ctx.is_confirmed ():
+                        self.__commit ()
                 return True
             else:
                 # auto-commit
@@ -168,6 +170,8 @@ class Engine:
                 index = self.__frontend.get_candidate_cursor_pos ()
                 if index >= 0 and index < len (candidates):
                     self.__ctx.select (candidates[index][1])
+                    if self.__ctx.is_confirmed ():
+                        self.__commit ()
             else:
                 self.__commit ()
             return True

@@ -115,6 +115,13 @@ class Context:
         self.__set_cursor (self.cursor + s[1])
         self.__model.select (self, s)
         self.__cb.update_ui ()
+    def is_confirmed (self):
+        i = 0
+        for s in self.selection:
+            if s[0] > i:
+                return False
+            i = s[0] + s[1]
+        return i == len (self.kwd)
     def __set_cursor (self, pos, wrap=False):
         n = len (self.keywords)
         if not wrap and pos >= n:
