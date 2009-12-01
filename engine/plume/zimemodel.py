@@ -20,6 +20,7 @@ def _get (c, k, create=True):
 class Model:
     MAX_PHRASE_LENGTH = 10
     CONVERT, ERROR = 1, -1
+    PENALTY = 1e-3
     def __init__ (self, schema):
         self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
         self.__max_keyword_length = int (schema.get_config_value (u'MaxKeywordLength') or u'7')
@@ -87,11 +88,10 @@ class Model:
         # path finding
         b = [n]
         c = {}
-        sugg = []
+        cand = []
         unig = {}
         big = {}
         total = self.__db.lookup_freq_total () + 0.1
-        penalty = 1e-3
         for i in reversed (p):
             ok = False
             for j in b:
@@ -125,34 +125,51 @@ class Model:
                                         prob = (x[0] + 0.1) / total
                                         unig[x[1]] = prob
                                         e = (prob, x[3], [(x[1], x[2])], 0)
-                                        s = _get (_get (sugg, i), k)
+                                        s = _get (_get (cand, i), k)
                                         s.append (e)
                                         if k == n:
                                             continue
                                         succ = big[x[1]] if x[1] in big else {}
                                         opt = (0.0, u'', [])
-                                        for y in _get (_get (sugg, k, False), n, False):
+                                        for y in _get (_get (cand, k, False), n, False):
                                             u = y[2][0][0]
                                             if u in succ:
                                                 prob = succ[u] / unig[u] * y[0]
                                                 rank = 1
                                             else:
-                                                prob = e[0] * y[0] * penalty
+                                                prob = e[0] * y[0] * Model.PENALTY
                                                 rank = 2
                                             if prob > opt[0]:
                                                 opt = (prob, e[1] + y[1], e[2] + y[2], max (e[3], y[3], rank)) 
                                         if opt[2]:
-                                            s = _get (_get (sugg, i), n)
+                                            s = _get (_get (cand, i), n)
                                             s.append (opt)
             if ok:
                 b.append (i)
-        ctx.cand = sugg 
+        ctx.cand = cand 
+        ctx.unig = unig
+        ctx.big = big
+    def __adjust (self, x, ctx):
+        """ajust candidate order in regard to the previously selected phrase"""
+        if ctx.sel:
+            prev = ctx.sel[-1][2]
+        else:
+            return x
+        u = prev[2][0][0]
+        if u not in ctx.big:
+            return x
+        succ = ctx.big[u]
+        a = x[2][0][0]
+        if a not in succ:
+            return x
+        award = succ[a] / ctx.unig[a] / ctx.unig[u] / Model.PENALTY;
+        return (x[0] * award, ) + x[1:]
     def calculate_candidates (self, ctx, c):
-        # TODO: ajust candidate order in regard to the previous phrase
         result = []
         count = 3
         rank = 2
-        for t in sorted (c, cmp=lambda a, b: -cmp (a[0], b[0])):
+        order_by_prob_desc = lambda a, b: -cmp (a[0], b[0])
+        for t in sorted ([self.__adjust (x, ctx) for x in c], cmp=order_by_prob_desc):
             r = t[3]
             if r > rank or any ([x[0] == t[1] for x in result]):
                 continue
