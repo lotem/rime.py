@@ -64090,7 +64090,7 @@
 新體	5	xin ti
 新體詩	0	xin ti shi
 新鮮	1412	xin xian
-新鮮事	100	1412 xin xian shi
+新鮮事	100	xin xian shi
 新鮮人	478	xin xian ren
 新鮮味	1	xin xian wei
 新黨	4300	xin dang
