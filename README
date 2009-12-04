@@ -1,39 +1,41 @@
 hi. 
+thank you for taking time to read this, and for trying ibus-zime.
 
-ibus-zime consists of two ditinct IM engines, namely Stylo, the whole-sentence-based, and Plume, the phrase-based.
+ibus-zime consists of two different IM engines, namely `Stylo`, the wholer-sentence model, and `Plume`, the phrase-based model.
 
 how to install:
 
-0. install IBus: 
+0. make sure you've installed IBus: 
 http://ibus.googlecode.com/
 
-1. run the shell commands: 
+1. run the following shell commands: 
 cd ibus-zime
 sudo make install
 
-2. install the schema of your choice:
+2. install the schema(s) of your choice:
 cd data
-# pinyin
+# Pinyin
 ./stylo-create-schema.py pinyin-schema.txt pinyin-keywords.txt pinyin-phrases.txt
-# bopomofo zhuyin
+# Zhuyin (Bopomofo)
 ./stylo-create-schema.py zhuyin-schema.txt zhuyin-keywords.txt zhuyin-phrases.txt
-# combo pinyin (refer to ZIME project home page)
+# Combo Pinyin (refer to ZIME project home page)
 ./stylo-create-schema.py -k combo-pinyin-schema.txt
-# jyutping (cantonese)
+# Jyutping (Cantonese)
 ./make-phrases.py jyutping
 ./stylo-create-schema.py jyutping-schema.txt jyutping-keywords.txt jyutping-phrases.txt
-# kuank-hiunn (middle chinese)
+# Kuank-hiunn (Middle Chinese)
 ./make-phrases.py kuankhiunn
 ./stylo-create-schema.py kuankhiunn-schema.txt kuankhiunn-keywords.txt kuankhiunn-phrases.txt
-# feel free to define your own schema.
-# the sample text files provided are good for both engines. 
-# (but currently Plume has no support for zhuyin and combo pinyin yet)
+# these sample text files provided are good for both engines. 
+# (but currently Plume has no support for Zhuyin and Combo Pinyin yet)
 # change `stylo-' to `plume-' in the commands above to initialize the database for Plume engine.
-# the resulting SQLite database is located at ~/.ibus/zime/stylo.db, or ~/.ibus/zime/plume.db.
+# the resulting SQLite3 database is located at ~/.ibus/zime/stylo.db, or ~/.ibus/zime/plume.db.
 
 3. restart IBus and enable ZIME engine(s) in IBus preferences.
 
 4. when ZIME is active, you can always type Ctrl+` to call schema chooser menu.
 
 sorry for the temporary absense of documentation.
-questions go to chen.sst@gmail.com
+feel free to explore.
+
+questions go to <chen.sst@gmail.com> .
