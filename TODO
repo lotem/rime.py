@@ -16,7 +16,7 @@
 #up/down keys move candidate selection; space key selects highlighted candidate unless at the end of the context.
 #in auto-prompt mode, place the cursor at the beginning of the last proposed phrase.
 #delete words with Ctrl-1~9.
-Shift switch.
+mode switch by pressing Shift key.
 # questions
 #about jyutping split rules.
 #about hiding the cursor in candidate list -- that's OK
