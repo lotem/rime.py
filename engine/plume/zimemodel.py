@@ -92,6 +92,12 @@ class Model:
         unig = {}
         big = {}
         total, utotal = [x + 0.1 for x in self.__db.lookup_freq_total ()]
+        to_prob = lambda x: (x + 0.1) / total
+        if ctx.last_phrase:
+            last_uid = ctx.last_phrase[0]
+            r = self.__db.lookup_phrase_by_id (last_uid)
+            if r:
+                unig[last_uid] = to_prob (r[0])
         for i in reversed (p):
             ok = False
             for j in b:
@@ -118,18 +124,27 @@ class Model:
                                             ss = big[x[1]] 
                                         else:
                                             ss = big[x[1]] = {}
-                                        ss[x[2]] = (x[0] + 0.1) / total
+                                        ss[x[2]] = to_prob (x[0])
                                 r = self.__db.lookup_phrase (new_path)
                                 if r:
                                     for x in r:
-                                        prob = (x[3] + 0.1) / total
-                                        unig[x[1]] = prob
-                                        e = (x[0], [(x[1], x[2])], prob, x[4] + 1, 0)
+                                        uid = x[1]
+                                        prob = to_prob (x[3])
+                                        unig[uid] = prob
+                                        if i == 0 and ctx.last_phrase:
+                                            rr = self.__db.lookup_bigram_by_id (last_uid, uid)
+                                            if rr:
+                                                if last_uid in big:
+                                                    ss = big[last_uid]
+                                                else:
+                                                    ss = big[last_uid] = {}
+                                                ss[uid] = to_prob (rr[0])
+                                        e = (x[0], [(uid, x[2])], prob, x[4] + 1, 0)
                                         s = _get (_get (cand, i), k)
                                         s.append (e)
                                         if k == n:
                                             continue
-                                        succ = big[x[1]] if x[1] in big else {}
+                                        succ = big[uid] if uid in big else {}
                                         opt = (u'', [], 0.0)
                                         for y in _get (_get (cand, k, False), n, False):
                                             u = y[1][0][0]
@@ -155,9 +170,11 @@ class Model:
         """ajust candidate order in regard to the previously selected phrase"""
         if ctx.sel:
             prev = ctx.sel[-1][2]
+            u = prev[1][0][0]
+        elif ctx.last_phrase:
+            u = ctx.last_phrase[0]
         else:
             return x
-        u = prev[1][0][0]
         if u not in ctx.big:
             return x
         succ = ctx.big[u]
@@ -165,13 +182,13 @@ class Model:
         if a not in succ:
             return x
         award = succ[a] / ctx.unig[a] / ctx.unig[u] / Model.PENALTY;
-        return x[:2] + (x[2] * award, ) + x[3:]
+        return (x[0], x[1], x[2] * award, x[3], x[4] if x[4] > 1 else -1)
     def calculate_candidates (self, ctx, c):
         result = []
         count = 3
         rank = 2
-        order_by_prob_desc = lambda a, b: -cmp (a[2] + a[3], b[2] + b[3])
-        for t in sorted ([self.__adjust (x, ctx) for x in c], cmp=order_by_prob_desc):
+        order_by = lambda a, b: -cmp (a[4] < 0, b[4] < 0) or -cmp (a[2] + a[3], b[2] + b[3])
+        for t in sorted ([self.__adjust (x, ctx) for x in c], cmp=order_by):
             r = t[4]
             if r > rank or any ([x[0] == t[0] for x in result]):
                 continue

@@ -203,8 +203,12 @@ def main ():
     #e.test ('pinyim-shurufa {BackSpace}{BackSpace} {BackSpace} {Escape}')
     #e.test ('wo-xihuan  ')
     #e.test ('pinyim-shurufa  ')
-    #e.test ('gongchen {BackSpace}85')
-    #e.test ('gongchen ')
+    #e.test ('gongchen {BackSpace}85.')
+    #e.test ('renminde gongchen 2.')
+    #e.test ('woshi gongchen  .')
+    #e.test ('gongchen {Escape}')
+    #e.test ('renminde gongchen {Escape}')
+    #e.test ('woshi gongchen {Escape}')
 
 if __name__ == "__main__":
     main ()

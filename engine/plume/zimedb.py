@@ -109,6 +109,12 @@ class DB:
         WHERE kwds = :kwds AND k.id = k_id
         ORDER BY freq DESC;
         """ % prefix_args
+        self.FETCH_G1_SQL = """
+        SELECT sfreq + ufreq AS freq FROM %(prefix)s_g1 WHERE id = :id;
+        """ % prefix_args
+        self.FETCH_G2_SQL = """
+        SELECT freq FROM %(prefix)s_g2 WHERE u1_id = :u1_id AND u2_id = :u2_id;
+        """ % prefix_args
         self.UPDATE_G0_SQL = """
         UPDATE %(prefix)s_g0 SET ufreq = ufreq + :n;
         """ % prefix_args
@@ -154,10 +160,19 @@ class DB:
         return r
 
     def lookup_bigram (self, key):
-        #print 'lookup_bigram:', key
         length = len (key)
         args = {'length' : length, 'kwds' : u' '.join (key)}
         r = DB.__conn.execute (self.QUERY_G2_SQL, args).fetchall ()
+        return r
+
+    def lookup_phrase_by_id (self, id):
+        args = {'id' : id}
+        r = DB.__conn.execute (self.FETCH_G1_SQL, args).fetchone ()
+        return r
+
+    def lookup_bigram_by_id (self, u1, u2):
+        args = {'u1_id' : u1, 'u2_id': u2}
+        r = DB.__conn.execute (self.FETCH_G2_SQL, args).fetchone ()
         return r
 
     def update_freq_total (self, n):
