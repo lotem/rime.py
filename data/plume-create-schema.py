@@ -39,14 +39,16 @@ CREATE TABLE IF NOT EXISTS %(prefix)s_keys (
     kwds TEXT UNIQUE
 );
 CREATE TABLE IF NOT EXISTS %(prefix)s_g0 (
-    freq INTEGER
+    sfreq INTEGER,
+    ufreq INTEGER
 );
-INSERT INTO %(prefix)s_g0 VALUES (0);
+INSERT INTO %(prefix)s_g0 VALUES (0, 0);
 CREATE TABLE IF NOT EXISTS %(prefix)s_g1 (
     id INTEGER PRIMARY KEY,
     k_id INTEGER,
     p_id INTEGER,
-    freq INTEGER
+    sfreq INTEGER,
+    ufreq INTEGER
 );
 CREATE TABLE IF NOT EXISTS %(prefix)s_g2 (
     k_id INTEGER,
@@ -189,19 +191,19 @@ INSERT INTO %(prefix)s_keys VALUES (NULL, :length, :kwds);
 """ % prefix_args
 
 INC_G0_SQL = """
-UPDATE %(prefix)s_g0 SET freq = freq + :freq;
+UPDATE %(prefix)s_g0 SET sfreq = sfreq + :freq;
 """ % prefix_args
 
 INC_G1_SQL = """
-UPDATE %(prefix)s_g1 SET freq = freq + :freq WHERE k_id = :k_id AND p_id = :p_id;
+UPDATE %(prefix)s_g1 SET sfreq = sfreq + :freq WHERE k_id = :k_id AND p_id = :p_id;
 """ % prefix_args
 
 QUERY_G1_SQL = """
-SELECT freq FROM %(prefix)s_g1 WHERE k_id = :k_id AND p_id = :p_id;
+SELECT sfreq FROM %(prefix)s_g1 WHERE k_id = :k_id AND p_id = :p_id;
 """ % prefix_args
 
 ADD_G1_SQL = """
-INSERT INTO %(prefix)s_g1 VALUES (NULL, :k_id, :p_id, :freq);
+INSERT INTO %(prefix)s_g1 VALUES (NULL, :k_id, :p_id, :freq, 0);
 """ % prefix_args
 
 INC_G2_SQL = """

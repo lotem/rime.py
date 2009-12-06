@@ -183,8 +183,8 @@ class Context:
         r = []
         for s in self.sel:
             start = end
-            r.append (s[2][1])
-            end += len (s[2][1])
+            r.append (s[2][0])
+            end += len (s[2][0])
             rest = s[1]
         r.append (u''.join (self.input[rest:]))
         return u''.join (r), start, end

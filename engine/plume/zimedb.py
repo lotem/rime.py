@@ -97,10 +97,10 @@ class DB:
         SELECT kwds FROM %(prefix)s_keys WHERE length = 1;
         """ % prefix_args
         self.QUERY_G0_SQL = """
-        SELECT freq FROM %(prefix)s_g0;
+        SELECT sfreq + ufreq AS freq, ufreq FROM %(prefix)s_g0;
         """ % prefix_args
         self.QUERY_G1_SQL = """
-        SELECT freq, g1.id, kwds, phrase FROM %(prefix)s_g1 g1, %(prefix)s_keys k, phrases p 
+        SELECT phrase, g1.id, kwds, sfreq + ufreq AS freq, ufreq FROM %(prefix)s_g1 g1, %(prefix)s_keys k, phrases p 
         WHERE kwds = :kwds AND k.id = k_id AND p_id = p.id
         ORDER BY freq DESC;
         """ % prefix_args
@@ -110,10 +110,10 @@ class DB:
         ORDER BY freq DESC;
         """ % prefix_args
         self.UPDATE_G0_SQL = """
-        UPDATE %(prefix)s_g0 SET freq = freq + :n;
+        UPDATE %(prefix)s_g0 SET ufreq = ufreq + :n;
         """ % prefix_args
         self.UPDATE_G1_SQL = """
-        UPDATE %(prefix)s_g1 SET freq = freq + 1 
+        UPDATE %(prefix)s_g1 SET ufreq = ufreq + 1 
         WHERE id = :id;
         """ % prefix_args
         self.G2_EXIST_SQL = """
@@ -145,7 +145,7 @@ class DB:
 
     def lookup_freq_total (self):
         r = DB.__conn.execute (self.QUERY_G0_SQL).fetchone ()
-        return r[0] if r else 1
+        return r
 
     def lookup_phrase (self, key):
         length = len (key)

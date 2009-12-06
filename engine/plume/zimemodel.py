@@ -91,7 +91,7 @@ class Model:
         cand = []
         unig = {}
         big = {}
-        total = self.__db.lookup_freq_total () + 0.1
+        total, utotal = [x + 0.1 for x in self.__db.lookup_freq_total ()]
         for i in reversed (p):
             ok = False
             for j in b:
@@ -122,26 +122,28 @@ class Model:
                                 r = self.__db.lookup_phrase (new_path)
                                 if r:
                                     for x in r:
-                                        prob = (x[0] + 0.1) / total
+                                        prob = (x[3] + 0.1) / total
                                         unig[x[1]] = prob
-                                        e = (prob, x[3], [(x[1], x[2])], 0)
+                                        e = (x[0], [(x[1], x[2])], prob, x[4] + 1, 0)
                                         s = _get (_get (cand, i), k)
                                         s.append (e)
                                         if k == n:
                                             continue
                                         succ = big[x[1]] if x[1] in big else {}
-                                        opt = (0.0, u'', [])
+                                        opt = (u'', [], 0.0)
                                         for y in _get (_get (cand, k, False), n, False):
-                                            u = y[2][0][0]
+                                            u = y[1][0][0]
                                             if u in succ:
-                                                prob = succ[u] / unig[u] * y[0]
+                                                prob = succ[u] / unig[u] * y[2]
+                                                ufreq = min (e[3], y[3])
                                                 rank = 1
                                             else:
-                                                prob = e[0] * y[0] * Model.PENALTY
+                                                prob = e[2] * y[2] * Model.PENALTY
+                                                ufreq = max (1, min (e[3], y[3]) - 1)
                                                 rank = 2
-                                            if prob > opt[0]:
-                                                opt = (prob, e[1] + y[1], e[2] + y[2], max (e[3], y[3], rank)) 
-                                        if opt[2]:
+                                            if prob > opt[2]:
+                                                opt = (e[0] + y[0], e[1] + y[1], prob, ufreq, max (e[4], y[4], rank)) 
+                                        if opt[1]:
                                             s = _get (_get (cand, i), n)
                                             s.append (opt)
             if ok:
@@ -155,34 +157,35 @@ class Model:
             prev = ctx.sel[-1][2]
         else:
             return x
-        u = prev[2][0][0]
+        u = prev[1][0][0]
         if u not in ctx.big:
             return x
         succ = ctx.big[u]
-        a = x[2][0][0]
+        a = x[1][0][0]
         if a not in succ:
             return x
         award = succ[a] / ctx.unig[a] / ctx.unig[u] / Model.PENALTY;
-        return (x[0] * award, ) + x[1:]
+        return x[:2] + (x[2] * award, ) + x[3:]
     def calculate_candidates (self, ctx, c):
         result = []
         count = 3
         rank = 2
-        order_by_prob_desc = lambda a, b: -cmp (a[0], b[0])
+        order_by_prob_desc = lambda a, b: -cmp (a[2] + a[3], b[2] + b[3])
         for t in sorted ([self.__adjust (x, ctx) for x in c], cmp=order_by_prob_desc):
-            r = t[3]
-            if r > rank or any ([x[0] == t[1] for x in result]):
+            r = t[4]
+            if r > rank or any ([x[0] == t[0] for x in result]):
                 continue
             rank = 1
             if r > 0:
                 if count == 0:
                     continue
                 count -= 1
-            result.append ((t[1], t))
+            #print t[0], t
+            result.append ((t[0], t))
         return result
     def train (self, ctx):
         p = ctx.last_phrase
-        a = [x for s in ctx.sel for x in s[2][2]]
+        a = [x for s in ctx.sel for x in s[2][1]]
         for x in a:
             if p:
                 self.__db.update_bigram (p, x)
