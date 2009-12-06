@@ -122,7 +122,10 @@ class Engine:
         if edit_key:
             return self.__process (edit_key)
         if event.keycode == keysyms.Escape:
-            self.__ctx.clear ()
+            if self.__ctx.state == Context.ERROR:
+                self.__ctx.clear_error ()
+            else:
+                self.__ctx.clear ()
             return True
         if event.keycode == keysyms.Left or event.keycode == keysyms.Tab and event.mask & modifier.SHIFT_MASK:
             self.__ctx.previous ()
@@ -162,13 +165,11 @@ class Engine:
                 self.__commit ()
                 return self.__judge (event)
         if event.keycode == keysyms.BackSpace:
-            if self.__ctx.state == Context.EDIT:
-                del self.__ctx.input[-1]
-                self.__ctx.edit ()
-            elif self.__ctx.state == Context.CONVERT:
+            if self.__ctx.state == Context.CONVERT:
                 self.__ctx.previous () or self.__ctx.back ()
             else:
-                self.__ctx.clear_error ()
+                del self.__ctx.input[-1]
+                self.__ctx.edit ()
             return True
         if event.keycode == keysyms.space:
             self.__select_by_cursor (candidates) or self.__ctx.start ()
