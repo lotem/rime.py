@@ -154,7 +154,7 @@ class Model:
                                                 rank = 1
                                             else:
                                                 prob = e[2] * y[2] * Model.PENALTY
-                                                ufreq = max (1, min (e[3], y[3]) - 1)
+                                                ufreq = 1
                                                 rank = 2
                                             if prob > opt[2]:
                                                 opt = (e[0] + y[0], e[1] + y[1], prob, ufreq, max (e[4], y[4], rank)) 
