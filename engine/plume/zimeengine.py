@@ -82,14 +82,13 @@ class Engine:
         if result is None:
             return self.__process (event)
         # handle input
-        if self.__ctx.state == Context.CONVERT:
-            if self.__ctx.converted ():
+        if self.__ctx.being_converted ():
+            if self.__ctx.is_completed ():
                 # auto-commit
                 self.__commit ()
             else:
                 return True
-        self.__ctx.input += result
-        self.__ctx.edit ()
+        self.__ctx.edit (self.__ctx.input + result)
         return True
     def __next_punct (self):
         self.__punct_rep = (self.__punct_rep + 1) % len (self.__punct)
@@ -103,9 +102,9 @@ class Engine:
         self.__frontend.update_preedit (u'', 0, 0)
         if commit:
             self.__frontend.commit_string (punct)
-            self.__ctx.clear_context_info ()
+            self.__ctx.clear ()
     def __judge (self, event):
-        self.__ctx.clear_context_info ()
+        self.__ctx.clear ()
         if event.coined:
             if not event.mask:
                 self.__frontend.commit_string (event.get_char ())
@@ -122,16 +121,22 @@ class Engine:
         if edit_key:
             return self.__process (edit_key)
         if event.keycode == keysyms.Escape:
-            if self.__ctx.state == Context.ERROR:
+            if self.__ctx.has_error ():
                 self.__ctx.clear_error ()
             else:
-                self.__ctx.clear ()
+                self.__ctx.edit ([])
             return True
-        if event.keycode == keysyms.Left or event.keycode == keysyms.Tab and event.mask & modifier.SHIFT_MASK:
-            self.__ctx.previous ()
+        if event.keycode == keysyms.Home or event.keycode == keysyms.Tab and event.mask & modifier.SHIFT_MASK:
+            self.__ctx.home ()
             return True
-        if event.keycode == keysyms.Right or event.keycode == keysyms.Tab:
-            self.__ctx.next ()
+        if event.keycode == keysyms.End or event.keycode == keysyms.Tab:
+            self.__ctx.suggest ()
+            return True
+        if event.keycode == keysyms.Left:
+            self.__ctx.back ()
+            return True
+        if event.keycode == keysyms.Right:
+            self.__ctx.forward ()
             return True
         candidates = self.__ctx.get_candidates ()
         if candidates:
@@ -151,10 +156,12 @@ class Engine:
             return True
         if event.keycode == keysyms.Up:
             if candidates and self.__frontend.cursor_up ():
+                self.__select_by_cursor (candidates)
                 return True
             return True
         if event.keycode == keysyms.Down:
             if candidates and self.__frontend.cursor_down ():
+                self.__select_by_cursor (candidates)
                 return True
             return True
         if event.keycode >= keysyms._1 and event.keycode <= keysyms._9:
@@ -165,17 +172,22 @@ class Engine:
                 self.__commit ()
                 return self.__judge (event)
         if event.keycode == keysyms.BackSpace:
-            if self.__ctx.state == Context.CONVERT:
-                self.__ctx.previous () or self.__ctx.back ()
+            if self.__ctx.being_converted ():
+                self.__ctx.back () or self.__ctx.cancel_conversion ()
             else:
-                del self.__ctx.input[-1]
-                self.__ctx.edit ()
+                self.__ctx.edit (self.__ctx.input[:-1])
             return True
         if event.keycode == keysyms.space:
-            self.__select_by_cursor (candidates) or self.__ctx.start ()
+            if self.__ctx.being_converted ():
+                self.__confrim_current ()
+            else:
+                self.__ctx.start_conversion ()
             return True
         if event.keycode == keysyms.Return:
-            self.__select_by_cursor (candidates) or self.__commit ()
+            if self.__ctx.being_converted ():
+                self.__confrim_current ()
+            else:
+                self.__commit ()
             return True
         # auto-commit
         if self.__handle_punct (event, commit=True):
@@ -192,7 +204,7 @@ class Engine:
                 self.__punct = punct
                 self.__punct_key = event.keycode
                 self.__punct_rep = 0
-                # TODO : set punct prompt
+                # promt punct
                 self.__frontend.update_preedit (punct[0], 0, len (punct[0]))
             else:
                 self.__frontend.commit_string (punct)
@@ -204,32 +216,32 @@ class Engine:
         index = self.__frontend.get_candidate_index (n)
         if index >= 0 and index < len (candidates):
             self.__ctx.select (candidates[index][1])
-            if self.__ctx.converted ():
+            if self.__ctx.is_completed ():
                 self.__commit ()
             else:
                 self.__ctx.forward ()
         return True
     def __select_by_cursor (self, candidates):
-        if self.__ctx.state != Context.CONVERT or not candidates:
-            return False
         index = self.__frontend.get_candidate_cursor_pos ()
         if index >= 0 and index < len (candidates):
             self.__ctx.select (candidates[index][1])
-            if self.__ctx.converted ():
-                self.__commit ()
-            else:
-                self.__ctx.forward ()
-        return True
+            self.__update_preedit ()
+    def __confrim_current (self):
+        if self.__ctx.is_completed ():
+            self.__commit ()
+        else:
+            self.__ctx.forward ()
     def __commit (self):
         self.__frontend.commit_string (self.__ctx.get_preedit ()[0])
         self.__ctx.commit ()
         self.__parser.clear ()
-    def update_ui (self):
-        ctx = self.__ctx
-        preedit, start, end = ctx.get_preedit ()
+    def __update_preedit (self):
+        preedit, start, end = self.__ctx.get_preedit ()
         self.__frontend.update_preedit (preedit, start, end)
-        self.__frontend.update_aux_string (ctx.get_aux_string ())
-        self.__frontend.update_candidates (ctx.get_candidates ())
+        self.__frontend.update_aux_string (self.__ctx.get_aux_string ())
+    def update_ui (self):
+        self.__update_preedit ()
+        self.__frontend.update_candidates (self.__ctx.get_candidates ())
         
 class SchemaChooser:
     def __init__ (self, frontend, schema_name=None):

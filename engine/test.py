@@ -195,7 +195,7 @@ def main ():
     #print db.list_keywords ()
     #print db.lookup_phrase ('yi yi'.split ())
 
-    e = TestEngine (u'Pinyin')
+    #e = TestEngine (u'Pinyin')
     #e.test ('zhunghuarenmingungheguo-vansui {Return}{Return}')
     #e.test ('aspasp {BackSpace}{Escape}')
     #e.test ('changanjiushixian {BackSpace}{BackSpace}{Tab}{Tab} {Left}{Right} ....5{Escape}')
@@ -209,6 +209,15 @@ def main ():
     #e.test ('gongchen {Escape}')
     #e.test ('renminde gongchen {Escape}')
     #e.test ('woshi gongchen {Escape}')
+
+    # test fuzzy input
+    e = TestEngine (u'Pinyin')
+    #e.test ('qiujiu')
+    #e.test ('chagnan')
+    #e.test ('changansbssyiandejioucen')
+    #e.test ('zhonghrmghg')
+    #e.test ('lzsb')
+    e.test ('rminyxongychbxiuuiuiuiui {Escape} {BackSpace}{BackSpace}{BackSpace} {Home}{Tab}{Down}{Up}')
 
 if __name__ == "__main__":
     main ()

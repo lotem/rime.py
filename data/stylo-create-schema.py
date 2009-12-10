@@ -106,20 +106,26 @@ INSERT INTO %(prefix)s_phrases VALUES (?, ?, ?, ?, ?, ?, ?, 0);
 usage = 'usage: %prog [options] schema-file [keyword-file [phrase-file]]'
 parser = optparse.OptionParser (usage)
 
+parser.add_option ('-s', '--schema', dest='schema', help='shortcut to specifying a standard set of input file names')
+
 parser.add_option ('-d', '--db-file', dest='db_file', help='specify destination sqlite db', metavar='FILE')
 
-parser.add_option ('-k', '--keep', action='store_true', dest='keep', default=False, help='keep existing schema data')
+parser.add_option ('-k', '--keep', action='store_true', dest='keep', default=False, help='keep existing dict')
 
 parser.add_option ('-v', '--verbose', action='store_true', dest='verbose', default=False, help='make lots of noice')
 
 options, args = parser.parse_args ()
 
-if len (args) not in range (1, 4):
-    parser.error ('incorrect number of arguments')
-
-schema_file = args[0] if len (args) > 0 else None
-keyword_file = args[1] if len (args) > 1 else None
-phrase_file = args[2] if len (args) > 2 else None
+if options.schema:
+    schema_file = '%s-schema.txt' % options.schema
+    keyword_file = '%s-keywords.txt' % options.schema
+    phrase_file = '%s-phrases.txt' % options.schema
+else:
+    if len (args) not in range (1, 4):
+        parser.error ('incorrect number of arguments')
+    schema_file = args[0] if len (args) > 0 else None
+    keyword_file = args[1] if len (args) > 1 else None
+    phrase_file = args[2] if len (args) > 2 else None
 
 if not options.db_file:
     home_path = os.getenv ('HOME')
@@ -168,15 +174,21 @@ if schema_file:
         conn.execute (ADD_SETTING_SQL, (path, value))
     f.close ()
 
+if options.keep:
+    conn.commit ()
+    conn.close ()
+    print >> sys.stderr, 'done.'
+    exit ()
+
 if not prefix:
     print >> sys.stderr, 'error: no prefix specified in schema file.'
     exit ()
 prefix_args = {'prefix' : prefix}
-if not options.keep:
-    conn.execute (DROP_KEYWORD_INDEX_SQL % prefix_args)
-    conn.execute (DROP_PHRASE_INDEX_SQL % prefix_args)
-    conn.execute (DROP_KEYWORD_TABLE_SQL % prefix_args)
-    conn.execute (DROP_PHRASES_TABLE_SQL % prefix_args)
+    
+conn.execute (DROP_KEYWORD_INDEX_SQL % prefix_args)
+conn.execute (DROP_PHRASE_INDEX_SQL % prefix_args)
+conn.execute (DROP_KEYWORD_TABLE_SQL % prefix_args)
+conn.execute (DROP_PHRASES_TABLE_SQL % prefix_args)
 conn.execute (CREATE_KEYWORD_TABLE_SQL % prefix_args)
 conn.execute (CREATE_PHRASE_TABLE_SQL % prefix_args)
 conn.execute (CREATE_KEYWORD_INDEX_SQL % prefix_args)
@@ -285,6 +297,5 @@ if phrase_file:
 
 conn.commit ()
 conn.close ()
-
 print >> sys.stderr, 'done.'
 

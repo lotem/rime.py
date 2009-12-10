@@ -76,127 +76,126 @@ class Parser:
             return KeyEvent (self.__edit_keys[event.keycode], 0, coined=True)
         return None
 
-def _get (c, label):
-    for x in c:
-        if x[0] == label:
-            return x
-    return None
-
 class Context:
-    EDIT, CONVERT, ERROR = 0, 1, -1
     def __init__ (self, callback, schema):
         self.__cb = callback
         self.__model = Model (schema)
         self.schema = schema
         self.__reset ()
-        self.clear_context_info ()
-    def __reset (self, clearInput=True):
-        self.state = Context.EDIT
-        if clearInput:
-            self.input = []
+    def __reset (self):
+        self.input = []
         self.aux = None
+        self.cursor = (None, 0, 0, 0.0, None)
         self.sel = []
         self.cand = []
+        self.sugg = []
         self.__candidates = []
-    def clear_context_info (self):
-        self.last_phrase = None
     def clear (self):
         self.__reset ()
-        self.__cb.update_ui ()
-    def edit (self):
-        self.__reset (clearInput=False)
         self.__cb.update_ui ()
     def is_empty (self):
         return not self.input
     def commit (self):
-        if self.state == Context.CONVERT:
+        if self.is_completed ():
             self.__model.train (self)
-        else:
-            self.clear_context_info ()
         self.clear ()
-    def clear_error (self):
-        del self.input[self.sel[-1][0]:]
-        self.sel = []
-        self.edit ()
-    def next (self):
-        if self.state != Context.CONVERT:
-            return False
-        if not self.sel:
-            return False
-        s = self.sel.pop ()
-        x = _get (self.cand, s[0])
-        for y in x[1]:
-            if y[0] > s[1]:
-                self.__update_selection (x[0], y[0], y[1])
-                return True
-        # wrap
-        y = x[1][0]
-        self.__update_selection (x[0], y[0], y[1])
-        return True
-    def previous (self):
-        if self.state != Context.CONVERT:
-            return False
-        s = self.sel.pop ()
-        x = _get (self.cand, s[0])
-        for y in reversed (x[1]):
-            if y[0] < s[1]:
-                self.__update_selection (x[0], y[0], y[1])
-                return True
-        self.sel.append (s)
-        return False
-    def start (self):
-        if self.state == Context.CONVERT:
-            return
-        self.__model.query (self)
-        if self.state == Context.CONVERT:
-            self.forward ()
-        elif self.state == Context.ERROR:
-            self.__cb.update_ui ()
-    def forward (self):
-        cursor_pos = self.sel[-1][1] if self.sel else 0
-        x = _get (self.cand, cursor_pos)
-        y = x[1][-1]  # take the longest phrase that starts at cursor_pos
-        self.__update_selection (x[0], y[0], y[1])
-    def __update_selection (self, i, j, c):
-        candidates = self.__model.calculate_candidates (self, c)
-        if candidates:
-            self.sel.append ([i, j, candidates[0][1]])
-        self.__candidates = candidates
+    def edit (self, input):
+        self.__reset ()
+        self.input = input
         self.__cb.update_ui ()
-    def back (self):
-        self.sel.pop ()
-        if self.sel:
-            self.sel.pop ()
-            self.forward ()
+    def get_cursor_pos (self):
+        return self.cursor[1]
+    def has_error (self):
+        return self.cursor[0] is None and self.cursor[2]
+    def clear_error (self):
+        error_pos = self.cursor[1]
+        self.edit (self.input[:error_pos])
+    def start_conversion (self):
+        self.__model.query (self)
+        if self.has_error ():
+            self.__cb.update_ui ()
         else:
-            self.edit ()
-    def select (self, s):
-        self.sel[-1][2] = s
-    def converted (self):
-        return self.sel and self.sel[-1][1] == len (self.input)
+            self.__convert ()
+    def cancel_conversion (self):
+        self.edit (self.input)
+    def home (self):
+        if not self.being_converted ():
+            return False
+        c = None
+        while self.sel and self.sel[-1][2] > 0:
+            c = self.sel.pop ()
+        if c is None:
+            return False
+        self.cursor = c
+        self.__update_candidates ()
+        return True
+    def back (self):
+        if not self.being_converted ():
+            return False
+        if self.sel and self.sel[-1][2] > 0:
+            self.cursor = self.sel.pop ()
+            self.__update_candidates ()
+            return True
+        else:
+            return False
+    def suggest (self):
+        if not self.being_converted ():
+            return False
+        self.__convert ()
+    def __convert (self):
+        c = self.cursor
+        p = c[4] if c[4] else self.sugg[c[2]]
+        while p:
+            if c[0]:
+                self.sel.append (c)
+            c = p
+            p = p[4]
+        self.cursor = c
+        self.__update_candidates ()
+    def forward (self):
+        if not self.being_converted ():
+            return False
+        c = self.cursor
+        p = c[4] if c[4] else self.sugg[c[2]]
+        if p:
+            if c[0]:
+                self.sel.append (c)
+            self.cursor = p
+            self.__update_candidates ()
+            return True
+        else:
+            return False
+    def __update_candidates (self):
+        c = self.__model.calculate_candidates (self)
+        self.__candidates = [(e[0][0], e) for e in c]
+        self.__cb.update_ui ()
+    def select (self, e):
+        self.cursor = e
+    def being_converted (self):
+        return self.cursor[0] is not None
+    def is_completed (self):
+        return self.cursor[2] == len (self.input)
+    def get_input_string (self):
+        return u''.join (self.input)
     def get_preedit (self):
-        if self.state == Context.EDIT:
-            return u''.join (self.input), 0, 0
-        if self.state == Context.ERROR:
-            return u''.join (self.input), self.sel[-1][0], self.sel[-1][1]
+        if self.has_error ():
+            return u''.join (self.input), self.cursor[1], self.cursor[2]
         start = end = rest = 0
         r = []
-        for s in self.sel:
+        for s in self.sel + [self.cursor]:
             start = end
-            r.append (s[2][0])
-            end += len (s[2][0])
-            rest = s[1]
+            if s[0]:
+                r.append (s[0][0])
+                end += len (s[0][0])
+            rest = s[2]
         r.append (u''.join (self.input[rest:]))
         return u''.join (r), start, end
     def get_aux_string (self):
         if self.aux:
-            if callable (self.aux):
-                return self.aux (self.cursor)
-            else:
-                return self.aux
-        if self.state == Context.CONVERT and self.sel:
-            s = self.sel[-1]
-            return u''.join (self.input[s[0]:s[1]])
+            return self.aux
+        s = self.cursor
+        if s[0]:
+            return u''.join (self.input[s[1]:s[2]])
         return u''
     def get_candidates (self):
         return self.__candidates
