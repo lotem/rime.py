@@ -217,7 +217,8 @@ def main ():
     #e.test ('changansbssyiandejioucen')
     #e.test ('zhonghrmghg')
     #e.test ('lzsb')
-    e.test ('rminyxongychbxiuuiuiuiui {Escape} {BackSpace}{BackSpace}{BackSpace} {Home}{Tab}{Down}{Up}')
+    #e.test ('rminyxongychbxiuuiuiuiui {Escape} {BackSpace}{BackSpace}{BackSpace} {Home}{Tab}{Page_Down}{Page_Up}')
+    e.test ('woshuolioudehuazhenshuai .{Down}{Right}')
 
 if __name__ == "__main__":
     main ()

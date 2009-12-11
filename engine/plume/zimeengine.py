@@ -136,22 +136,24 @@ class Engine:
             self.__ctx.back ()
             return True
         if event.keycode == keysyms.Right:
-            self.__ctx.forward ()
+            self.__confirm_current (commit=False)
             return True
         candidates = self.__ctx.get_candidates ()
         if candidates:
             if event.keycode in (keysyms.minus, keysyms.comma):
-                self.__frontend.page_up ()
+                self.__frontend.page_up () and self.__select_by_cursor (candidates)
                 return True
             if event.keycode in (keysyms.equal, keysyms.period):
-                self.__frontend.page_down ()
+                self.__frontend.page_down () and self.__select_by_cursor (candidates)
                 return True
         if event.keycode == keysyms.Page_Up:
             if candidates and self.__frontend.page_up ():
+                self.__select_by_cursor (candidates)
                 return True
             return True
         if event.keycode == keysyms.Page_Down:
             if candidates and self.__frontend.page_down ():
+                self.__select_by_cursor (candidates)
                 return True
             return True
         if event.keycode == keysyms.Up:
@@ -179,13 +181,13 @@ class Engine:
             return True
         if event.keycode == keysyms.space:
             if self.__ctx.being_converted ():
-                self.__confrim_current ()
+                self.__confirm_current ()
             else:
                 self.__ctx.start_conversion ()
             return True
         if event.keycode == keysyms.Return:
             if self.__ctx.being_converted ():
-                self.__confrim_current ()
+                self.__confirm_current ()
             else:
                 self.__commit ()
             return True
@@ -226,9 +228,12 @@ class Engine:
         if index >= 0 and index < len (candidates):
             self.__ctx.select (candidates[index][1])
             self.__update_preedit ()
-    def __confrim_current (self):
+            return True
+        return False
+    def __confirm_current (self, commit=True):
         if self.__ctx.is_completed ():
-            self.__commit ()
+            if commit:
+                self.__commit ()
         else:
             self.__ctx.forward ()
     def __commit (self):
@@ -240,8 +245,8 @@ class Engine:
         self.__frontend.update_preedit (preedit, start, end)
         self.__frontend.update_aux_string (self.__ctx.get_aux_string ())
     def update_ui (self):
-        self.__update_preedit ()
         self.__frontend.update_candidates (self.__ctx.get_candidates ())
+        self.__update_preedit ()
         
 class SchemaChooser:
     def __init__ (self, frontend, schema_name=None):

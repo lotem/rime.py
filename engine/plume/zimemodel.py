@@ -3,6 +3,34 @@
 
 import re
 
+class Entry:
+    def __init__ (self, u, i, j, prob=0.0, next=None):
+        self.u = u
+        self.i = i
+        self.j = j
+        self.prob = prob
+        self.next = next
+    def get_word (self):
+        return self.u[0] if self.u else u''
+    def get_uid (self):
+        return self.u[2] if self.u else 0
+    def get_ufreq (self):
+        return self.u[4] if self.u else 0
+    def get_all (self):
+        w = []
+        s = self
+        while s:
+            w.append (s)
+            s = s.next
+        return w
+    def get_phrase (self):
+        return u''.join ([e.get_word () for e in self.get_all ()])
+    def __nonzero__ (self):
+        return self.u is not None
+    def __str__ (self):
+        return u'<[%s] (%d, %d) %g %s>' % \
+            (self.get_word (), self.i, self.j, self.prob, (u'=> [%s]' % self.next.get_word ()) if self.next else u'.')
+
 class Model:
 
     PENALTY = 1e-3
@@ -122,7 +150,7 @@ class Model:
                 p.append (i)
             q.sort ()
         if m != n:
-            ctx.cursor = (None, m, n)
+            ctx.cursor = Entry (None, m, n)
             ctx.cand = []
             ctx.sugg = []
             return
@@ -149,7 +177,7 @@ class Model:
                 fetch_big (uid)
             if not c[i][j]:
                 c[i][j] = []
-            e = (x, i, j, prob, None)
+            e = Entry (x, i, j, prob)
             c[i][j].append (e)
         def match_key (x, i, j, k):
             if not k:
@@ -209,36 +237,37 @@ class Model:
                 if c[i][j]:
                     for x in c[i][j]:
                         if j == n:
-                            prob = x[3]
+                            pass
                         else:
-                            prob = x[3] * sugg[j][3] * Model.PENALTY
-                            uid = x[0][2]
+                            prob = x.prob * sugg[j].prob * Model.PENALTY
+                            uid = x.get_uid ()
                             if uid in big:
                                 if next is None:
                                     next = set ()
                                     for k in range (j + 1, n + 1):
                                         if c[j][k]:
                                             for y in c[j][k]:
-                                                next.add (y[0][2])
+                                                next.add (y.get_uid ())
                                 succ = set (big[uid].keys ()) & next
                                 if succ:
                                     #TODO: 
                                     print 'big!'
-                        if not sugg[i] or prob > sugg[i][3]:
-                            sugg[i] = (x[0], i, j, prob, sugg[j])
+                            x.prob = prob
+                        if not sugg[i] or x.prob > sugg[i].prob:
+                            sugg[i] = x
         ctx.cand = c
         ctx.sugg = sugg
 
-    def calculate_candidates (self, ctx):
-        i = ctx.get_cursor_pos ()
+    def calculate_candidates (self, ctx, i):
         c = ctx.cand
+        s = ctx.sugg[i]
         result = []
         for j in range (len (c), i, -1):
             if c[i][j]:
                 result.extend (c[i][j])
         """
         for x in result:
-            print '%s=%f\t\t' % (x[0][0], x[3]), 
+            print x, 
         print
         """
         return result

@@ -4,7 +4,7 @@ import ibus
 from ibus import keysyms
 
 from zimedb import DB
-from zimemodel import Model
+from zimemodel import *
 
 class KeyEvent:
     def __init__ (self, keycode, mask, coined=False):
@@ -85,7 +85,7 @@ class Context:
     def __reset (self):
         self.input = []
         self.aux = None
-        self.cursor = (None, 0, 0, 0.0, None)
+        self.cursor = Entry (None, 0, 0)
         self.sel = []
         self.cand = []
         self.sugg = []
@@ -103,102 +103,95 @@ class Context:
         self.__reset ()
         self.input = input
         self.__cb.update_ui ()
-    def get_cursor_pos (self):
-        return self.cursor[1]
     def has_error (self):
-        return self.cursor[0] is None and self.cursor[2]
+        return not self.cursor and self.cursor.i < self.cursor.j
     def clear_error (self):
-        error_pos = self.cursor[1]
+        error_pos = self.cursor.i
         self.edit (self.input[:error_pos])
     def start_conversion (self):
         self.__model.query (self)
         if self.has_error ():
             self.__cb.update_ui ()
         else:
-            self.__convert ()
+            self.suggest ()
     def cancel_conversion (self):
         self.edit (self.input)
     def home (self):
         if not self.being_converted ():
             return False
         c = None
-        while self.sel and self.sel[-1][2] > 0:
+        while self.sel and self.sel[-1].j > 0:
             c = self.sel.pop ()
         if c is None:
             return False
-        self.cursor = c
-        self.__update_candidates ()
+        self.__update_candidates (c.i)
         return True
     def back (self):
         if not self.being_converted ():
             return False
-        if self.sel and self.sel[-1][2] > 0:
-            self.cursor = self.sel.pop ()
-            self.__update_candidates ()
+        if self.sel and self.sel[-1].j > 0:
+            c = self.sel.pop ()
+            self.__update_candidates (c.i)
             return True
         else:
             return False
     def suggest (self):
-        if not self.being_converted ():
-            return False
-        self.__convert ()
-    def __convert (self):
-        c = self.cursor
-        p = c[4] if c[4] else self.sugg[c[2]]
+        i = self.sel[-1].j if self.sel else 0
+        p = (self.sel[-1].next if self.sel else None) or self.sugg[i]
         while p:
-            if c[0]:
-                self.sel.append (c)
-            c = p
-            p = p[4]
-        self.cursor = c
-        self.__update_candidates ()
+            s = p.get_all ()
+            if not s:
+                break
+            p = s[-1]
+            if p.j == len (self.input):
+                break
+            self.sel.extend (s)
+            i = p.j
+            p = self.sugg[i]
+        self.__update_candidates (i)
     def forward (self):
-        if not self.being_converted ():
-            return False
         c = self.cursor
-        p = c[4] if c[4] else self.sugg[c[2]]
-        if p:
-            if c[0]:
-                self.sel.append (c)
-            self.cursor = p
-            self.__update_candidates ()
-            return True
+        if c:
+            self.sel.append (c)
+        self.__update_candidates (c.j)
+    def __update_candidates (self, i):
+        c = self.__model.calculate_candidates (self, i)
+        self.__candidates = [(e.get_phrase (), e) for e in c]
+        if c:
+            self.cursor = c[0]
         else:
-            return False
-    def __update_candidates (self):
-        c = self.__model.calculate_candidates (self)
-        self.__candidates = [(e[0][0], e) for e in c]
+            self.cursor = Entry (None, i, len (self.input))
         self.__cb.update_ui ()
     def select (self, e):
         self.cursor = e
     def being_converted (self):
-        return self.cursor[0] is not None
+        return bool (self.cursor)
     def is_completed (self):
-        return self.cursor[2] == len (self.input)
+        return self.cursor.j == len (self.input)
     def get_input_string (self):
         return u''.join (self.input)
     def get_preedit (self):
         if self.has_error ():
-            return u''.join (self.input), self.cursor[1], self.cursor[2]
+            return self.get_input_string (), self.cursor.i, self.cursor.j
         start = end = rest = 0
         r = []
-        for s in self.sel + [self.cursor]:
+        for s in self.sel + self.cursor.get_all ():
             start = end
-            if s[0]:
-                r.append (s[0][0])
-                end += len (s[0][0])
-            rest = s[2]
+            w = s.get_word ()
+            r.append (w)
+            end += len (w)
+            rest = s.j
         r.append (u''.join (self.input[rest:]))
         return u''.join (r), start, end
     def get_aux_string (self):
         if self.aux:
             return self.aux
         s = self.cursor
-        if s[0]:
-            return u''.join (self.input[s[1]:s[2]])
+        if s:
+            return u''.join (self.input[s.i:s.j])
         return u''
     def get_candidates (self):
         return self.__candidates
-    def delete_phrase (self, cand):
+    def delete_phrase (self, e):
         pass
 
