@@ -27,9 +27,9 @@ class Entry:
         return u''.join ([e.get_word () for e in self.get_all ()])
     def __nonzero__ (self):
         return self.u is not None
-    def __str__ (self):
-        return u'<[%s] (%d, %d) %g %s>' % \
-            (self.get_word (), self.i, self.j, self.prob, (u'=> [%s]' % self.next.get_word ()) if self.next else u'.')
+    def __unicode__ (self):
+        return u'<%s (%d, %d) %f%s>' % \
+            (self.get_word (), self.i, self.j, self.prob, (u' => [%s]' % self.next.get_word ()) if self.next else u'')
 
 class Model:
 
@@ -257,6 +257,7 @@ class Model:
                             sugg[i] = x
         ctx.cand = c
         ctx.sugg = sugg
+        #for x in sugg: print unicode (x)
 
     def calculate_candidates (self, ctx, i):
         c = ctx.cand
@@ -265,9 +266,10 @@ class Model:
         for j in range (len (c), i, -1):
             if c[i][j]:
                 result.extend (c[i][j])
+        #result.sort (cmp=lambda a, b: -cmp (a.j, b.j) or -cmp (a.prob, b.prob))
         """
         for x in result:
-            print x, 
+            print unicode (x), 
         print
         """
         return result
