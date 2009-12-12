@@ -121,22 +121,24 @@ class Engine:
         if edit_key:
             return self.__process (edit_key)
         if event.keycode == keysyms.Escape:
-            if self.__ctx.has_error ():
+            if self.__ctx.being_converted ():
+                self.__ctx.cancel_conversion ()
+            elif self.__ctx.has_error ():
                 self.__ctx.clear_error ()
             else:
                 self.__ctx.edit ([])
             return True
-        if event.keycode == keysyms.Home or event.keycode == keysyms.Tab and event.mask & modifier.SHIFT_MASK:
+        if event.keycode == keysyms.Home:
             self.__ctx.home ()
             return True
         if event.keycode == keysyms.End or event.keycode == keysyms.Tab:
-            self.__ctx.suggest ()
+            self.__ctx.end ()
             return True
         if event.keycode == keysyms.Left:
-            self.__ctx.back ()
+            self.__ctx.left ()
             return True
         if event.keycode == keysyms.Right:
-            self.__confirm_current (commit=False)
+            self.__ctx.right ()
             return True
         candidates = self.__ctx.get_candidates ()
         if candidates:
@@ -218,10 +220,7 @@ class Engine:
         index = self.__frontend.get_candidate_index (n)
         if index >= 0 and index < len (candidates):
             self.__ctx.select (candidates[index][1])
-            if self.__ctx.is_completed ():
-                self.__commit ()
-            else:
-                self.__ctx.forward ()
+            self.__confirm_current ()
         return True
     def __select_by_cursor (self, candidates):
         index = self.__frontend.get_candidate_cursor_pos ()
@@ -230,10 +229,9 @@ class Engine:
             self.__update_preedit ()
             return True
         return False
-    def __confirm_current (self, commit=True):
+    def __confirm_current (self):
         if self.__ctx.is_completed ():
-            if commit:
-                self.__commit ()
+            self.__commit ()
         else:
             self.__ctx.forward ()
     def __commit (self):

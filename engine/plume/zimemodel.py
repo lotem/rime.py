@@ -25,8 +25,6 @@ class Entry:
         return w
     def get_phrase (self):
         return u''.join ([e.get_word () for e in self.get_all ()])
-    def __nonzero__ (self):
-        return self.u is not None
     def __unicode__ (self):
         return u'<%s (%d, %d) %f%s>' % \
             (self.get_word (), self.i, self.j, self.prob, (u' => [%s]' % self.next.get_word ()) if self.next else u'')
@@ -150,7 +148,7 @@ class Model:
                 p.append (i)
             q.sort ()
         if m != n:
-            ctx.cursor = Entry (None, m, n)
+            ctx.err = Entry (None, m, n)
             ctx.cand = []
             ctx.sugg = []
             return
@@ -258,21 +256,6 @@ class Model:
         ctx.cand = c
         ctx.sugg = sugg
         #for x in sugg: print unicode (x)
-
-    def calculate_candidates (self, ctx, i):
-        c = ctx.cand
-        s = ctx.sugg[i]
-        result = []
-        for j in range (len (c), i, -1):
-            if c[i][j]:
-                result.extend (c[i][j])
-        #result.sort (cmp=lambda a, b: -cmp (a.j, b.j) or -cmp (a.prob, b.prob))
-        """
-        for x in result:
-            print unicode (x), 
-        print
-        """
-        return result
 
     def train (self, ctx):
         # TODO

@@ -85,8 +85,9 @@ class Context:
     def __reset (self):
         self.input = []
         self.aux = None
-        self.cursor = Entry (None, 0, 0)
+        self.err = None
         self.sel = []
+        self.cur = []
         self.cand = []
         self.sugg = []
         self.__candidates = []
@@ -104,16 +105,15 @@ class Context:
         self.input = input
         self.__cb.update_ui ()
     def has_error (self):
-        return not self.cursor and self.cursor.i < self.cursor.j
+        return self.err is not None
     def clear_error (self):
-        error_pos = self.cursor.i
-        self.edit (self.input[:error_pos])
+        self.edit (self.input[:self.err.i])
     def start_conversion (self):
         self.__model.query (self)
         if self.has_error ():
             self.__cb.update_ui ()
         else:
-            self.suggest ()
+            self.end ()
     def cancel_conversion (self):
         self.edit (self.input)
     def home (self):
@@ -126,16 +126,7 @@ class Context:
             return False
         self.__update_candidates (c.i)
         return True
-    def back (self):
-        if not self.being_converted ():
-            return False
-        if self.sel and self.sel[-1].j > 0:
-            c = self.sel.pop ()
-            self.__update_candidates (c.i)
-            return True
-        else:
-            return False
-    def suggest (self):
+    def end (self):
         i = self.sel[-1].j if self.sel else 0
         p = (self.sel[-1].next if self.sel else None) or self.sugg[i]
         while p:
@@ -149,33 +140,77 @@ class Context:
             i = p.j
             p = self.sugg[i]
         self.__update_candidates (i)
-    def forward (self):
-        c = self.cursor
-        if c:
-            self.sel.append (c)
-        self.__update_candidates (c.j)
-    def __update_candidates (self, i):
-        c = self.__model.calculate_candidates (self, i)
-        self.__candidates = [(e.get_phrase (), e) for e in c]
-        if c:
-            self.cursor = c[0]
+    def left (self):
+        if self.__cand_idx < len (self.__cand_list) - 1:
+            self.__cand_idx += 1
+            self.__update_candidate_index ()
         else:
-            self.cursor = Entry (None, i, len (self.input))
+            self.back ()
+    def right (self):
+        if self.__cand_idx > 0:
+            self.__cand_idx -= 1
+            self.__update_candidate_index ()
+        else:
+            self.forth ()
+    def back (self):
+        if not self.being_converted ():
+            return False
+        if self.sel and self.sel[-1].j > 0:
+            c = self.sel.pop ()
+            self.__update_candidates (c.i)
+            return True
+        return False
+    def forth (self):
+        if not self.being_converted ():
+            return False
+        i = self.cur[0].i
+        p = (self.sel[-1].next if self.sel else None) or self.sugg[i]
+        if p:
+            if p.j < len (self.input):
+                self.sel.append (p)
+                self.__update_candidates (p.j, shortest=True)
+                return True
+            else:
+                self.__cand_idx = 0
+                self.__update_candidate_index ()
+        return False
+    def forward (self):
+        c = self.cur
+        if c:
+            self.sel.extend (c)
+            self.__update_candidates (c[-1].j)
+    def __update_candidates (self, i, shortest=False):
+        c = self.cand
+        r = []
+        for j in range (len (c), i, -1):
+            if c[i][j]:
+                r.append (c[i][j])
+        self.__cand_list = r
+        self.__cand_idx = len (r) - 1 if shortest and r else 0
+        self.__update_candidate_index ()
+    def __update_candidate_index (self):
+        r = self.__candidates = [(e.get_phrase (), e) for c in self.__cand_list[self.__cand_idx:] for e in c]
+        if r:
+            self.cur = r[0][1].get_all ()
+        else:
+            err_pos = self.cur[-1].i if self.cur else 0
+            self.err = Entry (None, err_pos, len (self.input))
+            self.cur = []
         self.__cb.update_ui ()
     def select (self, e):
-        self.cursor = e
+        self.cur = e.get_all ()
     def being_converted (self):
-        return bool (self.cursor)
+        return bool (self.cur)
     def is_completed (self):
-        return self.cursor.j == len (self.input)
+        return self.cur and self.cur[-1].j == len (self.input)
     def get_input_string (self):
         return u''.join (self.input)
     def get_preedit (self):
         if self.has_error ():
-            return self.get_input_string (), self.cursor.i, self.cursor.j
+            return self.get_input_string (), self.err.i, self.err.j
         start = end = rest = 0
         r = []
-        for s in self.sel + self.cursor.get_all ():
+        for s in self.sel + self.cur:
             start = end
             w = s.get_word ()
             r.append (w)
@@ -186,9 +221,9 @@ class Context:
     def get_aux_string (self):
         if self.aux:
             return self.aux
-        s = self.cursor
-        if s:
-            return u''.join (self.input[s.i:s.j])
+        c = self.cur
+        if c:
+            return u''.join (self.input[c[0].i:c[-1].j])
         return u''
     def get_candidates (self):
         return self.__candidates
