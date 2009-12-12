@@ -119,12 +119,12 @@ class Context:
     def home (self):
         if not self.being_converted ():
             return False
-        c = None
+        e = None
         while self.sel and self.sel[-1].j > 0:
-            c = self.sel.pop ()
-        if c is None:
+            e = self.sel.pop ()
+        if e is None:
             return False
-        self.__update_candidates (c.i)
+        self.__update_candidates (e.i)
         return True
     def end (self):
         i = self.sel[-1].j if self.sel else 0
@@ -141,23 +141,31 @@ class Context:
             p = self.sugg[i]
         self.__update_candidates (i)
     def left (self):
-        if self.__cand_idx < len (self.__cand_list) - 1:
-            self.__cand_idx += 1
-            self.__update_candidate_index ()
-        else:
-            self.back ()
+        if not self.cur:
+            return
+        i = self.cur[0].i
+        j = self.cur[-1].j
+        for k in range (j - 1, i, -1):
+            if self.__cand_list[k]:
+                self.__update_candidate_index (i, k)
+                return
+        self.back ()
     def right (self):
-        if self.__cand_idx > 0:
-            self.__cand_idx -= 1
-            self.__update_candidate_index ()
-        else:
-            self.forth ()
+        if not self.cur:
+            return
+        i = self.cur[0].i
+        j = self.cur[-1].j
+        for k in range (j + 1, len (self.input) + 1):
+            if self.__cand_list[k]:
+                self.__update_candidate_index (i, k)
+                return
+        self.forth ()
     def back (self):
         if not self.being_converted ():
             return False
         if self.sel and self.sel[-1].j > 0:
-            c = self.sel.pop ()
-            self.__update_candidates (c.i)
+            e = self.sel.pop ()
+            self.__update_candidates (e.i)
             return True
         return False
     def forth (self):
@@ -170,9 +178,6 @@ class Context:
                 self.sel.append (p)
                 self.__update_candidates (p.j, shortest=True)
                 return True
-            else:
-                self.__cand_idx = 0
-                self.__update_candidate_index ()
         return False
     def forward (self):
         c = self.cur
@@ -181,15 +186,22 @@ class Context:
             self.__update_candidates (c[-1].j)
     def __update_candidates (self, i, shortest=False):
         c = self.cand
-        r = []
+        n = len (self.input)
+        r = [None for j in range (n + 1)]
         for j in range (len (c), i, -1):
             if c[i][j]:
-                r.append (c[i][j])
+                r[j] = c[i][j]
+        # TODO: add concatenated phrases
         self.__cand_list = r
-        self.__cand_idx = len (r) - 1 if shortest and r else 0
-        self.__update_candidate_index ()
-    def __update_candidate_index (self):
-        r = self.__candidates = [(e.get_phrase (), e) for c in self.__cand_list[self.__cand_idx:] for e in c]
+        j = i
+        for k in range (i + 1, n + 1):
+            if r[k]:
+                j = k
+                if shortest:
+                    break
+        self.__update_candidate_index (i, j)
+    def __update_candidate_index (self, i, j):
+        r = self.__candidates = [(e.get_phrase (), e) for c in self.__cand_list[j:i:-1] if c for e in c]
         if r:
             self.cur = r[0][1].get_all ()
         else:
