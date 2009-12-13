@@ -87,7 +87,7 @@ class Context:
         self.aux = None
         self.err = None
         if not keep_context:
-            self.pre = []
+            self.pre = None
         self.sel = []
         self.cur = []
         self.phrase = []
@@ -125,16 +125,17 @@ class Context:
         self.__update_candidates (0)
         return True
     def end (self):
-        i = self.sel[-1].j if self.sel else 0
+        i = self.sel[-1].j if self.sel else (-1 if self.pre else 0)
         p = (self.sel[-1].next if self.sel else None) or self.pred[i]
         while p:
             s = p.get_all ()
-            if not s:
-                break
-            p = s[-1]
-            if p.j == len (self.input):
-                break
-            self.sel.extend (s)
+            if s[0].i < 0:
+                del s[0]
+            if s:
+                p = s[-1]
+                if p.j == len (self.input):
+                    break
+                self.sel.extend (s)
             i = p.j
             p = self.pred[i]
         self.__update_candidates (i)
@@ -189,36 +190,7 @@ class Context:
             self.__update_candidates (c[-1].j)
     def __update_candidates (self, i, j=0):
         #print '__update_candidates:', i, j
-        c = self.phrase
-        n = len (self.input)
-        r = [[] for k in range (n + 1)]
-        p = []
-        if j == 0:
-            j = n
-            while j > i and not c[i][j]:
-                j -= 1
-        #print 'range:', u''.join (self.input[i:j])
-        for k in range (j, i, -1):
-            if c[i][k]:
-                for x in c[i][k]:
-                    if x.next:
-                        #print x.get_phrase (), x.prob
-                        p.append ((k, x))
-                    else:
-                        r[k].append (x)
-        phrase_cmp = lambda a, b: -cmp (a[1].prob, b[1].prob)
-        p.sort (cmp=phrase_cmp)
-        LIMIT = 3
-        for x in p[:LIMIT]:
-            r[x[0]].append (x[1])
-        if not r[j]:
-            for x in p:
-                if x[0] == j:
-                    r[j].append (x[1])
-                    break
-            #print 'supplemented:', r[j][0].get_phrase ()
-        cand_cmp = lambda a, b: -cmp (a.use_count + a.prob, b.use_count + b.prob)
-        self.__candidates = [(e.get_phrase (), e) for s in reversed (r) if s for e in sorted (s, cand_cmp)]
+        self.__candidates = self.__model.make_candidate_list (self, i, j)
         if self.__candidates:
             self.cur = self.__candidates[0][1].get_all ()
         else:

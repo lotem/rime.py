@@ -4,7 +4,7 @@
 import re
 
 class Entry:
-    def __init__ (self, u, i, j, prob=0.0, use_count=0, next=None):
+    def __init__ (self, u, i, j, prob=1.0, use_count=0, next=None):
         self.u = u
         self.i = i
         self.j = j
@@ -154,7 +154,7 @@ class Model:
         # lookup words
         b = []
         d = [[] for i in range (n)]
-        c = [[None for j in range (n + 1)] for i in range (n)]
+        c = [[None for j in range (n + 1)] for i in range (n + 1)]
         unig = {}
         big = {}
         queries = {}
@@ -217,11 +217,14 @@ class Model:
             else:
                 a[i] = [None for j in range (len (a[i]))]
         queries = None
+        # last committed word's data goes to ctx.phrase[-1] and ctx.pred[-1]
+        if ctx.pre:
+            add_word (ctx.pre.u, -1, 0)
         # calculate sentence prediction
-        pred = [None for i in range (n + 1)]
+        pred = [None for i in range (n + 1 + 1)]
         for j in b:
             next = None
-            for i in range (j):
+            for i in range (-1, j):
                 if c[i][j]:
                     for x in c[i][j]:
                         if j == n:
@@ -267,7 +270,7 @@ class Model:
         for i in range (len (c)):
             for j in range (len (c[i])):
                 if c[i][j]:
-                    print u''.join (ctx.input[i:j])
+                    print i, j, u''.join (ctx.input[i:j])
                     for z in c[i][j]:
                         print z.get_phrase (),
                     print
@@ -283,5 +286,58 @@ class Model:
             last = e
             self.__db.update_unigram (e)
         self.__db.update_freq_total (len (s))
-        ctx.pre = [Entry (last.u, 0, 0, last.prob)] if last else []
+        ctx.pre = Entry (last.u, -1, 0) if last else None
 
+    def make_candidate_list (self, ctx, i, j):
+        c = ctx.phrase
+        n = len (ctx.input)
+        r = [[] for k in range (n + 1)]
+        p = []
+        if j == 0:
+            j = n
+            while j > i and not c[i][j]:
+                j -= 1
+        # info about the last phrase selected
+        prev_table = dict ()
+        prev = ctx.sel[-1] if ctx.sel else ctx.pre
+        if prev:
+            #print 'prev:', prev.get_phrase ()
+            prev_award = 1.0
+            prev_uid = prev.get_uid ()
+            for x in c[prev.i][prev.j]:
+                if x.get_uid () == prev_uid:
+                    prev_award = ctx.pred[x.j].prob / x.prob
+                    break
+            for y in c[prev.i][prev.j:]:
+                if y:
+                    for x in y:
+                        if x.next and x.get_uid () == prev_uid:
+                            prev_table[id (x.next)] = x.prob * prev_award
+        def adjust (e):
+            if id (e) not in prev_table:
+                return e
+            prob = prev_table[id (e)]
+            return Entry (e.u, e.i, e.j, prob, e.use_count, e.next)
+        #print 'range:', u''.join (ctx.input[i:j])
+        for k in range (j, i, -1):
+            if c[i][k]:
+                for x in c[i][k]:
+                    e = adjust (x)
+                    if e.next:
+                        #print "concat'd phrase:", e.get_phrase (), e.prob
+                        p.append ((k, e))
+                    else:
+                        r[k].append (e)
+        phrase_cmp = lambda a, b: -cmp (a[1].prob, b[1].prob)
+        p.sort (cmp=phrase_cmp)
+        LIMIT = 3
+        for x in p[:LIMIT]:
+            r[x[0]].append (x[1])
+        if not r[j]:
+            for x in p:
+                if x[0] == j:
+                    r[j].append (x[1])
+                    break
+            #print 'supplemented:', r[j][0].get_phrase ()
+        cand_cmp = lambda a, b: -cmp (a.use_count + a.prob, b.use_count + b.prob)
+        return [(e.get_phrase (), e) for s in reversed (r) if s for e in sorted (s, cand_cmp)]

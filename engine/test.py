@@ -224,6 +224,12 @@ def main ():
     #e.test ('shishutang {Home}{Left}.434.shishutangshaozhu 2 shishutangshzh {Home}{Escape}{Escape}')
     # a rare case: when the longest concat'd phrases fail to rank in top LIMIT, and there are not dict phrase of that length. when testing, LIMIT in Context.__update_candidate should be set to 1
     #e.test ('gongchenchong {Home} ...3gongchenchongmi {Home}')
+    #"""
+    #e.test ('gongchentongxue  .')
+    #e.test ('renmindegongchen 2.')
+    #e.test ('congmingdegongchentongxue {Left}{Left}')
+    #"""
+    e.test ('gongminquanli 2;guowangquanli 3;gongmin quanli {Escape}{Escape};guowang quanli ')
 
 if __name__ == "__main__":
     main ()
