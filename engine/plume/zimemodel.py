@@ -131,7 +131,7 @@ class Model:
                 s = u''.join (ctx.input[i:j])
                 if not self.__is_keyword (s):
                     continue
-                if j + 1 < n and ctx.input[j + 1] in self.__delimiter:
+                if j < n and ctx.input[j] in self.__delimiter:
                     t = j + 1
                 else:
                     t = j

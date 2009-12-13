@@ -24,5 +24,5 @@ activate schema chooser by clicking on property icon.
 Shift+Tab not functioning.
 # plume
 #true fuzzy input: changes in DB layout and key generation; DivideRule support.
-ajust candidate order in regard to previously selected phrase.
-
+#ajust candidate order in regard to previously selected phrase.
+show segmentation results while editing the input string.
