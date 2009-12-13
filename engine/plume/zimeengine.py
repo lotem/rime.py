@@ -128,7 +128,7 @@ class Engine:
             else:
                 self.__ctx.edit ([])
             return True
-        if event.keycode == keysyms.Home:
+        if event.keycode == keysyms.Home or event.keycode == keysyms.Tab and event.mask & modifier.SHIFT_MASK:
             self.__ctx.home ()
             return True
         if event.keycode == keysyms.End or event.keycode == keysyms.Tab:

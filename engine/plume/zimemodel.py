@@ -4,18 +4,17 @@
 import re
 
 class Entry:
-    def __init__ (self, u, i, j, prob=0.0, next=None):
+    def __init__ (self, u, i, j, prob=0.0, use_count=0, next=None):
         self.u = u
         self.i = i
         self.j = j
         self.prob = prob
+        self.use_count = use_count
         self.next = next
     def get_word (self):
         return self.u[0] if self.u else u''
     def get_uid (self):
         return self.u[2] if self.u else 0
-    def get_ufreq (self):
-        return self.u[4] if self.u else 0
     def get_all (self):
         w = []
         s = self
@@ -27,11 +26,11 @@ class Entry:
         return u''.join ([e.get_word () for e in self.get_all ()])
     def __unicode__ (self):
         return u'<%s (%d, %d) %g%s>' % \
-            (self.get_word (), self.i, self.j, self.prob, (u' => [%s]' % self.next.get_word ()) if self.next else u'')
+            (self.get_word (), self.i, self.j, self.prob, (u' => %s' % self.next.get_phrase ()) if self.next else u'')
 
 class Model:
 
-    PENALTY = 1e-3
+    PENALTY = 1e-4
 
     def __init__ (self, schema):
         self.__max_key_length = int (schema.get_config_value (u'MaxKeyLength') or u'3')
@@ -149,10 +148,10 @@ class Model:
             q.sort ()
         if m != n:
             ctx.err = Entry (None, m, n)
-            ctx.cand = []
-            ctx.sugg = []
+            ctx.phrase = []
+            ctx.pred = []
             return
-        # lookup phrases
+        # lookup words
         b = []
         d = [[] for i in range (n)]
         c = [[None for j in range (n + 1)] for i in range (n)]
@@ -166,8 +165,8 @@ class Model:
             s = big[id] = {}
             for x in r:
                 s[x[0]] = to_prob (x[1])
-        def add_phrase (x, i, j):
-            #print 'add_phrase:', x[0], x[1], i, j
+        def add_word (x, i, j):
+            #print 'add_word:', x[0], x[1], i, j
             uid = x[2]
             prob = to_prob (x[3])
             unig[uid] = prob
@@ -175,11 +174,11 @@ class Model:
                 fetch_big (uid)
             if not c[i][j]:
                 c[i][j] = []
-            e = Entry (x, i, j, prob)
+            e = Entry (x, i, j, prob, x[4])
             c[i][j].append (e)
         def match_key (x, i, j, k):
             if not k:
-                add_phrase (x, i, j)
+                add_word (x, i, j)
                 return
             if j == n:
                 return
@@ -199,7 +198,7 @@ class Model:
             for x in r:
                 okey = x[1].split ()
                 if len (okey) <= self.__max_key_length:
-                    add_phrase (x, i, j)
+                    add_word (x, i, j)
                 else:
                     match_key (x, i, j, okey[self.__max_key_length:])
         # path finding
@@ -218,17 +217,8 @@ class Model:
             else:
                 a[i] = [None for j in range (len (a[i]))]
         queries = None
-        """
-        print 'c:'
-        for i in range (len (c)):
-            for j in range (len (c[i])):
-                if c[i][j]:
-                    print u''.join (ctx.input[i:j])
-                    for z in c[i][j]:
-                        print z[0][0],
-                    print
-        """
-        sugg = [None for i in range (n + 1)]
+        # calculate sentence prediction
+        pred = [None for i in range (n + 1)]
         for j in b:
             next = None
             for i in range (j):
@@ -237,25 +227,53 @@ class Model:
                         if j == n:
                             pass
                         else:
-                            prob = x.prob * sugg[j].prob * Model.PENALTY
+                            x.prob *= pred[j].prob * Model.PENALTY
+                            # make phrases
                             uid = x.get_uid ()
                             if uid in big:
                                 if next is None:
-                                    next = set ()
+                                    # all phrases that starts at j, grouped by uid
+                                    next = dict ()
                                     for k in range (j + 1, n + 1):
                                         if c[j][k]:
                                             for y in c[j][k]:
-                                                next.add (y.get_uid ())
-                                succ = set (big[uid].keys ()) & next
-                                if succ:
-                                    #TODO: 
-                                    print 'big!'
-                            x.prob = prob
-                        if not sugg[i] or x.prob > sugg[i].prob:
-                            sugg[i] = x
-        ctx.cand = c
-        ctx.sugg = sugg
-        #for x in sugg: print unicode (x)
+                                                v = y.get_uid ()
+                                                if v in next:
+                                                    next[v].append (y)
+                                                else:
+                                                    next[v] = [y]
+                                for v in big[uid]:
+                                    if v in next:
+                                        for y in next[v]:
+                                            prob = big[uid][v] / unig[v] * y.prob
+                                            e = Entry (x.u, i, j, prob, min (x.use_count, y.use_count), y)
+                                            #print 'made phrase:', unicode (e)
+                                            # save phrase
+                                            k = e.get_all ()[-1].j
+                                            if c[i][k]:
+                                                c[i][k].append (e)
+                                            else:
+                                                c[i][k] = [e]
+                                            # update pred[i] with concat'd phrases
+                                            if not pred[i] or e.prob > pred[i].prob:
+                                                pred[i] = e
+                        # update pred[i] with the current word
+                        if not pred[i] or x.prob > pred[i].prob:
+                            pred[i] = x
+        ctx.phrase = c
+        ctx.pred = pred
+        """
+        print 'phrase:'
+        for i in range (len (c)):
+            for j in range (len (c[i])):
+                if c[i][j]:
+                    print u''.join (ctx.input[i:j])
+                    for z in c[i][j]:
+                        print z.get_phrase (),
+                    print
+        print 'pred:'
+        for x in pred: print unicode (x)
+        """
 
     def train (self, ctx, s):
         last = None
@@ -265,5 +283,5 @@ class Model:
             last = e
             self.__db.update_unigram (e)
         self.__db.update_freq_total (len (s))
-        ctx.pre = [Entry (last.u, 0, 0, last.prob, None)] if last else []
+        ctx.pre = [Entry (last.u, 0, 0, last.prob)] if last else []
 

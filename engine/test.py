@@ -218,7 +218,12 @@ def main ():
     #e.test ('zhonghrmghg')
     #e.test ('lzsb')
     #e.test ('rminyxongychbxiuuiuiuiui {Escape} {BackSpace}{BackSpace}{BackSpace} {Home}{Tab}{Page_Down}{Page_Up}')
-    e.test ('lanzhoushaobing  lzsb ')
+    #e.test ('lanzhoushaobing  lzsb {Escape}{Escape}')
+    #e.test ('shishemeyisi .4ssmys {Escape}{Escape}')
+    #e.test ('ruguodachangjuhuishishemexiaoguo {Home} .52.    rgdchjhshshmxg {Escape}{Escape}')
+    #e.test ('shishutang {Home}{Left}.434.shishutangshaozhu 2 shishutangshzh {Home}{Escape}{Escape}')
+    # a rare case: when the longest concat'd phrases fail to rank in top LIMIT, and there are not dict phrase of that length. when testing, LIMIT in Context.__update_candidate should be set to 1
+    #e.test ('gongchenchong {Home} ...3gongchenchongmi {Home}')
 
 if __name__ == "__main__":
     main ()

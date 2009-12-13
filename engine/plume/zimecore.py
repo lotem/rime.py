@@ -90,8 +90,8 @@ class Context:
             self.pre = []
         self.sel = []
         self.cur = []
-        self.cand = []
-        self.sugg = []
+        self.phrase = []
+        self.pred = []
         self.__candidates = []
     def clear (self):
         self.__reset ()
@@ -121,12 +121,12 @@ class Context:
     def home (self):
         if not self.being_converted ():
             return False
-        self.__reset (keep_context=True)
+        self.sel = []
         self.__update_candidates (0)
         return True
     def end (self):
         i = self.sel[-1].j if self.sel else 0
-        p = (self.sel[-1].next if self.sel else None) or self.sugg[i]
+        p = (self.sel[-1].next if self.sel else None) or self.pred[i]
         while p:
             s = p.get_all ()
             if not s:
@@ -136,7 +136,7 @@ class Context:
                 break
             self.sel.extend (s)
             i = p.j
-            p = self.sugg[i]
+            p = self.pred[i]
         self.__update_candidates (i)
     def left (self):
         if not self.cur:
@@ -144,8 +144,8 @@ class Context:
         i = self.cur[0].i
         j = self.cur[-1].j
         for k in range (j - 1, i, -1):
-            if self.__cand_list[k]:
-                self.__update_candidate_index (i, k)
+            if self.phrase[i][k]:
+                self.__update_candidates (i, k)
                 return
         self.back ()
     def right (self):
@@ -154,8 +154,8 @@ class Context:
         i = self.cur[0].i
         j = self.cur[-1].j
         for k in range (j + 1, len (self.input) + 1):
-            if self.__cand_list[k]:
-                self.__update_candidate_index (i, k)
+            if self.phrase[i][k]:
+                self.__update_candidates (i, k)
                 return
         self.forth ()
     def back (self):
@@ -170,38 +170,57 @@ class Context:
         if not self.being_converted ():
             return False
         i = self.cur[0].i
-        p = (self.sel[-1].next if self.sel else None) or self.sugg[i]
-        if p:
-            if p.j < len (self.input):
-                self.sel.append (p)
-                self.__update_candidates (p.j, shortest=True)
-                return True
+        p = (self.sel[-1].next if self.sel else None) or self.pred[i]
+        if p and p.j < len (self.input):
+            self.sel.append (p)
+            i = p.j
+            j = 0
+            for k in range (i + 1, len (self.input) + 1):
+                if self.phrase[i][k]:
+                    j = k
+                    break
+            self.__update_candidates (i, j)
+            return True
         return False
     def forward (self):
         c = self.cur
         if c:
             self.sel.extend (c)
             self.__update_candidates (c[-1].j)
-    def __update_candidates (self, i, shortest=False):
-        c = self.cand
+    def __update_candidates (self, i, j=0):
+        #print '__update_candidates:', i, j
+        c = self.phrase
         n = len (self.input)
-        r = [None for j in range (n + 1)]
-        for j in range (len (c), i, -1):
-            if c[i][j]:
-                r[j] = c[i][j]
-        # TODO: add concatenated phrases
-        self.__cand_list = r
-        j = i
-        for k in range (i + 1, n + 1):
-            if r[k]:
-                j = k
-                if shortest:
+        r = [[] for k in range (n + 1)]
+        p = []
+        if j == 0:
+            j = n
+            while j > i and not c[i][j]:
+                j -= 1
+        #print 'range:', u''.join (self.input[i:j])
+        for k in range (j, i, -1):
+            if c[i][k]:
+                for x in c[i][k]:
+                    if x.next:
+                        #print x.get_phrase (), x.prob
+                        p.append ((k, x))
+                    else:
+                        r[k].append (x)
+        phrase_cmp = lambda a, b: -cmp (a[1].prob, b[1].prob)
+        p.sort (cmp=phrase_cmp)
+        LIMIT = 3
+        for x in p[:LIMIT]:
+            r[x[0]].append (x[1])
+        if not r[j]:
+            for x in p:
+                if x[0] == j:
+                    r[j].append (x[1])
                     break
-        self.__update_candidate_index (i, j)
-    def __update_candidate_index (self, i, j):
-        r = self.__candidates = [(e.get_phrase (), e) for c in self.__cand_list[j:i:-1] if c for e in c]
-        if r:
-            self.cur = r[0][1].get_all ()
+            #print 'supplemented:', r[j][0].get_phrase ()
+        cand_cmp = lambda a, b: -cmp (a.use_count + a.prob, b.use_count + b.prob)
+        self.__candidates = [(e.get_phrase (), e) for s in reversed (r) if s for e in sorted (s, cand_cmp)]
+        if self.__candidates:
+            self.cur = self.__candidates[0][1].get_all ()
         else:
             err_pos = self.cur[-1].i if self.cur else 0
             self.err = Entry (None, err_pos, len (self.input))
@@ -218,10 +237,16 @@ class Context:
     def get_preedit (self):
         if self.has_error ():
             return self.get_input_string (), self.err.i, self.err.j
-        start = end = rest = 0
         r = []
-        for s in self.sel + self.cur:
-            start = end
+        rest = 0
+        start = 0
+        for s in self.sel:
+            w = s.get_word ()
+            r.append (w)
+            start += len (w)
+            rest = s.j
+        end = start
+        for s in self.cur:
             w = s.get_word ()
             r.append (w)
             end += len (w)
