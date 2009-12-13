@@ -82,10 +82,12 @@ class Context:
         self.__model = Model (schema)
         self.schema = schema
         self.__reset ()
-    def __reset (self):
+    def __reset (self, keep_context=False):
         self.input = []
         self.aux = None
         self.err = None
+        if not keep_context:
+            self.pre = []
         self.sel = []
         self.cur = []
         self.cand = []
@@ -98,10 +100,10 @@ class Context:
         return not self.input
     def commit (self):
         if self.is_completed ():
-            self.__model.train (self)
-        self.clear ()
+            self.__model.train (self, self.sel + self.cur)
+        self.edit ([])
     def edit (self, input):
-        self.__reset ()
+        self.__reset (keep_context=True)
         self.input = input
         self.__cb.update_ui ()
     def has_error (self):
@@ -119,12 +121,8 @@ class Context:
     def home (self):
         if not self.being_converted ():
             return False
-        e = None
-        while self.sel and self.sel[-1].j > 0:
-            e = self.sel.pop ()
-        if e is None:
-            return False
-        self.__update_candidates (e.i)
+        self.__reset (keep_context=True)
+        self.__update_candidates (0)
         return True
     def end (self):
         i = self.sel[-1].j if self.sel else 0
@@ -163,7 +161,7 @@ class Context:
     def back (self):
         if not self.being_converted ():
             return False
-        if self.sel and self.sel[-1].j > 0:
+        if self.sel:
             e = self.sel.pop ()
             self.__update_candidates (e.i)
             return True

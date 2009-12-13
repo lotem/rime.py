@@ -26,7 +26,7 @@ class Entry:
     def get_phrase (self):
         return u''.join ([e.get_word () for e in self.get_all ()])
     def __unicode__ (self):
-        return u'<%s (%d, %d) %f%s>' % \
+        return u'<%s (%d, %d) %g%s>' % \
             (self.get_word (), self.i, self.j, self.prob, (u' => [%s]' % self.next.get_word ()) if self.next else u'')
 
 class Model:
@@ -257,16 +257,13 @@ class Model:
         ctx.sugg = sugg
         #for x in sugg: print unicode (x)
 
-    def train (self, ctx):
-        # TODO
-        return
-        p = ctx.last_phrase
-        a = [x for s in ctx.sel for x in s[2][1]]
-        for x in a:
-            if p:
-                self.__db.update_bigram (p, x)
-            p = x
-            self.__db.update_unigram (x)
-        ctx.last_phrase = p
-        self.__db.update_freq_total (len (a))
+    def train (self, ctx, s):
+        last = None
+        for e in s:
+            if last:
+                self.__db.update_bigram (last, e)
+            last = e
+            self.__db.update_unigram (e)
+        self.__db.update_freq_total (len (s))
+        ctx.pre = [Entry (last.u, 0, 0, last.prob, None)] if last else []
 

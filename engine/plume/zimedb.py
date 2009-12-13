@@ -169,17 +169,17 @@ class DB:
         DB.flush ()
         
     def update_unigram (self, a):
-        #print 'update_unigram:', a
+        #print 'update_unigram:', unicode (a)
         if DB.read_only:
             return
-        args = {'id' : a[0]}
+        args = {'id' : a.get_uid ()}
         DB.__conn.execute (self.UPDATE_G1_SQL, args)
 
     def update_bigram (self, a, b):
-        #print 'update_bigram:', a, b
+        #print 'update_bigram:', unicode (a), unicode (b)
         if DB.read_only:
             return
-        args = {'u1_id' : a[0], 'u2_id' : b[0]}
+        args = {'u1_id' : a.get_uid (), 'u2_id' : b.get_uid ()}
         if DB.__conn.execute (self.G2_EXIST_SQL, args).fetchone ():
             DB.__conn.execute (self.UPDATE_G2_SQL, args)
         else:
