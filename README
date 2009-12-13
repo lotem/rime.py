@@ -1,41 +1,48 @@
-hi. 
-thank you for taking time to read this, and for trying ibus-zime.
+Hi. 
+Thank you for taking the time to read this, and for trying ibus-zime.
 
 ibus-zime consists of two different IM engines, namely `Stylo`, the wholer-sentence model, and `Plume`, the phrase-based model.
+I suggest new users give Plume a try first.
 
-how to install:
+Quick Start:
 
-0. make sure you've installed IBus: 
+0. Make sure you've installed IBus:
 http://ibus.googlecode.com/
 
-1. run the following shell commands: 
+1. Run `make' with super user privilege under extracted ibus-zime folder.
 cd ibus-zime
 sudo make install
 
-2. install the schema(s) of your choice:
+2. Install the schema(s) of your choice.
+# NOTE: Run the scripts under ibus-zime/data/ as normal user. DB files will be created for current user only.
+# The resulting SQLite3 database files would be ~/.ibus/zime/plume.db, or ~/.ibus/zime/stylo.db.
 cd data
-# Pinyin
-./stylo-create-schema.py pinyin-schema.txt pinyin-keywords.txt pinyin-phrases.txt
-# Zhuyin (Bopomofo)
-./stylo-create-schema.py zhuyin-schema.txt zhuyin-keywords.txt zhuyin-phrases.txt
-# Combo Pinyin (refer to ZIME project home page)
-./stylo-create-schema.py -k combo-pinyin-schema.txt
-# Jyutping (Cantonese)
+
+# Install schema: Pinyin
+./plume-create-schema.py -v -s pinyin
+
+# Install schema: Jyutping (Cantonese)
 ./make-phrases.py jyutping
-./stylo-create-schema.py jyutping-schema.txt jyutping-keywords.txt jyutping-phrases.txt
-# Kuank-hiunn (Middle Chinese)
+./plume-create-schema.py -v -s jyutping
+
+# Install schema: Kuank-hiunn (Middle Chinese)
 ./make-phrases.py kuankhiunn
-./stylo-create-schema.py kuankhiunn-schema.txt kuankhiunn-keywords.txt kuankhiunn-phrases.txt
-# these sample text files provided are good for both engines. 
-# (but currently Plume has no support for Zhuyin and Combo Pinyin yet)
-# change `stylo-' to `plume-' in the commands above to initialize the database for Plume engine.
-# the resulting SQLite3 database is located at ~/.ibus/zime/stylo.db, or ~/.ibus/zime/plume.db.
+./plume-create-schema.py -v -s kuankhiunn
 
-3. restart IBus and enable ZIME engine(s) in IBus preferences.
+# Change `plume-' to `stylo-' in the commands above to install the schemas for Stylo engine.
+# The following two methods are implemented only in Stylo currently.
 
-4. when ZIME is active, you can always type Ctrl+` to call schema chooser menu.
+# Install schema: Zhuyin (Bopomofo)
+./stylo-create-schema.py -v -s zhuyin
 
-sorry for the temporary absense of documentation.
-feel free to explore.
+# Install schema: Combo Pinyin (Refer to ZIME project home page)
+./stylo-create-schema.py -k -s combo-pinyin
 
-questions go to <chen.sst@gmail.com> .
+3. Restart IBus and enable ZIME engine(s) in IBus preferences.
+
+4. When ZIME is active, you can always type Ctrl+` to call schema chooser menu, and choose among installed schemas.
+
+Sorry for the temporary absense of documentation.
+Feel free to explore.
+
+Questions go to <chen.sst@gmail.com> .
