@@ -2,6 +2,7 @@ Schema/Jyutping = 粵拼
 Config/Jyutping/Prefix = jyutping
 Config/Jyutping/Parser = roman
 Config/Jyutping/AutoPrompt = yes
+Config/Jyutping/AutoDelimit = yes
 Config/Jyutping/Delimiter = [ '-]
 Config/Jyutping/MaxKeywordLength = 6
 Config/Jyutping/SplitRule = ptkmng aeiou

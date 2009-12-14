@@ -2,6 +2,7 @@ Schema/Tungdzih = 通字
 Config/Tungdzih/Prefix = tungdzih
 Config/Tungdzih/Parser = roman
 Config/Tungdzih/AutoPrompt = yes
+Config/Tungdzih/AutoDelimit = yes
 Config/Tungdzih/Delimiter = [ '-]
 Config/Tungdzih/MaxKeywordLength = 7
 Config/Tungdzih/SplitRule = bpmfvdtnlgkhjqxzcsryw aeiou

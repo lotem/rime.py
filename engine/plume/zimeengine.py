@@ -235,7 +235,7 @@ class Engine:
         else:
             self.__ctx.forward ()
     def __commit (self):
-        self.__frontend.commit_string (self.__ctx.get_preedit ()[0])
+        self.__frontend.commit_string (self.__ctx.get_commit_string ())
         self.__ctx.commit ()
         self.__parser.clear ()
     def __update_preedit (self):

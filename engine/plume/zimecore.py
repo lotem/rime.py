@@ -80,7 +80,9 @@ class Context:
     def __init__ (self, callback, schema):
         self.__cb = callback
         self.__model = Model (schema)
-        self.schema = schema
+        self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
+        self.__auto_delimit = schema.get_config_value (u'AutoDelimit') in (u'yes', u'true')
+        #self.schema = schema
         self.__reset ()
     def __reset (self, keep_context=False):
         self.input = []
@@ -93,6 +95,8 @@ class Context:
         self.phrase = []
         self.pred = []
         self.__candidates = []
+        self.seg = 0, 0
+        self.__prompt = (u'', [0])
     def clear (self):
         self.__reset ()
         self.__cb.update_ui ()
@@ -101,20 +105,28 @@ class Context:
     def commit (self):
         if self.is_completed ():
             self.__model.train (self, self.sel + self.cur)
-        self.edit ([])
+            self.edit ([])
+        else:
+            self.clear ()
     def edit (self, input):
         self.__reset (keep_context=True)
         self.input = input
+        if input:
+            s = self.seg = self.__model.segmentation (input)
+            n, m = s[:2]
+            if m != n:
+                self.err = Entry (None, m, n)
+            self.__calculate_prompt_string (input, s[4], n, m)
         self.__cb.update_ui ()
     def has_error (self):
         return self.err is not None
     def clear_error (self):
         self.edit (self.input[:self.err.i])
     def start_conversion (self):
-        self.__model.query (self)
         if self.has_error ():
             self.__cb.update_ui ()
         else:
+            self.__model.query (self)
             self.end ()
     def cancel_conversion (self):
         self.edit (self.input)
@@ -204,11 +216,28 @@ class Context:
         return bool (self.cur)
     def is_completed (self):
         return self.cur and self.cur[-1].j == len (self.input)
-    def get_input_string (self):
-        return u''.join (self.input)
+    def __calculate_prompt_string (self, s, d, n, m):
+        if n == 0:
+            return
+        t = [i for i in range (n + 1)]
+        p = s
+        if self.__auto_delimit:
+            p = []
+            c = 0
+            for i in range (n):
+                if i > 0 and i in d and s[i - 1] not in self.__delimiter:
+                    p.append (self.__delimiter[0])
+                    c += 1
+                p.append (s[i])
+                t[i] = i + c
+            t[-1] = n + c
+        self.__prompt = (u''.join (p), t)
     def get_preedit (self):
+        if self.is_empty ():
+            return u'', 0, 0
         if self.has_error ():
-            return self.get_input_string (), self.err.i, self.err.j
+            p, t = self.__prompt
+            return p, t[self.err.i], t[self.err.j]
         r = []
         rest = 0
         start = 0
@@ -223,14 +252,24 @@ class Context:
             r.append (w)
             end += len (w)
             rest = s.j
-        r.append (u''.join (self.input[rest:]))
+        if rest < len (self.input):
+            p, t = self.__prompt
+            #if r:
+            #    r.append (u' ')
+            r.append (p[t[rest]:])
         return u''.join (r), start, end
+    def get_commit_string (self):
+        if self.is_completed ():
+            return u''.join ([s.get_word () for s in self.sel + self.cur])
+        else:
+            return u''.join (self.input)
     def get_aux_string (self):
         if self.aux:
             return self.aux
         c = self.cur
         if c:
-            return u''.join (self.input[c[0].i:c[-1].j])
+            p, t = self.__prompt
+            return p[t[c[0].i]:t[c[-1].j]].rstrip (self.__delimiter)
         return u''
     def get_candidates (self):
         return self.__candidates

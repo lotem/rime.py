@@ -230,7 +230,7 @@ def main ():
     #e.test ('congmingdegongchentongxue {Left}{Left}')
     #"""
     #e.test ('gongminquanli 2;guowangquanli 3;gongmin quanli {Escape}{Escape};guowang quanli ')
-    e.test ('z\'hmg\' ')
+    e.test ('shishikanzhongbuzhongyong {Home}')
 
 if __name__ == "__main__":
     main ()

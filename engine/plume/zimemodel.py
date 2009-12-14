@@ -99,9 +99,8 @@ class Model:
         else:
             return k
 
-    def query (self, ctx):
-        # segmentation
-        n = len (ctx.input)
+    def segmentation (self, input):
+        n = len (input)
         m = 0
         p = []
         a = [[None] * j for j in range (n + 1)]
@@ -114,7 +113,7 @@ class Model:
                         return True
                     else:
                         continue
-                lw = u''.join (ctx.input[k:j])
+                lw = u''.join (input[k:j])
                 for r in self.__divide_rules:
                     m = r[0].search (lw)
                     if m and r[0].sub (r[1], lw, 1) == s:
@@ -128,10 +127,10 @@ class Model:
                 break
             ok = False
             for j in range (min (n + 1, i + self.__max_keyword_length)):
-                s = u''.join (ctx.input[i:j])
+                s = u''.join (input[i:j])
                 if not self.__is_keyword (s):
                     continue
-                if j < n and ctx.input[j] in self.__delimiter:
+                if j < n and input[j] in self.__delimiter:
                     t = j + 1
                 else:
                     t = j
@@ -146,14 +145,32 @@ class Model:
             if ok:
                 p.append (i)
             q.sort ()
+        if m < n:
+            p.append (m)
+        b = []
+        d = []
+        # path finding
+        for i in reversed (p):
+            ok = i == m
+            for j in b:
+                if i < j and a[j][i]:
+                    ok = True
+                    d = [k for k in d if k >= j]
+            if ok:
+                b.append (i)
+                d.append (i)
+            else:
+                a[i] = [None for j in range (len (a[i]))]
+        b.reverse ()
+        d.reverse ()
+        return n, m, a, b, d
+
+    def query (self, ctx):
+        n, m, a, b, d = ctx.seg
         if m != n:
-            ctx.err = Entry (None, m, n)
-            ctx.phrase = []
-            ctx.pred = []
             return
         # lookup words
-        b = []
-        d = [[] for i in range (n)]
+        edges = [[] for i in range (n)]
         c = [[None for j in range (n + 1)] for i in range (n + 1)]
         unig = {}
         big = {}
@@ -182,13 +199,13 @@ class Model:
                 return
             if j == n:
                 return
-            for y in d[j]:
+            for y in edges[j]:
                 if k[0] in self.__fuzzy_map[y[1]]:
                     match_key (x, i, y[0], k[1:])
         def make_keys (i, k, length):
             if length == 0 or i == n:    
                 return [(i, k)]
-            return [(i, k)] + reduce (lambda x, y: x + y, [make_keys (z[0], k + [z[1]], length - 1) for z in d[i]])
+            return [(i, k)] + reduce (lambda x, y: x + y, [make_keys (z[0], k + [z[1]], length - 1) for z in edges[i]])
         def lookup (i, j, k):
             key = u' '.join (k)
             if key in queries:
@@ -201,28 +218,25 @@ class Model:
                     add_word (x, i, j)
                 else:
                     match_key (x, i, j, okey[self.__max_key_length:])
-        # path finding
-        for i in reversed (p):
-            ok = i == n
-            for j in b:
+        # traverse
+        visited = []
+        for i in reversed (b):
+            for j in visited:
                 if i < j and a[j][i]:
                     ok = True
                     e = (j, a[j][i])
-                    d[i].append (e)
+                    edges[i].append (e)
                     keys = make_keys (e[0], [e[1]], self.__max_key_length)
                     for t, k in keys:
                         lookup (i, t, k)
-            if ok:
-                b.append (i)
-            else:
-                a[i] = [None for j in range (len (a[i]))]
+            visited.append (i)
         queries = None
         # last committed word's data goes to ctx.phrase[-1] and ctx.pred[-1]
         if ctx.pre:
             add_word (ctx.pre.u, -1, 0)
         # calculate sentence prediction
         pred = [None for i in range (n + 1 + 1)]
-        for j in b:
+        for j in reversed (b):
             next = None
             for i in range (-1, j):
                 if c[i][j]:

@@ -25,4 +25,4 @@ Shift+Tab not functioning.
 # plume
 #true fuzzy input: changes in DB layout and key generation; DivideRule support.
 #ajust candidate order in regard to previously selected phrase.
-show segmentation results while editing the input string.
+#show segmentation results while editing the input string.

@@ -2,6 +2,7 @@ Schema/Kuankhiunn = 廣韻
 Config/Kuankhiunn/Prefix = kuankhiunn
 Config/Kuankhiunn/Parser = roman
 Config/Kuankhiunn/AutoPrompt = yes
+Config/Kuankhiunn/AutoDelimit = yes
 Config/Kuankhiunn/Delimiter = [ '-]
 Config/Kuankhiunn/MaxKeywordLength = 6
 Config/Kuankhiunn/SplitRule = jywv aeiou

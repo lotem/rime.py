@@ -6,21 +6,14 @@ Config/Pinyin/Delimiter = [ '-]
 Config/Pinyin/MaxKeywordLength = 6
 Config/Pinyin/SplitRule = mng aeiou
 Config/Pinyin/DivideRule = ^.*[iu]([aoe].*)$ \1
-# 模糊音
-Config/Pinyin/FuzzyRule = ^([zcs])h \1
-#Config/Pinyin/FuzzyRule = ^l n
-#Config/Pinyin/FuzzyRule = ^n l
-#Config/Pinyin/FuzzyRule = ([ei])ng$ \1n
-# 簡拼
-Config/Pinyin/FuzzyRule = ^([a-z]h?).*$ \1
-# 兼容拼寫
+# 兼容拼寫形式
 Config/Pinyin/FuzzyRule = ^([fvw])ei$ \1i
 Config/Pinyin/FuzzyRule = ^([nl])ei$ \1ui
 Config/Pinyin/FuzzyRule = ([^nl])ue$ \1uo
 Config/Pinyin/FuzzyRule = ^([nl])ong$ \1iong
 Config/Pinyin/FuzzyRule = ([aeiou])n$ \1m
 Config/Pinyin/FuzzyRule = ^weng$ ong
-Config/Pinyin/FuzzyRule = ong$ ung
+Config/Pinyin/FuzzyRule = ^(.+)ong$ \1ung
 Config/Pinyin/FuzzyRule = ^we(ng?|i)$ wu\1
 Config/Pinyin/FuzzyRule = ui$ uei
 Config/Pinyin/FuzzyRule = iu$ iou
@@ -34,8 +27,16 @@ Config/Pinyin/FuzzyRule = ^([nl])ue$ \1yue
 Config/Pinyin/FuzzyRule = ^([nl])v$ \1yu
 Config/Pinyin/FuzzyRule = ao$ au
 Config/Pinyin/FuzzyRule = ^w v
-# 糾錯
+# 拼式糾錯
 Config/Pinyin/FuzzyRule = ng$ gn
+# 模糊音
+#Config/Pinyin/FuzzyRule = ^([zcs])h \1
+#Config/Pinyin/FuzzyRule = ^l n
+#Config/Pinyin/FuzzyRule = ^n l
+#Config/Pinyin/FuzzyRule = ([ei])ng$ \1n
+# 簡拼
+#Config/Pinyin/FuzzyRule = ^([a-z]h).+$ \1
+#Config/Pinyin/FuzzyRule = ^([a-z]).+$ \1
 # punctuation
 Config/Pinyin/Punct = , ，
 Config/Pinyin/Punct = . 。
