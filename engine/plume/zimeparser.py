@@ -9,7 +9,8 @@ from zimecore import *
 class RomanParser (Parser):
     def __init__ (self, schema):
         Parser.__init__ (self, schema)
-        self.__alphabet = schema.get_config_char_sequence (u'Alphabet') or u'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        self.__alphabet = schema.get_config_char_sequence (u'Alphabet') or \
+            u'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
         self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
     def clear (self):
         pass
@@ -73,7 +74,7 @@ class GroupingParser (Parser):
             result = u''.join (self.__slots)
             self.clear ()
             return [result]
-        # handle input
+        # handle grouping input
         ch = event.get_char ()
         k = self.__cursor
         while ch not in self.__key_groups[k]:
@@ -102,8 +103,79 @@ class GroupingParser (Parser):
             self.__cursor = k
             return [self.__prompt_pattern % result]
 
+class ComboParser (Parser):
+    def __init__ (self, schema):
+        Parser.__init__ (self, schema)
+        self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
+        self.__combo_keys = schema.get_config_char_sequence (u'ComboKeys') or u''
+        self.__combo_codes = schema.get_config_char_sequence (u'ComboCodes') or u''
+        self.__combo_max_length = min (len (self.__combo_keys), len (self.__combo_codes))
+        self.__combo_space = schema.get_config_value (u'ComboSpace') or u'_'
+        get_rules = lambda f, key: [f (r.split ()) for r in schema.get_config_list (key)]
+        compile_repl_pattern = lambda x: (re.compile (x[0]), x[1])
+        self.__xform_rules = get_rules (compile_repl_pattern, u'TransformRule')
+        self.__combo = set ()
+        self.__held = set ()
+    def clear (self):
+        self.__combo.clear ()
+        self.__held.clear ()
+    def __is_empty (self):
+        return not bool (self.__held)
+    def __commit_combo (self, ctx):
+        k = self.__get_combo_string ()
+        #print '__commit_combo', k
+        self.clear ()
+        ctx.input.pop ()
+        if not ctx.is_empty () and ctx.input[-1] == self.__delimiter[0]:
+            ctx.input.pop ()
+        if k == self.__combo_space:
+            ctx.edit (ctx.input)
+            return KeyEvent (keysyms.space, 0, coined=True)
+        else:
+            if not ctx.is_empty ():
+                ctx.input.append (self.__delimiter[0])
+            return [k]
+    def __get_combo_string (self):
+        s = u''.join ([self.__combo_codes[i] for i in range (self.__combo_max_length) \
+                                                 if self.__combo_keys[i] in self.__combo])
+        xform = lambda s, r: r[0].sub (r[1], s, 1)
+        return reduce (xform, self.__xform_rules, s)
+    def process_input (self, event, ctx):
+        if ctx.being_converted ():
+            return None
+        # handle combo input
+        ch = event.get_char ()
+        if event.mask & modifier.RELEASE_MASK:
+            if ch in self.__held:
+                #print 'released:', ch
+                self.__held.remove (ch)
+                if self.__is_empty ():
+                    return self.__commit_combo (ctx)
+            return None
+        if ch in self.__combo_keys:
+            #print 'pressed:', ch
+            if not self.__is_empty ():
+                ctx.input.pop ()
+            elif not ctx.is_empty () and ctx.input[-1] != self.__delimiter[0]:
+                ctx.input.append (self.__delimiter[0])
+            self.__combo.add (ch)
+            self.__held.add (ch)
+            return [self.__get_combo_string ()]
+        # edit keys
+        if event.keycode == keysyms.Escape:
+            self.clear ()
+            return None
+        if event.keycode == keysyms.BackSpace:
+            if ctx.is_empty ():
+                return None
+            ctx.input.pop ()
+            if not ctx.is_empty () and ctx.input[-1] == self.__delimiter[0]:
+                ctx.input.pop ()
+            return []
+        return None
+
 def register_parsers ():
     Parser.register ('roman', RomanParser)
-    #Parser.register ('combo', ComboParser)
     Parser.register ('grouping', GroupingParser)
+    Parser.register ('combo', ComboParser)
 

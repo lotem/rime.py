@@ -81,6 +81,8 @@ class Engine:
         result = self.__parser.process_input (event, self.__ctx)
         if result is None:
             return self.__process (event)
+        elif isinstance (result, KeyEvent):
+            return self.__process (result)
         # handle input
         if self.__ctx.being_converted ():
             if self.__ctx.is_completed ():

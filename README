@@ -2,41 +2,50 @@ Hi.
 Thank you for taking the time to read this, and for trying ibus-zime.
 
 ibus-zime consists of two different IM engines, namely `Stylo`, the wholer-sentence model, and `Plume`, the phrase-based model.
-I suggest new users give Plume a try first.
+I suggest new users give Plume a try first, since it provides more functionalities, and a slightly better user experience for now.
 
 Quick Start:
 
 0. Make sure you've installed IBus:
+
 http://ibus.googlecode.com/
 
 1. Run `make' with super user privilege under extracted ibus-zime folder.
+
 cd ibus-zime
 sudo make install
 
 2. Install the schema(s) of your choice.
+
 # NOTE: Run the scripts under ibus-zime/data/ as normal user. DB files will be created for current user only.
 # The resulting SQLite3 database files would be ~/.ibus/zime/plume.db, or ~/.ibus/zime/stylo.db.
+# If you prefer Stylo engine, change `plume-' to `stylo-' in the commands below.
+
 cd data
 
-# Install schema: Pinyin
+# a) Install schema: Pinyin
+
 ./plume-create-schema.py -v -s pinyin
 
-# Install schema: Jyutping (Cantonese)
+# b) Install schema: Jyutping (Cantonese)
 ./make-phrases.py jyutping
 ./plume-create-schema.py -v -s jyutping
 
-# Install schema: Kuank-hiunn (Middle Chinese)
+# c) Install schema: Kuank-hiunn (Middle Chinese)
 ./make-phrases.py kuankhiunn
 ./plume-create-schema.py -v -s kuankhiunn
 
-# Change `plume-' to `stylo-' in the commands above to install the schemas for Stylo engine.
-# The following two methods are implemented only in Stylo currently.
+# d) Install schema: Zhuyin (Bopomofo)
+./plume-create-schema.py -v -s zhuyin
 
-# Install schema: Zhuyin (Bopomofo)
-./stylo-create-schema.py -v -s zhuyin
+# e) Install schema: Combo Pinyin (Refer to ZIME project home page)
+# NOTE: This schema requires Pinyin schema already installed with fuzzy input options off.
+./plume-create-schema.py -k combo-pinyin-schema.txt
 
-# Install schema: Combo Pinyin (Refer to ZIME project home page)
-./stylo-create-schema.py -k -s combo-pinyin
+# f) Combo Pinyin for Stylo uses a different schema file from Plume's, due to the differences in their implementation:
+./stylo-create-schema.py -k combo-pinyin-schema-for-stylo.txt
+
+# g) Invent your own schema!
 
 3. Restart IBus and enable ZIME engine(s) in IBus preferences.
 
