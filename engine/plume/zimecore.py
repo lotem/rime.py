@@ -149,7 +149,7 @@ class Context:
                 self.sel.extend (s)
             i = p.j
             p = self.pred[i]
-        self.__update_candidates (i)
+        self.__update_candidates (max (0, i))
     def left (self):
         if not self.cur:
             return
@@ -200,7 +200,7 @@ class Context:
             self.sel.extend (c)
             self.__update_candidates (c[-1].j)
     def __update_candidates (self, i, j=0):
-        #print '__update_candidates:', i, j
+        print '__update_candidates:', i, j
         self.__candidates = self.__model.make_candidate_list (self, i, j)
         if self.__candidates:
             self.cur = self.__candidates[0][1].get_all ()

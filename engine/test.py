@@ -160,19 +160,19 @@ def main ():
     #e.test ('zanmen-qu2-ta-jia2-zaishuo ')
     #e.test ('wozhishuo{Escape}ni')
 
-    e = TestEngine (u'ComboPinyin')
-    e.process_key_event (keysyms.r, 0)
-    e.process_key_event (keysyms.j, 0)
-    e.process_key_event (keysyms.k, 0)
-    e.process_key_event (keysyms.l, 0)
-    e.process_key_event (keysyms.r, modifier.RELEASE_MASK)
-    e.process_key_event (keysyms.j, modifier.RELEASE_MASK)
-    e.process_key_event (keysyms.k, modifier.RELEASE_MASK)
-    e.process_key_event (keysyms.l, modifier.RELEASE_MASK)
-    e.process_key_event (keysyms.space, 0)
-    e.process_key_event (keysyms.space, modifier.RELEASE_MASK)
-    e.process_key_event (keysyms.space, 0)
-    e.process_key_event (keysyms.space, modifier.RELEASE_MASK)
+    #e = TestEngine (u'ComboPinyin')
+    #e.process_key_event (keysyms.r, 0)
+    #e.process_key_event (keysyms.j, 0)
+    #e.process_key_event (keysyms.k, 0)
+    #e.process_key_event (keysyms.l, 0)
+    #e.process_key_event (keysyms.r, modifier.RELEASE_MASK)
+    #e.process_key_event (keysyms.j, modifier.RELEASE_MASK)
+    #e.process_key_event (keysyms.k, modifier.RELEASE_MASK)
+    #e.process_key_event (keysyms.l, modifier.RELEASE_MASK)
+    #e.process_key_event (keysyms.space, 0)
+    #e.process_key_event (keysyms.space, modifier.RELEASE_MASK)
+    #e.process_key_event (keysyms.space, 0)
+    #e.process_key_event (keysyms.space, modifier.RELEASE_MASK)
 
     #e = TestEngine (u'Pinyin')
     #e.test ('wo! .<>[[]]""""')
@@ -211,8 +211,8 @@ def main ():
     #e.test ('renminde gongchen {Escape}')
     #e.test ('woshi gongchen {Escape}')
 
+    e = TestEngine (u'Pinyin')
     # test fuzzy input
-    #e = TestEngine (u'Pinyin')
     #e.test ('qiujiu')
     #e.test ('chagnan')
     #e.test ('changansbssyiandejioucen')
@@ -232,6 +232,7 @@ def main ():
     #"""
     #e.test ('gongminquanli 2;guowangquanli 3;gongmin quanli {Escape}{Escape};guowang quanli ')
     #e.test ('shishikanzhongbuzhongyong {Home}')
+    e.test ('shuru pingtai ')
 
 if __name__ == "__main__":
     main ()
