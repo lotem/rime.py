@@ -132,6 +132,8 @@ class ComboParser (Parser):
             ctx.edit (ctx.input)
             return KeyEvent (keysyms.space, 0, coined=True)
         else:
+            if not k:
+                return []
             if not ctx.is_empty ():
                 ctx.input.append (self.__delimiter[0])
             return [k]
