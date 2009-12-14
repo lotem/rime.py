@@ -127,7 +127,8 @@ class TestEngine:
                 self.process_key_event (ord (c), 0)
 
 def main ():
-    #e = TestEngine (u'Zhuyin')
+    e = TestEngine (u'Zhuyin')
+    e.test ('rm/3rm/3u.3gp6 ')
     #e.test ('5j/ cj86aup6eji6{BackSpace}ji{BackSpace}i6 ')
     #e.test ('5j/ eji6{BackSpace}{BackSpace}')
     #e.test ('5j/ cj86bp6aup6ej/4ck6eji6{Tab}{Page_Down}{Page_Up}{Tab}{Escape} ')
@@ -211,7 +212,7 @@ def main ():
     #e.test ('woshi gongchen {Escape}')
 
     # test fuzzy input
-    e = TestEngine (u'Pinyin')
+    #e = TestEngine (u'Pinyin')
     #e.test ('qiujiu')
     #e.test ('chagnan')
     #e.test ('changansbssyiandejioucen')
@@ -230,7 +231,7 @@ def main ():
     #e.test ('congmingdegongchentongxue {Left}{Left}')
     #"""
     #e.test ('gongminquanli 2;guowangquanli 3;gongmin quanli {Escape}{Escape};guowang quanli ')
-    e.test ('shishikanzhongbuzhongyong {Home}')
+    #e.test ('shishikanzhongbuzhongyong {Home}')
 
 if __name__ == "__main__":
     main ()

@@ -399,6 +399,10 @@ def g (s, k, depth):
         return s
     r = []
     for x in s:
+        if k[0] not in fuzzy_map:
+            if options.verbose:
+                print >> sys.stderr, 'invalid keyword encountered: [%s]' % k[0]
+            return []
         for y in fuzzy_map[k[0]]:
             r.append (x + [y])
     return g(r, k[1:], depth + 1)
@@ -413,6 +417,8 @@ def process_phrase (okey, phrase, freq):
     if okey != last_okey:
         last_okey = okey
         key_ids = [get_or_insert_key (k) for k in g ([[]], okey.split (), 0)]
+        if not key_ids and options.verbose:
+            print >> sys.stderr, 'failed index generation for phrase [%s] %s.' % (okey, phrase)
     for k_id in key_ids:
         add_rel (k_id, u_id)
 

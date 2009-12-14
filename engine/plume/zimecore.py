@@ -219,18 +219,17 @@ class Context:
     def __calculate_prompt_string (self, s, d, n, m):
         if n == 0:
             return
-        t = [i for i in range (n + 1)]
-        p = s
-        if self.__auto_delimit:
-            p = []
-            c = 0
-            for i in range (n):
-                if i > 0 and i in d and s[i - 1] not in self.__delimiter:
-                    p.append (self.__delimiter[0])
-                    c += 1
-                p.append (s[i])
-                t[i] = i + c
-            t[-1] = n + c
+        t = [0 for i in range (n + 1)]
+        p = []
+        c = 0
+        for i in range (n):
+            if self.__auto_delimit and i > 0 and i in d and s[i - 1] not in self.__delimiter:
+                p.append (self.__delimiter[0])
+                c += 1
+            t[i] = c
+            p.append (s[i])
+            c += len (s[i])
+        t[-1] = c
         self.__prompt = (u''.join (p), t)
     def get_preedit (self):
         if self.is_empty ():

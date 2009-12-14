@@ -112,6 +112,8 @@ class Engine:
         return False
     def __process (self, event):
         if self.__ctx.is_empty ():
+            if self.__punct and (mask & modifier.RELEASE_MASK):
+                return True
             if self.__handle_punct (event, commit=False):
                 return True
             return self.__judge (event)
