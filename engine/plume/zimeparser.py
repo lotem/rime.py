@@ -41,6 +41,8 @@ class GroupingParser (Parser):
             return None
         if ctx.being_converted ():
             return None
+        if event.keycode == keysyms.Escape:
+            return None
         if event.keycode == keysyms.BackSpace:
             ctx.input.pop ()
             if not self.__is_empty ():
