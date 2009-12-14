@@ -129,7 +129,6 @@ class Engine:
                 self.__ctx.clear_error ()
             else:
                 self.__ctx.edit ([])
-                self.__parser.clear ()
             return True
         if event.keycode == keysyms.Home or event.keycode == keysyms.Tab and event.mask & modifier.SHIFT_MASK:
             self.__ctx.home ()

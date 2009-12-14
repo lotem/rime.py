@@ -26,6 +26,7 @@ class RomanParser (Parser):
 class GroupingParser (Parser):
     def __init__ (self, schema):
         Parser.__init__ (self, schema)
+        self.__prompt_pattern = schema.get_config_char_sequence (u'PromptPattern') or u'%s\u203a'
         self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
         self.__key_groups = schema.get_config_value (u'KeyGroups').split ()
         self.__code_groups = schema.get_config_value (u'CodeGroups').split ()
@@ -42,8 +43,11 @@ class GroupingParser (Parser):
         if ctx.being_converted ():
             return None
         if event.keycode == keysyms.Escape:
+            self.clear ()
             return None
         if event.keycode == keysyms.BackSpace:
+            if ctx.is_empty ():
+                return None
             ctx.input.pop ()
             if not self.__is_empty ():
                 # delete last one symbol from current keyword
@@ -56,7 +60,7 @@ class GroupingParser (Parser):
                 self.__cursor = j
                 if not self.__is_empty ():
                     # update keyword
-                    result = u''.join (self.__slots)
+                    result = self.__prompt_pattern % u''.join (self.__slots)
                     return [result]
             # keyword disposed, go back
             if not ctx.is_empty () and ctx.input[-1] == self.__delimiter[0]:
@@ -65,8 +69,10 @@ class GroupingParser (Parser):
         if event.keycode == keysyms.space:
             if self.__is_empty ():
                 return None
+            ctx.input.pop ()
+            result = u''.join (self.__slots)
             self.clear ()
-            return []
+            return [result]
         # handle input
         ch = event.get_char ()
         k = self.__cursor
@@ -82,8 +88,8 @@ class GroupingParser (Parser):
         # update input
         if not self.__is_empty ():
             ctx.input.pop ()
-        elif not ctx.is_empty ():
-            ctx.input.append (self.__delimiter[0])
+        elif not ctx.is_empty () and ctx.input[-1] not in self.__delimiter:
+            ctx.input.append (self.__delimiter[0]) 
         # update current keyword
         idx = self.__key_groups[k].index (ch)
         self.__slots[k] = self.__code_groups[k][idx]
@@ -91,9 +97,10 @@ class GroupingParser (Parser):
         k += 1
         if k >= self.__group_count:
             self.clear ()
+            return [result]
         else:
             self.__cursor = k
-        return [result]
+            return [self.__prompt_pattern % result]
 
 def register_parsers ():
     Parser.register ('roman', RomanParser)

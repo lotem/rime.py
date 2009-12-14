@@ -86,7 +86,6 @@ class Context:
         self.__reset ()
     def __reset (self, keep_context=False):
         self.input = []
-        self.aux = None
         self.err = None
         if not keep_context:
             self.pre = None
@@ -263,8 +262,6 @@ class Context:
         else:
             return u''.join (self.input)
     def get_aux_string (self):
-        if self.aux:
-            return self.aux
         c = self.cur
         if c:
             p, t = self.__prompt
