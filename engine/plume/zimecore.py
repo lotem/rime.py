@@ -290,7 +290,8 @@ class Context:
         c = self.cur
         if c:
             s, t = self.__display
-            return s[t[c[0].i]:t[c[-1].j]].rstrip (self.__delimiter)
+            # return the corresponding part of display string without trailing space
+            return s[t[c[0].i]:t[c[-1].j]].rstrip ()
         return u''
     def get_candidates (self):
         return self.__candidates
