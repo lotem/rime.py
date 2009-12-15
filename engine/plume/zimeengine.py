@@ -219,10 +219,12 @@ class Engine:
                 ctx.edit (ctx.input, start_conversion=True)
             return True
         if event.keycode == keysyms.Return:
-            if ctx.being_converted ():
+            if event.mask & modifier.SHIFT_MASK:
+                self.__commit (raw_input=True)
+            elif ctx.being_converted ():
                 self.__confirm_current ()
             else:
-                self.__commit (raw_input=bool (event.mask & modifier.SHIFT_MASK))
+                self.__commit ()
             return True
         # auto-commit
         if self.__handle_punct (event, commit=True):
