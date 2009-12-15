@@ -10,18 +10,50 @@ class RomanParser (Parser):
     def __init__ (self, schema):
         Parser.__init__ (self, schema)
         self.__alphabet = schema.get_config_char_sequence (u'Alphabet') or \
-            u'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+            u'abcdefghijklmnopqrstuvwxyz'
         self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
+        # TODO: make it configurable
+        self.__quote = u'`'
+        acc = u'''ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
+                  0123456789!@#$%^&*()`~-_=+[{]}\\|;:'",<.>/?'''.split (None, 1)
+        self.__acceptable = lambda x: x == u' ' or any ([x in s for s in acc])
+        self.__startable = lambda x: x == self.__quote or x in acc[0]
     def clear (self):
-        pass
+        self.prompt = None
     def process_input (self, event, ctx):
         if event.mask & modifier.RELEASE_MASK:
             return False
+        ch = event.get_char ()
+        # raw string mode
+        if self.prompt:
+            if event.keycode == keysyms.Return:
+                return Commit (self.prompt)
+            if event.keycode == keysyms.Escape:
+                self.clear ()
+                return Prompt ()
+            if event.keycode == keysyms.BackSpace:
+                self.prompt = self.prompt[:-1] or None
+                return Prompt ()
+            if ch == self.__quote and self.prompt.startswith (self.__quote):
+                s = self.prompt[1:]
+                if s:
+                    return Commit (s)
+                else:
+                    return Commit (self.__quote)
+            if self.__acceptable (ch):
+                self.prompt += ch
+                return Prompt ()
+            return True
+        # normal mode
         if event.keycode == keysyms.space:
             return False
-        ch = event.get_char ()
         if ch in self.__alphabet or not ctx.is_empty () and ch in self.__delimiter:
             return [ch]
+        # start raw string mode
+        if ctx.is_empty () and self.__startable (ch):
+            self.prompt = ch
+            return Prompt ()
+        # unused
         return False
 
 class GroupingParser (Parser):

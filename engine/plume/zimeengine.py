@@ -84,6 +84,12 @@ class Engine:
             return True
         if result is False:
             return self.__process (event)
+        return self.__handle_parser_result (result)
+    def __handle_parser_result (self, result):
+        if isinstance (result, Commit):
+            self.__frontend.commit_string (result)
+            self.__parser.clear ()
+            self.__ctx.clear ()
         if isinstance (result, Prompt):
             if self.__parser.prompt:
                 self.__update_preedit ()
@@ -235,7 +241,7 @@ class Engine:
                 self.__punct = punct
                 self.__punct_key = event.keycode
                 self.__punct_rep = 0
-                # promt punct
+                # prompt punct
                 self.__frontend.update_preedit (punct[0], 0, len (punct[0]))
             else:
                 self.__frontend.commit_string (punct)
@@ -265,8 +271,8 @@ class Engine:
     def __commit (self, raw_input=False):
         s = self.__ctx.get_input_string () if raw_input else self.__ctx.get_commit_string ()
         self.__frontend.commit_string (s)
-        self.__ctx.commit ()
         self.__parser.clear ()
+        self.__ctx.commit ()
     def __update_preedit (self):
         preedit, start, end = self.__ctx.get_preedit ()
         prompt = self.__parser.prompt

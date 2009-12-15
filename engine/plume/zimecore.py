@@ -19,6 +19,9 @@ class KeyEvent:
 class Prompt:
     pass
 
+class Commit (unicode):
+    pass
+
 class Schema:
     def __init__ (self, name):
         self.__name = name
