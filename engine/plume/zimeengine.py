@@ -149,10 +149,13 @@ class Engine:
             else:
                 ctx.edit ([])
             return True
-        if event.keycode == keysyms.Home or event.keycode == keysyms.Tab and event.mask & modifier.SHIFT_MASK:
+        if event.keycode == keysyms.Tab:
+            ctx.end (start_conversion=True)
+            return True
+        if event.keycode == keysyms.Home:
             ctx.home ()
             return True
-        if event.keycode == keysyms.End or event.keycode == keysyms.Tab:
+        if event.keycode == keysyms.End:
             ctx.end ()
             return True
         if event.keycode == keysyms.Left:

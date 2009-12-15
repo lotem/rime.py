@@ -131,7 +131,7 @@ class Context:
             if m != n:
                 self.err = Entry (None, m, n)
             elif start_conversion:
-                self.end ()
+                self.__update_candidates (self.__predict (exclude_the_last=True))
                 return
             if self.__auto_predict:
                 self.__predict ()
@@ -161,10 +161,15 @@ class Context:
         self.sel = []
         self.__update_candidates (0)
         return True
-    def end (self):
+    def end (self, start_conversion=False):
+        if not self.being_converted ():
+            if not start_conversion or self.has_error ():
+                return False
+            # do a fresh new prediction in case of a full prediction is present
+            self.sel = []
         self.__update_candidates (self.__predict (exclude_the_last=True))
     def left (self):
-        if not self.cur:
+        if not self.being_converted ():
             return
         i = self.cur[0].i
         j = self.cur[-1].j
@@ -174,7 +179,7 @@ class Context:
                 return
         self.back ()
     def right (self):
-        if not self.cur:
+        if not self.being_converted ():
             return
         i = self.cur[0].i
         j = self.cur[-1].j
