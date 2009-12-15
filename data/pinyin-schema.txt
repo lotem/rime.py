@@ -2,6 +2,7 @@ Schema/Pinyin = 拼音
 Config/Pinyin/Prefix = pinyin
 Config/Pinyin/Parser = roman
 Config/Pinyin/AutoPrompt = yes
+Config/Pinyin/AutoDelimit = yes
 Config/Pinyin/Delimiter = [ '-]
 Config/Pinyin/MaxKeywordLength = 6
 Config/Pinyin/SplitRule = mng aeiou
@@ -35,8 +36,8 @@ Config/Pinyin/FuzzyRule = ng$ gn
 #Config/Pinyin/FuzzyRule = ^n l
 #Config/Pinyin/FuzzyRule = ([ei])ng$ \1n
 # 簡拼
-#Config/Pinyin/FuzzyRule = ^([a-z]h).+$ \1
-#Config/Pinyin/FuzzyRule = ^([a-z]).+$ \1
+Config/Pinyin/FuzzyRule = ^([a-z]h).+$ \1
+Config/Pinyin/FuzzyRule = ^([a-z]).+$ \1
 # punctuation
 Config/Pinyin/Punct = , ，
 Config/Pinyin/Punct = . 。

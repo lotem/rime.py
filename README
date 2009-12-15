@@ -24,7 +24,7 @@ sudo make install
 cd data
 
 # a) Install schema: Pinyin
-
+# The installation process may take minutes, as abbreviated input has been enabled. 
 ./plume-create-schema.py -v -s pinyin
 
 # b) Install schema: Jyutping (Cantonese)
@@ -39,7 +39,7 @@ cd data
 ./plume-create-schema.py -v -s zhuyin
 
 # e) Install schema: Combo Pinyin (Refer to ZIME project home page)
-# NOTE: This schema requires Pinyin schema already installed (and with fuzzy input options off).
+# NOTE: This schema requires Pinyin schema already installed (and with fuzzy input options off as default).
 ./plume-create-schema.py -k combo-pinyin-schema.txt
 
 # Combo Pinyin for Stylo uses a different schema file from Plume's, due to the differences in their implementation:
