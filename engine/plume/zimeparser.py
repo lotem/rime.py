@@ -16,13 +16,13 @@ class RomanParser (Parser):
         pass
     def process_input (self, event, ctx):
         if event.mask & modifier.RELEASE_MASK:
-            return None
+            return False
         if event.keycode == keysyms.space:
-            return None
+            return False
         ch = event.get_char ()
         if ch in self.__alphabet or not ctx.is_empty () and ch in self.__delimiter:
             return [ch]
-        return None
+        return False
 
 class GroupingParser (Parser):
     def __init__ (self, schema):
@@ -36,44 +36,42 @@ class GroupingParser (Parser):
     def clear (self):
         self.__slots = [u''] * self.__group_count
         self.__cursor = 0
+        self.prompt = None
     def __is_empty (self):
         return not any (self.__slots)
     def process_input (self, event, ctx):
         if event.mask & modifier.RELEASE_MASK:
-            return None
+            return False
         if ctx.being_converted ():
-            return None
+            return False
         if event.keycode == keysyms.Escape:
             self.clear ()
-            return None
+            return False
         if event.keycode == keysyms.BackSpace:
-            if ctx.is_empty ():
-                return None
-            ctx.input.pop ()
+            if self.__is_empty ():
+                return False
+            # delete last one symbol from current keyword
+            j = self.__group_count - 1
+            while j > 0 and not self.__slots[j]:
+                j -= 1
+            self.__slots[j] = u''
+            while j > 0 and not self.__slots[j]:
+                j -= 1
+            self.__cursor = j
             if not self.__is_empty ():
-                # delete last one symbol from current keyword
-                j = self.__group_count - 1
-                while j > 0 and not self.__slots[j]:
-                    j -= 1
-                self.__slots[j] = u''
-                while j > 0 and not self.__slots[j]:
-                    j -= 1
-                self.__cursor = j
-                if not self.__is_empty ():
-                    # update keyword
-                    result = self.__prompt_pattern % u''.join (self.__slots)
-                    return [result]
-            # keyword disposed, go back
-            if not ctx.is_empty () and ctx.input[-1] == self.__delimiter[0]:
-                ctx.input.pop ()
-            return []
+                # update prompt
+                self.prompt = self.__prompt_pattern % u''.join (self.__slots)
+                return Prompt ()
+            else:
+                # keyword disposed
+                self.clear ()
+                return Prompt ()
         if event.keycode == keysyms.space:
             if self.__is_empty ():
-                return None
-            ctx.input.pop ()
+                return False
             result = u''.join (self.__slots)
             self.clear ()
-            return [result]
+            return [result] if ctx.is_empty () else [self.__delimiter[0], result]
         # handle grouping input
         ch = event.get_char ()
         k = self.__cursor
@@ -83,14 +81,9 @@ class GroupingParser (Parser):
                 k = 0
             if k == self.__cursor:
                 if self.__is_empty ():
-                    return None
+                    return False
                 else:
-                    return []
-        # update input
-        if not self.__is_empty ():
-            ctx.input.pop ()
-        elif not ctx.is_empty () and ctx.input[-1] not in self.__delimiter:
-            ctx.input.append (self.__delimiter[0]) 
+                    return True
         # update current keyword
         idx = self.__key_groups[k].index (ch)
         self.__slots[k] = self.__code_groups[k][idx]
@@ -98,14 +91,16 @@ class GroupingParser (Parser):
         k += 1
         if k >= self.__group_count:
             self.clear ()
-            return [result]
+            return [result] if ctx.is_empty () else [self.__delimiter[0], result]
         else:
             self.__cursor = k
-            return [self.__prompt_pattern % result]
+            self.prompt = self.__prompt_pattern % result
+            return Prompt ()
 
 class ComboParser (Parser):
     def __init__ (self, schema):
         Parser.__init__ (self, schema)
+        self.__prompt_pattern = schema.get_config_char_sequence (u'PromptPattern') or u'%s\u203a'
         self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
         self.__combo_keys = schema.get_config_char_sequence (u'ComboKeys') or u''
         self.__combo_codes = schema.get_config_char_sequence (u'ComboCodes') or u''
@@ -119,32 +114,25 @@ class ComboParser (Parser):
     def clear (self):
         self.__combo.clear ()
         self.__held.clear ()
+        self.prompt = None
     def __is_empty (self):
         return not bool (self.__held)
     def __commit_combo (self, ctx):
         k = self.__get_combo_string ()
         #print '__commit_combo', k
         self.clear ()
-        ctx.input.pop ()
-        if not ctx.is_empty () and ctx.input[-1] == self.__delimiter[0]:
-            ctx.input.pop ()
         if k == self.__combo_space:
-            ctx.edit (ctx.input)
             return KeyEvent (keysyms.space, 0, coined=True)
+        elif not k:
+            return Prompt ()
         else:
-            if not k:
-                return []
-            if not ctx.is_empty ():
-                ctx.input.append (self.__delimiter[0])
-            return [k]
+            return [k] if ctx.is_empty () else [self.__delimiter[0], k]
     def __get_combo_string (self):
         s = u''.join ([self.__combo_codes[i] for i in range (self.__combo_max_length) \
                                                  if self.__combo_keys[i] in self.__combo])
         xform = lambda s, r: r[0].sub (r[1], s, 1)
         return reduce (xform, self.__xform_rules, s)
     def process_input (self, event, ctx):
-        if ctx.being_converted ():
-            return None
         # handle combo input
         ch = event.get_char ()
         if event.mask & modifier.RELEASE_MASK:
@@ -153,28 +141,18 @@ class ComboParser (Parser):
                 self.__held.remove (ch)
                 if self.__is_empty ():
                     return self.__commit_combo (ctx)
-            return None
+            return False
         if ch in self.__combo_keys:
             #print 'pressed:', ch
-            if not self.__is_empty ():
-                ctx.input.pop ()
-            elif not ctx.is_empty () and ctx.input[-1] != self.__delimiter[0]:
-                ctx.input.append (self.__delimiter[0])
             self.__combo.add (ch)
             self.__held.add (ch)
-            return [self.__get_combo_string ()]
-        # edit keys
-        if event.keycode == keysyms.Escape:
+            self.prompt = self.__prompt_pattern % self.__get_combo_string ()
+            return Prompt ()
+        # non-combo keys
+        if not self.__is_empty ():
             self.clear ()
-            return None
-        if event.keycode == keysyms.BackSpace:
-            if ctx.is_empty ():
-                return None
-            ctx.input.pop ()
-            if not ctx.is_empty () and ctx.input[-1] == self.__delimiter[0]:
-                ctx.input.pop ()
-            return []
-        return None
+            return Prompt ()
+        return False
 
 def register_parsers ():
     Parser.register ('roman', RomanParser)

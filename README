@@ -2,7 +2,7 @@ Hi.
 Thank you for taking the time to read this, and for trying ibus-zime.
 
 ibus-zime consists of two different IM engines, namely `Stylo`, the wholer-sentence model, and `Plume`, the phrase-based model.
-I suggest new users give Plume a try first, since it provides more functionalities, and a slightly better user experience for now.
+I suggest new users give Plume a try first, since it provides more functionalities, and a slightly better user experience.
 
 Quick Start:
 
@@ -39,19 +39,19 @@ cd data
 ./plume-create-schema.py -v -s zhuyin
 
 # e) Install schema: Combo Pinyin (Refer to ZIME project home page)
-# NOTE: This schema requires Pinyin schema already installed with fuzzy input options off.
+# NOTE: This schema requires Pinyin schema already installed (and with fuzzy input options off).
 ./plume-create-schema.py -k combo-pinyin-schema.txt
 
-# f) Combo Pinyin for Stylo uses a different schema file from Plume's, due to the differences in their implementation:
+# Combo Pinyin for Stylo uses a different schema file from Plume's, due to the differences in their implementation:
 ./stylo-create-schema.py -k combo-pinyin-schema-for-stylo.txt
 
-# g) Invent your own schema!
+# f) Invent your own schema!
 
 3. Restart IBus and enable ZIME engine(s) in IBus preferences.
 
 4. When ZIME is active, you can always type Ctrl+` to call schema chooser menu, and choose among installed schemas.
 
-Sorry for the temporary absense of documentation.
+Sorry for the temporary absence of documentation.
 Feel free to explore.
 
 Questions go to <chen.sst@gmail.com> .

@@ -127,8 +127,8 @@ class TestEngine:
                 self.process_key_event (ord (c), 0)
 
 def main ():
-    #e = TestEngine (u'Zhuyin')
-    #e.test ('rm/3rm/3u.3gp6 ')
+    e = TestEngine (u'Zhuyin')
+    e.test ('rm/3rm/3u.3gp6zj/ {Escape}')
     #e.test ('5j/ cj86aup6eji6{BackSpace}ji{BackSpace}i6 ')
     #e.test ('5j/ eji6{BackSpace}{BackSpace}')
     #e.test ('5j/ cj86bp6aup6ej/4ck6eji6{Tab}{Page_Down}{Page_Up}{Tab}{Escape} ')
@@ -149,8 +149,6 @@ def main ():
     #e.test ('ji{Escape}ji353gji {Tab}{Escape}{Escape}')
 
     #e = TestEngine (u'Pinyin')
-    #e.test ('zhongguo weida ')
-    #e.test ('zhongzhouhua4 ')
     #e.test ("pinyin-shuru'fa' ")
     #e.test ("an'an anan chang'an changang2 ")
     #e.test ('xauxin xiauxin ')
@@ -169,8 +167,6 @@ def main ():
     #e.process_key_event (keysyms.j, modifier.RELEASE_MASK)
     #e.process_key_event (keysyms.k, modifier.RELEASE_MASK)
     #e.process_key_event (keysyms.l, modifier.RELEASE_MASK)
-    #e.process_key_event (keysyms.space, 0)
-    #e.process_key_event (keysyms.space, modifier.RELEASE_MASK)
     #e.process_key_event (keysyms.space, 0)
     #e.process_key_event (keysyms.space, modifier.RELEASE_MASK)
 
@@ -211,7 +207,7 @@ def main ():
     #e.test ('renminde gongchen {Escape}')
     #e.test ('woshi gongchen {Escape}')
 
-    e = TestEngine (u'Pinyin')
+    #e = TestEngine (u'Pinyin')
     # test fuzzy input
     #e.test ('qiujiu')
     #e.test ('chagnan')
@@ -232,7 +228,7 @@ def main ():
     #"""
     #e.test ('gongminquanli 2;guowangquanli 3;gongmin quanli {Escape}{Escape};guowang quanli ')
     #e.test ('shishikanzhongbuzhongyong {Home}')
-    e.test ('shuru pingtai ')
+    #e.test ('shuru pingtai ')
 
 if __name__ == "__main__":
     main ()

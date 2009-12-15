@@ -16,6 +16,7 @@
 #up/down keys move candidate selection; space key selects highlighted candidate unless at the end of the context.
 #in auto-prompt mode, place the cursor at the beginning of the last proposed phrase.
 #delete words with Ctrl-1~9.
+3.14
 mode switch by pressing Shift key.
 activate schema chooser by clicking on property icon.
 # questions

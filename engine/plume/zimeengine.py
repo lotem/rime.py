@@ -33,9 +33,10 @@ __initialize ()
 class Engine:
     def __init__ (self, frontend, name):
         self.__frontend = frontend
-        self.__schema = Schema (name)
-        self.__parser = Parser.create (self.__schema)
-        self.__ctx = Context (self, self.__schema)
+        self.__schema = schema = Schema (name)
+        self.__parser = Parser.create (schema)
+        self.__ctx = Context (self, schema)
+        self.__auto_prompt = schema.get_config_value (u'AutoPrompt') in (u'yes', u'true')
         self.__punct = None
         self.__punct_key = 0
         self.__punct_rep = 0
@@ -79,18 +80,32 @@ class Engine:
                     # continue processing
         event = KeyEvent (keycode, mask)
         result = self.__parser.process_input (event, self.__ctx)
-        if result is None:
+        if result is True:
+            return True
+        if result is False:
             return self.__process (event)
-        elif isinstance (result, KeyEvent):
-            return self.__process (result)
-        # handle input
-        if self.__ctx.being_converted ():
-            if self.__ctx.is_completed ():
-                # auto-commit
-                self.__commit ()
+        if isinstance (result, Prompt):
+            if self.__parser.prompt:
+                self.__update_preedit ()
+                self.__frontend.update_aux_string (u'')
+                self.__frontend.update_candidates ([])
             else:
-                return True
-        self.__ctx.edit (self.__ctx.input + result)
+                self.update_ui ()
+            return True    
+        if isinstance (result, list):
+            # handle input
+            if self.__is_conversion_mode ():
+                if self.__ctx.is_completed ():
+                    # auto-commit
+                    self.__commit ()
+                else:
+                    return True
+            self.__ctx.edit (self.__ctx.input + result, start_conversion=self.__auto_prompt)
+            return True
+        if isinstance (result, KeyEvent):
+            # coined key event
+            return self.__process (result)
+        # noop
         return True
     def __next_punct (self):
         self.__punct_rep = (self.__punct_rep + 1) % len (self.__punct)
@@ -113,8 +128,9 @@ class Engine:
             return True
         return False
     def __process (self, event):
-        if self.__ctx.is_empty ():
-            if self.__punct and (mask & modifier.RELEASE_MASK):
+        ctx = self.__ctx
+        if ctx.is_empty ():
+            if event.mask & modifier.RELEASE_MASK and self.__punct:
                 return True
             if self.__handle_punct (event, commit=False):
                 return True
@@ -125,26 +141,27 @@ class Engine:
         if edit_key:
             return self.__process (edit_key)
         if event.keycode == keysyms.Escape:
-            if self.__ctx.being_converted ():
-                self.__ctx.cancel_conversion ()
-            elif self.__ctx.has_error ():
-                self.__ctx.clear_error ()
+            if self.__is_conversion_mode ():
+                ctx.cancel_conversion ()
+            elif ctx.has_error ():
+                ctx.pop_input (ctx.err.i)
+                ctx.edit (ctx.input, start_conversion=self.__auto_prompt)
             else:
-                self.__ctx.edit ([])
+                ctx.edit ([])
             return True
         if event.keycode == keysyms.Home or event.keycode == keysyms.Tab and event.mask & modifier.SHIFT_MASK:
-            self.__ctx.home ()
+            ctx.home ()
             return True
         if event.keycode == keysyms.End or event.keycode == keysyms.Tab:
-            self.__ctx.end ()
+            ctx.end ()
             return True
         if event.keycode == keysyms.Left:
-            self.__ctx.left ()
+            ctx.left ()
             return True
         if event.keycode == keysyms.Right:
-            self.__ctx.right ()
+            ctx.right ()
             return True
-        candidates = self.__ctx.get_candidates ()
+        candidates = ctx.get_candidates ()
         if candidates:
             if event.keycode in (keysyms.minus, keysyms.comma):
                 self.__frontend.page_up () and self.__select_by_cursor (candidates)
@@ -180,27 +197,30 @@ class Engine:
                 self.__commit ()
                 return self.__judge (event)
         if event.keycode == keysyms.BackSpace:
-            if self.__ctx.being_converted ():
-                self.__ctx.back () or self.__ctx.cancel_conversion ()
+            if self.__is_conversion_mode (assumed=bool (event.mask & modifier.SHIFT_MASK)):
+                ctx.back () or self.__auto_prompt or ctx.cancel_conversion ()
             else:
-                self.__ctx.edit (self.__ctx.input[:-1])
+                ctx.pop_input ()
+                ctx.edit (ctx.input, start_conversion=self.__auto_prompt)
             return True
         if event.keycode == keysyms.space:
-            if self.__ctx.being_converted ():
+            if ctx.being_converted ():
                 self.__confirm_current ()
             else:
-                self.__ctx.start_conversion ()
+                ctx.edit (ctx.input, start_conversion=True)
             return True
         if event.keycode == keysyms.Return:
-            if self.__ctx.being_converted ():
+            if ctx.being_converted ():
                 self.__confirm_current ()
             else:
-                self.__commit ()
+                self.__commit (raw_input=bool (event.mask & modifier.SHIFT_MASK))
             return True
         # auto-commit
         if self.__handle_punct (event, commit=True):
             return True
         return True
+    def __is_conversion_mode (self, assumed=False):
+        return (not self.__auto_prompt or assumed) and self.__ctx.being_converted ()
     def __handle_punct (self, event, commit):
         punct = self.__parser.check_punct (event)
         if punct:
@@ -231,6 +251,7 @@ class Engine:
         if index >= 0 and index < len (candidates):
             self.__ctx.select (candidates[index][1])
             self.__update_preedit ()
+            self.__frontend.update_aux_string (self.__ctx.get_aux_string ())
             return True
         return False
     def __confirm_current (self):
@@ -238,17 +259,23 @@ class Engine:
             self.__commit ()
         else:
             self.__ctx.forward ()
-    def __commit (self):
-        self.__frontend.commit_string (self.__ctx.get_commit_string ())
+    def __commit (self, raw_input=False):
+        s = self.__ctx.get_input_string () if raw_input else self.__ctx.get_commit_string ()
+        self.__frontend.commit_string (s)
         self.__ctx.commit ()
         self.__parser.clear ()
     def __update_preedit (self):
         preedit, start, end = self.__ctx.get_preedit ()
+        prompt = self.__parser.prompt
+        if prompt:
+            start = len (preedit)
+            preedit += prompt
+            end = len (preedit)
         self.__frontend.update_preedit (preedit, start, end)
-        self.__frontend.update_aux_string (self.__ctx.get_aux_string ())
     def update_ui (self):
-        self.__frontend.update_candidates (self.__ctx.get_candidates ())
         self.__update_preedit ()
+        self.__frontend.update_aux_string (self.__ctx.get_aux_string ())
+        self.__frontend.update_candidates (self.__ctx.get_candidates ())
         
 class SchemaChooser:
     def __init__ (self, frontend, schema_name=None):

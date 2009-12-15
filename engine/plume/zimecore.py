@@ -16,6 +16,9 @@ class KeyEvent:
     def __str__ (self):
         return "<KeyEvent: '%s'(%x), %08x>" % (keysyms.keycode_to_name (self.keycode), self.keycode, self.mask)
 
+class Prompt:
+    pass
+
 class Schema:
     def __init__ (self, name):
         self.__name = name
@@ -56,6 +59,8 @@ class Parser:
         self.__punct = dict ([punct_mapping (c.split (None, 1)) for c in schema.get_config_list (u'Punct')])
         key_mapping = lambda (x, y): (keysyms.name_to_keycode (x), keysyms.name_to_keycode (y))
         self.__edit_keys = dict([key_mapping (c.split (None, 1)) for c in schema.get_config_list (u'EditKey')])
+        # for keyword display while editing
+        self.prompt = None
     def get_schema (self):
         return self.__schema
     def check_punct (self, event):
@@ -82,6 +87,7 @@ class Context:
         self.__model = Model (schema)
         self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
         self.__auto_delimit = schema.get_config_value (u'AutoDelimit') in (u'yes', u'true')
+        self.__auto_predict = schema.get_config_value (u'Predict') in (None, u'yes', u'true')
         #self.schema = schema
         self.__reset ()
     def __reset (self, keep_context=False):
@@ -95,47 +101,46 @@ class Context:
         self.pred = []
         self.__candidates = []
         self.seg = 0, 0
-        self.__prompt = (u'', [0])
+        self.__display = (u'', [0])
     def clear (self):
         self.__reset ()
         self.__cb.update_ui ()
     def is_empty (self):
         return not self.input
+    def pop_input (self, till=-1):
+        if till == -1:
+            till = max (0, len (self.input) - 1)
+        while len (self.input) > till:
+            self.input.pop ()
+            if self.input and self.input[-1] == self.__delimiter[0]:
+                self.input.pop ()
     def commit (self):
         if self.is_completed ():
             self.__model.train (self, self.sel + self.cur)
             self.edit ([])
         else:
             self.clear ()
-    def edit (self, input):
+    def edit (self, input, start_conversion=False):
         self.__reset (keep_context=True)
         self.input = input
         if input:
-            s = self.seg = self.__model.segmentation (input)
-            n, m = s[:2]
+            self.seg = self.__model.segmentation (input)
+            self.__model.query (self)
+            m, n = self.seg[:2]
+            self.__calculate_display_string (input, self.seg[4], n, m)
             if m != n:
                 self.err = Entry (None, m, n)
-            self.__calculate_prompt_string (input, s[4], n, m)
+            elif start_conversion:
+                self.end ()
+                return
+            if self.__auto_predict:
+                self.__predict ()
         self.__cb.update_ui ()
     def has_error (self):
         return self.err is not None
-    def clear_error (self):
-        self.edit (self.input[:self.err.i])
-    def start_conversion (self):
-        if self.has_error ():
-            self.__cb.update_ui ()
-        else:
-            self.__model.query (self)
-            self.end ()
     def cancel_conversion (self):
         self.edit (self.input)
-    def home (self):
-        if not self.being_converted ():
-            return False
-        self.sel = []
-        self.__update_candidates (0)
-        return True
-    def end (self):
+    def __predict (self, exclude_the_last=False):
         i = self.sel[-1].j if self.sel else (-1 if self.pre else 0)
         p = (self.sel[-1].next if self.sel else None) or self.pred[i]
         while p:
@@ -144,12 +149,20 @@ class Context:
                 del s[0]
             if s:
                 p = s[-1]
-                if p.j == len (self.input):
+                if exclude_the_last and p.j == self.seg[0]:
                     break
                 self.sel.extend (s)
             i = p.j
             p = self.pred[i]
-        self.__update_candidates (max (0, i))
+        return max (0, i)
+    def home (self):
+        if not self.being_converted ():
+            return False
+        self.sel = []
+        self.__update_candidates (0)
+        return True
+    def end (self):
+        self.__update_candidates (self.__predict (exclude_the_last=True))
     def left (self):
         if not self.cur:
             return
@@ -165,7 +178,7 @@ class Context:
             return
         i = self.cur[0].i
         j = self.cur[-1].j
-        for k in range (j + 1, len (self.input) + 1):
+        for k in range (j + 1, self.seg[0] + 1):
             if self.phrase[i][k]:
                 self.__update_candidates (i, k)
                 return
@@ -183,11 +196,11 @@ class Context:
             return False
         i = self.cur[0].i
         p = (self.sel[-1].next if self.sel else None) or self.pred[i]
-        if p and p.j < len (self.input):
+        if p and p.j < self.seg[0]:
             self.sel.append (p)
             i = p.j
             j = 0
-            for k in range (i + 1, len (self.input) + 1):
+            for k in range (i + 1, self.seg[0] + 1):
                 if self.phrase[i][k]:
                     j = k
                     break
@@ -200,7 +213,7 @@ class Context:
             self.sel.extend (c)
             self.__update_candidates (c[-1].j)
     def __update_candidates (self, i, j=0):
-        print '__update_candidates:', i, j
+        #print '__update_candidates:', i, j
         self.__candidates = self.__model.make_candidate_list (self, i, j)
         if self.__candidates:
             self.cur = self.__candidates[0][1].get_all ()
@@ -215,7 +228,7 @@ class Context:
         return bool (self.cur)
     def is_completed (self):
         return self.cur and self.cur[-1].j == len (self.input)
-    def __calculate_prompt_string (self, s, d, n, m):
+    def __calculate_display_string (self, s, d, n, m):
         if n == 0:
             return
         t = [0 for i in range (n + 1)]
@@ -229,13 +242,10 @@ class Context:
             p.append (s[i])
             c += len (s[i])
         t[-1] = c
-        self.__prompt = (u''.join (p), t)
+        self.__display = (u''.join (p), t)
     def get_preedit (self):
         if self.is_empty ():
             return u'', 0, 0
-        if self.has_error ():
-            p, t = self.__prompt
-            return p, t[self.err.i], t[self.err.j]
         r = []
         rest = 0
         start = 0
@@ -250,22 +260,29 @@ class Context:
             r.append (w)
             end += len (w)
             rest = s.j
-        if rest < len (self.input):
-            p, t = self.__prompt
-            #if r:
-            #    r.append (u' ')
-            r.append (p[t[rest]:])
+        if rest < self.seg[1]:
+            s, t = self.__display
+            r.append (s[t[rest]:])
+            if self.has_error ():
+                diff = t[rest] - end
+                start, end = t[self.err.i] - diff, t[self.err.j] - diff
         return u''.join (r), start, end
     def get_commit_string (self):
-        if self.is_completed ():
-            return u''.join ([s.get_word () for s in self.sel + self.cur])
-        else:
-            return u''.join (self.input)
+        i = 0
+        r = []
+        for s in self.sel + self.cur:
+            r.append (s.get_word ())
+            i = s.j
+        if i < len (self.input):
+            r.extend (self.input[i:])
+        return u''.join (r)
+    def get_input_string (self):
+        return u''.join (self.input)
     def get_aux_string (self):
         c = self.cur
         if c:
-            p, t = self.__prompt
-            return p[t[c[0].i]:t[c[-1].j]].rstrip (self.__delimiter)
+            s, t = self.__display
+            return s[t[c[0].i]:t[c[-1].j]].rstrip (self.__delimiter)
         return u''
     def get_candidates (self):
         return self.__candidates

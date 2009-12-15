@@ -163,15 +163,13 @@ class Model:
                 a[i] = [None for j in range (len (a[i]))]
         b.reverse ()
         d.reverse ()
-        return n, m, a, b, d
+        return m, n, a, b, d
 
     def query (self, ctx):
-        n, m, a, b, d = ctx.seg
-        if m != n:
-            return
+        m, n, a, b, d = ctx.seg
         # lookup words
-        edges = [[] for i in range (n)]
-        c = [[None for j in range (n + 1)] for i in range (n + 1)]
+        edges = [[] for i in range (m)]
+        c = [[None for j in range (m + 1)] for i in range (m + 1)]
         unig = {}
         big = {}
         queries = {}
@@ -197,13 +195,13 @@ class Model:
             if not k:
                 add_word (x, i, j)
                 return
-            if j == n:
+            if j == m:
                 return
             for y in edges[j]:
                 if k[0] in self.__fuzzy_map[y[1]]:
                     match_key (x, i, y[0], k[1:])
         def make_keys (i, k, length):
-            if length == 0 or i == n:    
+            if length == 0 or i == m:    
                 return [(i, k)]
             return [(i, k)] + reduce (lambda x, y: x + y, [make_keys (z[0], k + [z[1]], length - 1) for z in edges[i]])
         def lookup (i, j, k):
@@ -235,13 +233,13 @@ class Model:
         if ctx.pre:
             add_word (ctx.pre.u, -1, 0)
         # calculate sentence prediction
-        pred = [None for i in range (n + 1 + 1)]
+        pred = [None for i in range (m + 1 + 1)]
         for j in reversed (b):
             next = None
             for i in range (-1, j):
                 if c[i][j]:
                     for x in c[i][j]:
-                        if j == n:
+                        if j == m:
                             pass
                         else:
                             x.prob *= pred[j].prob * Model.PENALTY
@@ -251,7 +249,7 @@ class Model:
                                 if next is None:
                                     # all phrases that starts at j, grouped by uid
                                     next = dict ()
-                                    for k in range (j + 1, n + 1):
+                                    for k in range (j + 1, m + 1):
                                         if c[j][k]:
                                             for y in c[j][k]:
                                                 v = y.get_uid ()
@@ -304,11 +302,13 @@ class Model:
 
     def make_candidate_list (self, ctx, i, j):
         c = ctx.phrase
-        n = len (ctx.input)
-        r = [[] for k in range (n + 1)]
+        m = ctx.seg[0]
+        if i >= m:
+            return []
+        r = [[] for k in range (m + 1)]
         p = []
         if j == 0:
-            j = n
+            j = m
             while j > i and not c[i][j]:
                 j -= 1
         # info about the last phrase selected
