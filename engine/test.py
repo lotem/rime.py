@@ -229,11 +229,14 @@ def main ():
     #e.test ('gongminquanli 2;guowangquanli 3;gongmin quanli {Escape}{Escape};guowang quanli ')
     #e.test ('shishikanzhongbuzhongyong {Home}')
     #e.test ('Ubuntu9.10{Return}')
-    e.test ('vutuvuzhensiang')
-    e.process_key_event (keysyms.Shift_L, 0)
-    e.process_key_event (keysyms.Return, modifier.SHIFT_MASK)
-    e.process_key_event (keysyms.Return, modifier.SHIFT_MASK | modifier.RELEASE_MASK)
-    e.process_key_event (keysyms.Shift_L, modifier.RELEASE_MASK)
+    # test Shift-Return
+    #e.test ('vutuvuzhensiang')
+    #e.process_key_event (keysyms.Shift_L, 0)
+    #e.process_key_event (keysyms.Return, modifier.SHIFT_MASK)
+    #e.process_key_event (keysyms.Return, modifier.SHIFT_MASK | modifier.RELEASE_MASK)
+    #e.process_key_event (keysyms.Shift_L, modifier.RELEASE_MASK)
+    # BUG: fail to recognize `[zcs]huang` due to misuse of max_keyword_length
+    e.test ('anzhuang')
 
 if __name__ == "__main__":
     main ()

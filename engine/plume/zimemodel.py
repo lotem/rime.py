@@ -126,7 +126,7 @@ class Model:
                 p.append (i)
                 break
             ok = False
-            for j in range (min (n + 1, i + self.__max_keyword_length)):
+            for j in range (min (n, i + self.__max_keyword_length) + 1):
                 s = u''.join (input[i:j])
                 if not self.__is_keyword (s):
                     continue
