@@ -63,6 +63,9 @@ class RomanParser (Parser):
         # normal mode
         if event.keycode == keysyms.Escape:
             self.clear ()
+            if self.__xform_rules and ctx.has_error ():
+                ctx.edit ([])
+                return True
             return False
         if event.keycode == keysyms.BackSpace:
             if self.__is_empty ():
