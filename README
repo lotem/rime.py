@@ -19,7 +19,7 @@ sudo make install
 
 # NOTE: Run the scripts under ibus-zime/data/ as normal user. DB files will be created for current user only.
 # The resulting SQLite3 database files would be ~/.ibus/zime/plume.db, or ~/.ibus/zime/stylo.db.
-# If you prefer Stylo engine, change `plume-' to `stylo-' in the commands below.
+# If you prefer Stylo engine, change `plume-' to `stylo-' in the following commands.
 
 cd data
 
@@ -45,7 +45,11 @@ cd data
 # Combo Pinyin for Stylo uses a different schema file from Plume's, due to the differences in their implementation:
 ./stylo-create-schema.py -k combo-pinyin-schema-for-stylo.txt
 
-# f) Invent your own schema!
+# f) Install schema: Tonal Pinyin
+# NOTE: This schema is supported only by Plume engine.
+./plume-create-schema.py -v -s tonal-pinyin
+
+# g) Invent your own schema!
 
 3. Restart IBus and enable ZIME engine(s) in IBus preferences.
 
