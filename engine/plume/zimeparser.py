@@ -11,14 +11,15 @@ class RomanParser (Parser):
         Parser.__init__ (self, schema)
         self.__auto_prompt = schema.get_config_value (u'AutoPrompt') in (u'yes', u'true')
         self.__alphabet = schema.get_config_char_sequence (u'Alphabet') or \
-            u'abcdefghijklmnopqrstuvwxyz'
+                          u'abcdefghijklmnopqrstuvwxyz'
+        self.__initial = self.__alphabet.split (None, 1)[0]
         self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
         self.__quote = schema.get_config_char_sequence ('Quote') or u'`'
         acc = (schema.get_config_char_sequence ('Acceptable') or \
                u'''ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
                    0123456789!@#$%^&*()`~-_=+[{]}\\|;:'",<.>/?''').split (None, 1)
         self.__acceptable = lambda x: x == u' ' or any ([x in s for s in acc])
-        self.__startable = lambda x: x == self.__quote or x in acc[0]
+        self.__initial_acceptable = lambda x: x == self.__quote or x in acc[0]
         get_rules = lambda f, key: [f (r.split ()) for r in schema.get_config_list (key)]
         compile_repl_pattern = lambda x: (re.compile (x[0]), x[1])
         self.__xform_rules = get_rules (compile_repl_pattern, u'TransformRule')
@@ -75,12 +76,13 @@ class RomanParser (Parser):
             return []
         if event.keycode == keysyms.space:
             return False
-        if ch in self.__alphabet or not self.__is_empty () and ch in self.__delimiter:
+        if self.__is_empty () and ch in self.__initial or \
+           not self.__is_empty () and (ch in self.__alphabet or ch in self.__delimiter):
             self.__input.append (ch)
             ctx.input = self.__get_input ()
             return []
         # start raw string mode
-        if self.__is_empty () and self.__startable (ch):
+        if self.__is_empty () and self.__initial_acceptable (ch):
             self.prompt = ch
             return Prompt ()
         # unused

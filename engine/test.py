@@ -239,7 +239,7 @@ def main ():
     #e.test ('anzhuang')
 
     #e = TestEngine (u'TonalPinyin')
-    #e.test ('biao1diao4 42')
+    #e.test ('biao1diao4  ')
 
     pass
 
