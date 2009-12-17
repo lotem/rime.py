@@ -30,10 +30,13 @@ class RomanParser (Parser):
     def __is_empty (self):
         return not bool (self.__input)
     def __get_input (self):
-        # apply transform rules
-        xform = lambda s, r: r[0].sub (r[1], s)
-        s = reduce (xform, self.__xform_rules, u''.join (self.__input[:]))
-        return list (s)
+        if self.__xform_rules:
+            # apply transform rules
+            xform = lambda s, r: r[0].sub (r[1], s)
+            s = reduce (xform, self.__xform_rules, u''.join (self.__input))
+            return list (s)
+        else:
+            return self.__input[:]
     def process_input (self, event, ctx):
         if event.mask & modifier.RELEASE_MASK:
             return False

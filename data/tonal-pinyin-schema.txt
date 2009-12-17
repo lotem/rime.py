@@ -9,7 +9,7 @@ Config/TonalPinyin/Delimiter = [ '-]
 Config/TonalPinyin/MaxKeywordLength = 6
 Config/TonalPinyin/SplitRule = ng aeiou
 Config/TonalPinyin/DivideRule = ^.*[iu]([āáǎàaēéěèeōóǒòo].*)$ \1
-Config/TonalPinyin/SpellingRule = ([aoeiu])(n|ng)([12345]) \1\3\2
+Config/TonalPinyin/SpellingRule = ([aoeiuv])([rn]|ng)([12345]) \1\3\2
 Config/TonalPinyin/SpellingRule = ([aoe])([iou])([12345]) \1\3\2
 # āáǎàaēéěèeīíǐìiōóǒòoūúǔùuǖǘǚǜüê
 Config/TonalPinyin/SpellingRule = ([nl])ue \1üe
@@ -58,7 +58,7 @@ Config/TonalPinyin/TransformRule = ; 1
 Config/TonalPinyin/TransformRule = / 2
 Config/TonalPinyin/TransformRule = , 3
 Config/TonalPinyin/TransformRule = \. 4
-Config/TonalPinyin/TransformRule = ([aoeiu])(n|ng)([12345]) \1\3\2
+Config/TonalPinyin/TransformRule = ([aoeiuv])([rn]|ng)([12345]) \1\3\2
 Config/TonalPinyin/TransformRule = ([aoe])([iou])([12345]) \1\3\2
 Config/TonalPinyin/TransformRule = ([nl])ue \1üe
 Config/TonalPinyin/TransformRule = eh(?![aoeiuv])[1-5]? ê
