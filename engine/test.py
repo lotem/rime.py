@@ -207,7 +207,7 @@ def main ():
     #e.test ('renminde gongchen {Escape}')
     #e.test ('woshi gongchen {Escape}')
 
-    e = TestEngine (u'Pinyin')
+    #e = TestEngine (u'Pinyin')
     # test fuzzy input
     #e.test ('qiujiu')
     #e.test ('chagnan')
@@ -236,7 +236,12 @@ def main ():
     #e.process_key_event (keysyms.Return, modifier.SHIFT_MASK | modifier.RELEASE_MASK)
     #e.process_key_event (keysyms.Shift_L, modifier.RELEASE_MASK)
     # BUG: fail to recognize `[zcs]huang` due to misuse of max_keyword_length
-    e.test ('anzhuang')
+    #e.test ('anzhuang')
+
+    #e = TestEngine (u'TonalPinyin')
+    #e.test ('biao1diao4 42')
+
+    pass
 
 if __name__ == "__main__":
     main ()

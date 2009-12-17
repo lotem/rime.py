@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# zhuyin -> pinyin conversion
+# zhuyin -> tonal pinyin conversion
 
 import re
 
@@ -41,10 +41,11 @@ rules = [
     (r'^([nl])yue', r'\1ue'),
     (r'^([nl])yu', r'\1v'),
     (r'^([zcs]h?|r)([2345]|$)', r'\1i\2'),
-    (r'([a-z])[2345]', r'\1'),
+    (r'([a-z])$', r'\g<1>1'),
 ]
 
 def convert (x):
+    print 'convert:', x
     y = tr (x)
     for (k, v) in rules: 
         y = re.sub (k, v, y)
@@ -64,5 +65,5 @@ def process (input_file, output_file, column):
     output.close ()
     input.close ()
 
-process ('zhuyin-keywords.txt', 'pinyin-keywords.txt', 0)
-process ('zhuyin-phrases.txt', 'pinyin-phrases.txt', 2)
+process ('zhuyin-keywords.txt', 'tonal-pinyin-keywords.txt', 0)
+process ('zhuyin-phrases.txt', 'tonal-pinyin-phrases.txt', 2)

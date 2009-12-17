@@ -9,17 +9,30 @@ from zimecore import *
 class RomanParser (Parser):
     def __init__ (self, schema):
         Parser.__init__ (self, schema)
+        self.__auto_prompt = schema.get_config_value (u'AutoPrompt') in (u'yes', u'true')
         self.__alphabet = schema.get_config_char_sequence (u'Alphabet') or \
             u'abcdefghijklmnopqrstuvwxyz'
         self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
-        # TODO: make it configurable
-        self.__quote = u'`'
-        acc = u'''ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
-                  0123456789!@#$%^&*()`~-_=+[{]}\\|;:'",<.>/?'''.split (None, 1)
+        self.__quote = schema.get_config_char_sequence ('Quote') or u'`'
+        acc = (schema.get_config_char_sequence ('Acceptable') or \
+               u'''ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
+                   0123456789!@#$%^&*()`~-_=+[{]}\\|;:'",<.>/?''').split (None, 1)
         self.__acceptable = lambda x: x == u' ' or any ([x in s for s in acc])
         self.__startable = lambda x: x == self.__quote or x in acc[0]
+        get_rules = lambda f, key: [f (r.split ()) for r in schema.get_config_list (key)]
+        compile_repl_pattern = lambda x: (re.compile (x[0]), x[1])
+        self.__xform_rules = get_rules (compile_repl_pattern, u'TransformRule')
+        self.clear ()
     def clear (self):
+        self.__input = []
         self.prompt = None
+    def __is_empty (self):
+        return not bool (self.__input)
+    def __get_input (self):
+        # apply transform rules
+        xform = lambda s, r: r[0].sub (r[1], s)
+        s = reduce (xform, self.__xform_rules, u''.join (self.__input[:]))
+        return list (s)
     def process_input (self, event, ctx):
         if event.mask & modifier.RELEASE_MASK:
             return False
@@ -44,13 +57,27 @@ class RomanParser (Parser):
                 self.prompt += ch
                 return Prompt ()
             return True
+        # disable input in conversion mode
+        if not self.__auto_prompt and ctx.being_converted ():
+            return False
         # normal mode
+        if event.keycode == keysyms.Escape:
+            self.clear ()
+            return False
+        if event.keycode == keysyms.BackSpace:
+            if self.__is_empty ():
+                return False
+            self.__input.pop ()
+            ctx.input = self.__get_input ()
+            return []
         if event.keycode == keysyms.space:
             return False
-        if ch in self.__alphabet or not ctx.is_empty () and ch in self.__delimiter:
-            return [ch]
+        if ch in self.__alphabet or not self.__is_empty () and ch in self.__delimiter:
+            self.__input.append (ch)
+            ctx.input = self.__get_input ()
+            return []
         # start raw string mode
-        if ctx.is_empty () and self.__startable (ch):
+        if self.__is_empty () and self.__startable (ch):
             self.prompt = ch
             return Prompt ()
         # unused
@@ -59,6 +86,7 @@ class RomanParser (Parser):
 class GroupingParser (Parser):
     def __init__ (self, schema):
         Parser.__init__ (self, schema)
+        self.__auto_prompt = schema.get_config_value (u'AutoPrompt') in (u'yes', u'true')
         self.__prompt_pattern = schema.get_config_char_sequence (u'PromptPattern') or u'%s\u203a'
         self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
         self.__key_groups = schema.get_config_value (u'KeyGroups').split ()
@@ -74,7 +102,7 @@ class GroupingParser (Parser):
     def process_input (self, event, ctx):
         if event.mask & modifier.RELEASE_MASK:
             return False
-        if ctx.being_converted ():
+        if not self.__auto_prompt and ctx.being_converted ():
             return False
         if event.keycode == keysyms.Escape:
             self.clear ()
@@ -162,7 +190,7 @@ class ComboParser (Parser):
     def __get_combo_string (self):
         s = u''.join ([self.__combo_codes[i] for i in range (self.__combo_max_length) \
                                                  if self.__combo_keys[i] in self.__combo])
-        xform = lambda s, r: r[0].sub (r[1], s, 1)
+        xform = lambda s, r: r[0].sub (r[1], s)
         return reduce (xform, self.__xform_rules, s)
     def process_input (self, event, ctx):
         # handle combo input
