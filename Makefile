@@ -10,5 +10,6 @@ uninstall:
 	rm /usr/lib/ibus/ibus-engine-zime
 	rm /usr/share/ibus/component/zime.xml
 clean:
-	-find . -iname '*~' -delete
-	-find . -iname '*.py[co]' -delete
+	-find . -name '*~' -delete
+	-find . -name '*.py[co]' -delete
+	-find . -name '.*.swp' -delete
