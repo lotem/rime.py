@@ -379,14 +379,14 @@ for k in d:
     add_aka (d[k], k)
 reduce (apply_fuzzy_rule, fuzzy_rules, d)
 
-fuzzy_map = dict ()
+oi_map = dict ()
 for s in akas:
     spelling = akas[s][0]
     for k in s:
-        if k in fuzzy_map:
-            a = fuzzy_map[k]
+        if k in oi_map:
+            a = oi_map[k]
         else:
-            a = fuzzy_map[k] = []
+            a = oi_map[k] = []
         a.append (spelling)
 del akas
 
@@ -399,11 +399,11 @@ def g (s, k, depth):
         return s
     r = []
     for x in s:
-        if k[0] not in fuzzy_map:
+        if k[0] not in oi_map:
             if options.verbose:
                 print >> sys.stderr, 'invalid keyword encountered: [%s]' % k[0]
             return []
-        for y in fuzzy_map[k[0]]:
+        for y in oi_map[k[0]]:
             r.append (x + [y])
     return g(r, k[1:], depth + 1)
 
