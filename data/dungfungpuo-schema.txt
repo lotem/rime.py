@@ -50,6 +50,12 @@ Config/Dungfungpuo/Punct = ] 」 】 ］
 Config/Dungfungpuo/Punct = { 『 ｛
 Config/Dungfungpuo/Punct = } 』 ｝
 # edit keys
+#Config/Dungfungpuo/EditKey = bracketleft Left
+#Config/Dungfungpuo/EditKey = bracketright Right
+#Config/Dungfungpuo/EditKey = minus Up
+#Config/Dungfungpuo/EditKey = equal Down
+Config/Dungfungpuo/EditKey = comma Page_Up
+Config/Dungfungpuo/EditKey = period Page_Down
 Config/Dungfungpuo/EditKey = I Up
 Config/Dungfungpuo/EditKey = K Down
 Config/Dungfungpuo/EditKey = J Left

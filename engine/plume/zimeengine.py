@@ -156,6 +156,27 @@ class Engine:
             else:
                 ctx.edit ([])
             return True
+        if event.keycode == keysyms.BackSpace:
+            if self.__is_conversion_mode (assumed=bool (event.mask & modifier.SHIFT_MASK)):
+                ctx.back () or self.__auto_prompt or ctx.cancel_conversion ()
+            else:
+                ctx.pop_input ()
+                ctx.edit (ctx.input, start_conversion=self.__auto_prompt)
+            return True
+        if event.keycode == keysyms.space:
+            if ctx.being_converted ():
+                self.__confirm_current ()
+            else:
+                ctx.edit (ctx.input, start_conversion=True)
+            return True
+        if event.keycode == keysyms.Return:
+            if event.mask & modifier.SHIFT_MASK:
+                self.__commit (raw_input=True)
+            elif ctx.being_converted ():
+                self.__confirm_current ()
+            else:
+                self.__commit ()
+            return True
         if event.keycode == keysyms.Tab:
             ctx.end (start_conversion=True)
             return True
@@ -172,13 +193,6 @@ class Engine:
             ctx.right ()
             return True
         candidates = ctx.get_candidates ()
-        if candidates:
-            if event.keycode in (keysyms.minus, keysyms.comma):
-                self.__frontend.page_up () and self.__select_by_cursor (candidates)
-                return True
-            if event.keycode in (keysyms.equal, keysyms.period):
-                self.__frontend.page_down () and self.__select_by_cursor (candidates)
-                return True
         if event.keycode == keysyms.Page_Up:
             if candidates and self.__frontend.page_up ():
                 self.__select_by_cursor (candidates)
@@ -206,27 +220,6 @@ class Engine:
                 # auto-commit
                 self.__commit ()
                 return self.__judge (event)
-        if event.keycode == keysyms.BackSpace:
-            if self.__is_conversion_mode (assumed=bool (event.mask & modifier.SHIFT_MASK)):
-                ctx.back () or self.__auto_prompt or ctx.cancel_conversion ()
-            else:
-                ctx.pop_input ()
-                ctx.edit (ctx.input, start_conversion=self.__auto_prompt)
-            return True
-        if event.keycode == keysyms.space:
-            if ctx.being_converted ():
-                self.__confirm_current ()
-            else:
-                ctx.edit (ctx.input, start_conversion=True)
-            return True
-        if event.keycode == keysyms.Return:
-            if event.mask & modifier.SHIFT_MASK:
-                self.__commit (raw_input=True)
-            elif ctx.being_converted ():
-                self.__confirm_current ()
-            else:
-                self.__commit ()
-            return True
         # auto-commit
         if self.__handle_punct (event, commit=True):
             return True

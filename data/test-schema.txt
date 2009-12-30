@@ -39,6 +39,12 @@ Config/Test/Punct = ] 」 】 ］
 Config/Test/Punct = { 『 ｛
 Config/Test/Punct = } 』 ｝
 # edit keys
+#Config/Test/EditKey = bracketleft Left
+#Config/Test/EditKey = bracketright Right
+#Config/Test/EditKey = minus Up
+#Config/Test/EditKey = equal Down
+Config/Test/EditKey = comma Page_Up
+Config/Test/EditKey = period Page_Down
 Config/Test/EditKey = I Up
 Config/Test/EditKey = K Down
 Config/Test/EditKey = J Left

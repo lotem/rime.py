@@ -72,6 +72,12 @@ Config/Pinyin/Punct = ] 」 】 ］
 Config/Pinyin/Punct = { 『 ｛
 Config/Pinyin/Punct = } 』 ｝
 # edit keys
+#Config/Pinyin/EditKey = bracketleft Left
+#Config/Pinyin/EditKey = bracketright Right
+#Config/Pinyin/EditKey = minus Up
+#Config/Pinyin/EditKey = equal Down
+Config/Pinyin/EditKey = comma Page_Up
+Config/Pinyin/EditKey = period Page_Down
 Config/Pinyin/EditKey = I Up
 Config/Pinyin/EditKey = K Down
 Config/Pinyin/EditKey = J Left

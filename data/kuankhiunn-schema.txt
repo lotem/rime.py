@@ -45,6 +45,12 @@ Config/Kuankhiunn/Punct = ] 」 】 ］
 Config/Kuankhiunn/Punct = { 『 ｛
 Config/Kuankhiunn/Punct = } 』 ｝
 # edit keys
+#Config/Kuankhiunn/EditKey = bracketleft Left
+#Config/Kuankhiunn/EditKey = bracketright Right
+#Config/Kuankhiunn/EditKey = minus Up
+#Config/Kuankhiunn/EditKey = equal Down
+Config/Kuankhiunn/EditKey = comma Page_Up
+Config/Kuankhiunn/EditKey = period Page_Down
 Config/Kuankhiunn/EditKey = I Up
 Config/Kuankhiunn/EditKey = K Down
 Config/Kuankhiunn/EditKey = J Left

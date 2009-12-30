@@ -81,6 +81,12 @@ Config/ComboPinyin/Punct = ] 」 】 ］
 Config/ComboPinyin/Punct = { 『 ｛
 Config/ComboPinyin/Punct = } 』 ｝
 # edit keys
+#Config/ComboPinyin/EditKey = bracketleft Left
+#Config/ComboPinyin/EditKey = bracketright Right
+Config/ComboPinyin/EditKey = minus Up
+Config/ComboPinyin/EditKey = equal Down
+Config/ComboPinyin/EditKey = comma Page_Up
+Config/ComboPinyin/EditKey = period Page_Down
 Config/ComboPinyin/EditKey = I Up
 Config/ComboPinyin/EditKey = K Down
 Config/ComboPinyin/EditKey = J Left

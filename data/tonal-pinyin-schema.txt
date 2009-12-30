@@ -127,6 +127,12 @@ Config/TonalPinyin/Punct = ] 」 】 ］
 Config/TonalPinyin/Punct = { 『 ｛
 Config/TonalPinyin/Punct = } 』 ｝
 # edit keys
+#Config/TonalPinyin/EditKey = bracketleft Left
+#Config/TonalPinyin/EditKey = bracketright Right
+Config/TonalPinyin/EditKey = minus Up
+Config/TonalPinyin/EditKey = equal Down
+Config/TonalPinyin/EditKey = comma Page_Up
+Config/TonalPinyin/EditKey = period Page_Down
 Config/TonalPinyin/EditKey = I Up
 Config/TonalPinyin/EditKey = K Down
 Config/TonalPinyin/EditKey = J Left

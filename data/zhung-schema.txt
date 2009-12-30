@@ -46,6 +46,12 @@ Config/Zhung/Punct = ] 」 】 ］
 Config/Zhung/Punct = { 『 ｛
 Config/Zhung/Punct = } 』 ｝
 # edit keys
+#Config/Zhung/EditKey = bracketleft Left
+#Config/Zhung/EditKey = bracketright Right
+#Config/Zhung/EditKey = minus Up
+#Config/Zhung/EditKey = equal Down
+Config/Zhung/EditKey = comma Page_Up
+Config/Zhung/EditKey = period Page_Down
 Config/Zhung/EditKey = I Up
 Config/Zhung/EditKey = K Down
 Config/Zhung/EditKey = J Left

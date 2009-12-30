@@ -41,6 +41,12 @@ Config/Tungdzih/Punct = ] 」 】 ］
 Config/Tungdzih/Punct = { 『 ｛
 Config/Tungdzih/Punct = } 』 ｝
 # edit keys
+#Config/Tungdzih/EditKey = bracketleft Left
+#Config/Tungdzih/EditKey = bracketright Right
+#Config/Tungdzih/EditKey = minus Up
+#Config/Tungdzih/EditKey = equal Down
+Config/Tungdzih/EditKey = comma Page_Up
+Config/Tungdzih/EditKey = period Page_Down
 Config/Tungdzih/EditKey = I Up
 Config/Tungdzih/EditKey = K Down
 Config/Tungdzih/EditKey = J Left

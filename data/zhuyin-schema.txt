@@ -37,6 +37,12 @@ Config/Zhuyin/Punct = ] 」 】 ］
 Config/Zhuyin/Punct = { 『 ｛
 Config/Zhuyin/Punct = } 』 ｝
 # edit keys
+#Config/Zhuyin/EditKey = bracketleft Left
+#Config/Zhuyin/EditKey = bracketright Right
+Config/Zhuyin/EditKey = minus Up
+Config/Zhuyin/EditKey = equal Down
+Config/Zhuyin/EditKey = comma Page_Up
+Config/Zhuyin/EditKey = period Page_Down
 Config/Zhuyin/EditKey = I Up
 Config/Zhuyin/EditKey = K Down
 Config/Zhuyin/EditKey = J Left
