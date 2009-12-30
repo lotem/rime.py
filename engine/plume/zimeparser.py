@@ -19,7 +19,7 @@ class RomanParser (Parser):
                u'''ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
                    0123456789!@#$%^&*()`~-_=+[{]}\\|;:'",<.>/?''').split (None, 1)
         self.__acceptable = lambda x: x == u' ' or any ([x in s for s in acc])
-        self.__initial_acceptable = lambda x: x == self.__quote or x in acc[0]
+        self.__initial_acceptable = lambda x: x in self.__quote or x in acc[0]
         get_rules = lambda f, key: [f (r.split ()) for r in schema.get_config_list (key)]
         compile_repl_pattern = lambda x: (re.compile (x[0]), x[1])
         self.__xform_rules = get_rules (compile_repl_pattern, u'TransformRule')
@@ -43,20 +43,20 @@ class RomanParser (Parser):
         ch = event.get_char ()
         # raw string mode
         if self.prompt:
+            p = self.prompt
             if event.keycode == keysyms.Return:
-                return Commit (self.prompt)
+                if len (p) > 1 and p[0] in self.__quote:
+                    return Commit (p[1:]) 
+                else:
+                    return Commit (p)
             if event.keycode == keysyms.Escape:
                 self.clear ()
                 return Prompt ()
             if event.keycode == keysyms.BackSpace:
-                self.prompt = self.prompt[:-1] or None
+                self.prompt = p[:-1] or None
                 return Prompt ()
-            if ch == self.__quote and self.prompt.startswith (self.__quote):
-                s = self.prompt[1:]
-                if s:
-                    return Commit (s)
-                else:
-                    return Commit (self.__quote)
+            if ch in self.__quote and p[0] in self.__quote:
+                return Commit (p + ch)
             if self.__acceptable (ch):
                 self.prompt += ch
                 return Prompt ()
