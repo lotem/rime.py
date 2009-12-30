@@ -127,7 +127,8 @@ class Engine:
             self.__frontend.commit_string (punct)
             self.__ctx.clear ()
     def __judge (self, event):
-        self.__ctx.clear ()
+        if event.mask & modifier.RELEASE_MASK == 0:
+            self.update_ui ()
         if event.coined:
             if not event.mask:
                 self.__frontend.commit_string (event.get_char ())
@@ -304,6 +305,7 @@ class SchemaChooser:
         self.__schema_list = [(x[1], x[0]) for x in sorted (s, key=last_used_time, reverse=True)]
     def choose (self, schema_name):
         s = [x[1] for x in self.__schema_list]
+        d = [x[0] for x in self.__schema_list]
         c = -1
         if schema_name and schema_name in s:
             c = s.index (schema_name)
@@ -314,6 +316,7 @@ class SchemaChooser:
             DB.update_setting (u'SchemaChooser/LastUsed/%s' % s[c], unicode (now))
             self.__deactivate ()
             self.__engine = Engine (self.__frontend, s[c])
+            self.__frontend.update_aux_string (u'選用【%s】' % d[c])
     def __activate (self):
         self.__active = True
         self.__load_schema_list ()
@@ -333,8 +336,7 @@ class SchemaChooser:
                 return True
             return self.__engine.process_key_event (keycode, mask)
         # ignore hotkeys
-        if mask & (modifier.SHIFT_MASK | \
-            modifier.CONTROL_MASK | modifier.ALT_MASK | \
+        if mask & (modifier.CONTROL_MASK | modifier.ALT_MASK | \
             modifier.SUPER_MASK | modifier.HYPER_MASK | modifier.META_MASK
             ):
             return False
@@ -346,19 +348,19 @@ class SchemaChooser:
                 self.__deactivate ()
                 self.__engine.update_ui ()
             return True
-        if keycode in (keysyms.Page_Up, keysyms.minus, keysyms.comma):
+        if keycode in (keysyms.Page_Up, keysyms.comma):
             if self.__frontend.page_up ():
                 return True
             return True
-        if keycode in (keysyms.Page_Down, keysyms.equal, keysyms.period):
+        if keycode in (keysyms.Page_Down, keysyms.period):
             if self.__frontend.page_down ():
                 return True
             return True
-        if keycode == keysyms.Up:
+        if keycode in (keysyms.Up, keysyms.minus):
             if self.__frontend.cursor_up ():
                 return True
             return True
-        if keycode == keysyms.Down:
+        if keycode in (keysyms.Down, keysyms.equal):
             if self.__frontend.cursor_down ():
                 return True
             return True
