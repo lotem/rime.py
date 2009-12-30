@@ -78,7 +78,6 @@ DROP TABLE IF EXISTS %(prefix)s_g2;
 
 CLEAN_UP_SQLS = """
 DROP INDEX IF EXISTS %(prefix)s_g1_idx;
-VACUUM;
 """
 
 CLEAR_SETTING_VALUE_SQL = """
@@ -118,6 +117,8 @@ parser.add_option ('-d', '--db-file', dest='db_file', help='specify destination 
 parser.add_option ('-k', '--keep', action='store_true', dest='keep', default=False, help='keep existing dict')
 
 parser.add_option ('-v', '--verbose', action='store_true', dest='verbose', default=False, help='make lots of noice')
+
+parser.add_option ('-c', '--compact', action='store_true', dest='compact', default=False, help='compact db file')
 
 options, args = parser.parse_args ()
 
@@ -341,7 +342,12 @@ if keyword_file:
 
 def apply_spelling_rule (m, r):
     return (r[0].sub (r[1], m[0], 1), m[1])
-d = dict ([reduce (apply_spelling_rule, spelling_rules, (k, frozenset ([k]))) for k in keywords])
+d = dict ()
+for k, v in [reduce (apply_spelling_rule, spelling_rules, (k, frozenset ([k]))) for k in keywords]:
+    if k in d:
+        d[k] |= v
+    else:
+        d[k] = v
 akas = dict ()
 def add_aka (s, x):
     if s in akas:
@@ -456,6 +462,8 @@ if phrase_file:
 
 print >> sys.stderr, 'cleaning up...'
 cur.executescript (CLEAN_UP_SQLS % prefix_args)
+if options.compact:
+    cur.execute ("""VACUUM;""")
 
 conn.commit ()
 conn.close ()
