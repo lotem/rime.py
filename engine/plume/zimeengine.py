@@ -91,12 +91,10 @@ class Engine:
             self.__parser.clear ()
             self.__ctx.clear ()
         if isinstance (result, Prompt):
-            if self.__parser.prompt:
-                self.__update_preedit ()
-                self.__frontend.update_aux_string (u'')
-                self.__frontend.update_candidates ([])
-            else:
+            if result.is_empty ():
                 self.update_ui ()
+            else:
+                self.__update_prompt (result)
             return True    
         if isinstance (result, list):
             # handle input
@@ -271,12 +269,14 @@ class Engine:
         self.__ctx.commit ()
     def __update_preedit (self):
         preedit, start, end = self.__ctx.get_preedit ()
-        prompt = self.__parser.prompt
-        if prompt:
-            start = len (preedit)
-            preedit += prompt
-            end = len (preedit)
         self.__frontend.update_preedit (preedit, start, end)
+    def __update_prompt (self, prompt):
+        preedit, start, end = self.__ctx.get_preedit ()
+        start = len (preedit) + prompt.start
+        end = len(preedit) + prompt.end
+        self.__frontend.update_preedit (preedit + prompt.text, start, end)
+        self.__frontend.update_aux_string (u'')
+        self.__frontend.update_candidates ([])
     def update_ui (self):
         self.__update_preedit ()
         self.__frontend.update_aux_string (self.__ctx.get_aux_string ())

@@ -26,7 +26,7 @@ class RomanParser (Parser):
         self.clear ()
     def clear (self):
         self.__input = []
-        self.prompt = None
+        self.__prompt = u''
     def __is_empty (self):
         return not bool (self.__input)
     def __get_input (self):
@@ -42,8 +42,8 @@ class RomanParser (Parser):
             return False
         ch = event.get_char ()
         # raw string mode
-        if self.prompt:
-            p = self.prompt
+        if self.__prompt:
+            p = self.__prompt
             if event.keycode == keysyms.Return:
                 if len (p) > 1 and p[0] in self.__quote:
                     return Commit (p[1:]) 
@@ -53,13 +53,13 @@ class RomanParser (Parser):
                 self.clear ()
                 return Prompt ()
             if event.keycode == keysyms.BackSpace:
-                self.prompt = p[:-1] or None
-                return Prompt ()
+                self.__prompt = p[:-1]
+                return Prompt (self.__prompt)
             if ch in self.__quote and p[0] in self.__quote:
                 return Commit (p + ch)
             if self.__acceptable (ch):
-                self.prompt += ch
-                return Prompt ()
+                self.__prompt += ch
+                return Prompt (self.__prompt)
             return True
         # disable input in conversion mode
         if not self.__auto_prompt and ctx.being_converted ():
@@ -86,8 +86,8 @@ class RomanParser (Parser):
             return []
         # start raw string mode
         if self.__is_empty () and self.__initial_acceptable (ch):
-            self.prompt = ch
-            return Prompt ()
+            self.__prompt = ch
+            return Prompt (self.__prompt)
         # unused
         return False
 
@@ -95,6 +95,7 @@ class GroupingParser (Parser):
     def __init__ (self, schema):
         Parser.__init__ (self, schema)
         self.__auto_prompt = schema.get_config_value (u'AutoPrompt') in (u'yes', u'true')
+        self.__auto_predict = schema.get_config_value (u'Predict') in (None, u'yes', u'true')
         self.__prompt_pattern = schema.get_config_char_sequence (u'PromptPattern') or u'%s\u203a'
         self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
         self.__key_groups = schema.get_config_value (u'KeyGroups').split ()
@@ -104,9 +105,12 @@ class GroupingParser (Parser):
     def clear (self):
         self.__slots = [u''] * self.__group_count
         self.__cursor = 0
-        self.prompt = None
     def __is_empty (self):
         return not any (self.__slots)
+    def __get_prompt (self, first):
+        text = self.__prompt_pattern % u''.join (self.__slots)
+        padding = None if first or self.__auto_predict else self.__delimiter[0]
+        return Prompt (text, padding=padding)
     def process_input (self, event, ctx):
         if event.mask & modifier.RELEASE_MASK:
             return False
@@ -128,8 +132,7 @@ class GroupingParser (Parser):
             self.__cursor = j
             if not self.__is_empty ():
                 # update prompt
-                self.prompt = self.__prompt_pattern % u''.join (self.__slots)
-                return Prompt ()
+                return self.__get_prompt (ctx.is_empty ())
             else:
                 # keyword disposed
                 self.clear ()
@@ -155,19 +158,19 @@ class GroupingParser (Parser):
         # update current keyword
         idx = self.__key_groups[k].index (ch)
         self.__slots[k] = self.__code_groups[k][idx]
-        result = u''.join (self.__slots)
         k += 1
         if k >= self.__group_count:
+            keyword = u''.join (self.__slots)
             self.clear ()
-            return [result] if ctx.is_empty () else [self.__delimiter[0], result]
+            return [keyword] if ctx.is_empty () else [self.__delimiter[0], keyword]
         else:
             self.__cursor = k
-            self.prompt = self.__prompt_pattern % result
-            return Prompt ()
+            return self.__get_prompt (ctx.is_empty ())
 
 class ComboParser (Parser):
     def __init__ (self, schema):
         Parser.__init__ (self, schema)
+        self.__auto_predict = schema.get_config_value (u'Predict') in (None, u'yes', u'true')
         self.__prompt_pattern = schema.get_config_char_sequence (u'PromptPattern') or u'%s\u203a'
         self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
         self.__combo_keys = schema.get_config_char_sequence (u'ComboKeys') or u''
@@ -182,9 +185,12 @@ class ComboParser (Parser):
     def clear (self):
         self.__combo.clear ()
         self.__held.clear ()
-        self.prompt = None
     def __is_empty (self):
         return not bool (self.__held)
+    def __get_prompt (self, first):
+        text = self.__prompt_pattern % self.__get_combo_string ()
+        padding = None if first or self.__auto_predict else self.__delimiter[0]
+        return Prompt (text, padding=padding)
     def __commit_combo (self, ctx):
         k = self.__get_combo_string ()
         #print '__commit_combo', k
@@ -214,8 +220,7 @@ class ComboParser (Parser):
             #print 'pressed:', ch
             self.__combo.add (ch)
             self.__held.add (ch)
-            self.prompt = self.__prompt_pattern % self.__get_combo_string ()
-            return Prompt ()
+            return self.__get_prompt (ctx.is_empty ())
         # non-combo keys
         if not self.__is_empty ():
             self.clear ()

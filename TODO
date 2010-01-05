@@ -27,4 +27,4 @@ Shift+Tab not functioning.
 #ajust candidate order in regard to previously selected phrase.
 #show segmentation results while editing the input string.
 #configurable quote char and acceptable charset in raw string mode.
-prompt padding in non-predict editing
+#fix prompt padding in non-auto-predict editing mode

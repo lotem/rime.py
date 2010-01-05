@@ -17,7 +17,19 @@ class KeyEvent:
         return "<KeyEvent: '%s'(%x), %08x>" % (keysyms.keycode_to_name (self.keycode), self.keycode, self.mask)
 
 class Prompt:
-    pass
+    def __init__ (self, text=None, start=0, end=0, padding=None):
+        if text and not end:
+            end = len (text)
+        if text and padding:
+            self.text = padding + text
+            self.start = len (padding) + start
+            self.end = len (padding) + end
+        else:
+            self.text = text
+            self.start = start
+            self.end = end
+    def is_empty (self):
+        return not self.text
 
 class Commit (unicode):
     pass
@@ -62,8 +74,6 @@ class Parser:
         self.__punct = dict ([punct_mapping (c.split (None, 1)) for c in schema.get_config_list (u'Punct')])
         key_mapping = lambda (x, y): (keysyms.name_to_keycode (x), keysyms.name_to_keycode (y))
         self.__edit_keys = dict([key_mapping (c.split (None, 1)) for c in schema.get_config_list (u'EditKey')])
-        # for keyword display while editing
-        self.prompt = None
     def get_schema (self):
         return self.__schema
     def check_punct (self, event):
