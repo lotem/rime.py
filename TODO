@@ -26,4 +26,5 @@ Shift+Tab not functioning.
 #true fuzzy input: changes in DB layout and key generation; DivideRule support.
 #ajust candidate order in regard to previously selected phrase.
 #show segmentation results while editing the input string.
-configurable quote char and acceptable charset in raw string mode.
+#configurable quote char and acceptable charset in raw string mode.
+prompt padding in non-predict editing
