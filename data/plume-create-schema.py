@@ -452,6 +452,8 @@ if phrase_file:
                 if phrase.startswith (u'*'):
                     phrase = phrase[1:]
                 freq = 0
+            if u' ' in phrase:
+                phrase = phrase.replace(u' ', '')
         except:
             print >> sys.stderr, 'error: invalid format (%s) %s' % (phrase_file, x)
             exit ()
