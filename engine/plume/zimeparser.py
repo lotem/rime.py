@@ -191,16 +191,16 @@ class ComboParser (Parser):
         text = self.__prompt_pattern % self.__get_combo_string ()
         padding = None if first or self.__auto_predict else self.__delimiter[0]
         return Prompt (text, padding=padding)
-    def __commit_combo (self, ctx):
+    def __commit_combo (self, first):
         k = self.__get_combo_string ()
-        #print '__commit_combo', k
         self.clear ()
+        #print '__commit_combo', k
         if k == self.__combo_space:
             return KeyEvent (keysyms.space, 0, coined=True)
         elif not k:
             return Prompt ()
         else:
-            return [k] if ctx.is_empty () else [self.__delimiter[0], k]
+            return [k] if first else [self.__delimiter[0], k]
     def __get_combo_string (self):
         s = u''.join ([self.__combo_codes[i] for i in range (self.__combo_max_length) \
                                                  if self.__combo_keys[i] in self.__combo])
@@ -214,7 +214,8 @@ class ComboParser (Parser):
                 #print 'released:', ch
                 self.__held.remove (ch)
                 if self.__is_empty ():
-                    return self.__commit_combo (ctx)
+                    return self.__commit_combo (ctx.is_empty ())
+                return True
             return False
         if ch in self.__combo_keys:
             #print 'pressed:', ch
