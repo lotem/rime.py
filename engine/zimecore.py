@@ -7,77 +7,77 @@ from zimedb import DB
 from zimemodel import *
 
 class KeyEvent:
-    def __init__ (self, keycode, mask, coined=False):
+    def __init__(self, keycode, mask, coined=False):
         self.keycode = keycode
         self.mask = mask
         self.coined = coined
-    def get_char (self):
-        return unichr (self.keycode)
-    def __str__ (self):
-        return "<KeyEvent: '%s'(%x), %08x>" % (keysyms.keycode_to_name (self.keycode), self.keycode, self.mask)
+    def get_char(self):
+        return unichr(self.keycode)
+    def __str__(self):
+        return "<KeyEvent: '%s'(%x), %08x>" % (keysyms.keycode_to_name(self.keycode), self.keycode, self.mask)
 
 class Prompt:
-    def __init__ (self, text=None, start=0, end=0, padding=None):
+    def __init__(self, text=None, start=0, end=0, padding=None):
         if text and not end:
-            end = len (text)
+            end = len(text)
         if text and padding:
             self.text = padding + text
-            self.start = len (padding) + start
-            self.end = len (padding) + end
+            self.start = len(padding) + start
+            self.end = len(padding) + end
         else:
             self.text = text
             self.start = start
             self.end = end
-    def is_empty (self):
+    def is_empty(self):
         return not self.text
 
-class Commit (unicode):
+class Commit(unicode):
     pass
 
 class Schema:
-    def __init__ (self, name):
+    def __init__(self, name):
         self.__name = name
-        self.__db = DB (name)
-        self.__parser_name = self.__db.read_config_value (u'Parser')
-    def get_name (self):
+        self.__db = DB(name)
+        self.__parser_name = self.__db.read_config_value(u'Parser')
+    def get_name(self):
         return self.__name
-    def get_db (self):
+    def get_db(self):
         return self.__db
-    def get_parser_name (self):
+    def get_parser_name(self):
         return self.__parser_name
-    def get_config_value (self, key):
-        return self.__db.read_config_value (key)
-    def get_config_char_sequence (self, key):
-        r = self.__db.read_config_value (key)
-        if r and r.startswith (u'[') and r.endswith (u']'):
+    def get_config_value(self, key):
+        return self.__db.read_config_value(key)
+    def get_config_char_sequence(self, key):
+        r = self.__db.read_config_value(key)
+        if r and r.startswith(u'[') and r.endswith(u']'):
             return r[1:-1]
         return r
-    def get_config_list (self, key):
-        return self.__db.read_config_list (key)
+    def get_config_list(self, key):
+        return self.__db.read_config_list(key)
 
 class Parser:
-    __parsers = dict ()
+    __parsers = dict()
     @classmethod
-    def register (cls, name, parser_class):
+    def register(cls, name, parser_class):
         cls.__parsers[name] = parser_class
     @classmethod
-    def get_parser_class (cls, parser_name):
+    def get_parser_class(cls, parser_name):
         return cls.__parsers[parser_name]
     @classmethod
-    def create (cls, schema):
-        return cls.get_parser_class (schema.get_parser_name ()) (schema)
-    def __init__ (self, schema):
+    def create(cls, schema):
+        return cls.get_parser_class(schema.get_parser_name()) (schema)
+    def __init__(self, schema):
         self.__schema = schema
-        punct_mapping = lambda (x, y): (x, (0, y.split (u' ')) if u' ' in y else \
-                                           (2, y.split (u'~', 1)) if u'~' in y else \
+        punct_mapping = lambda(x, y): (x, (0, y.split(u' ')) if u' ' in y else \
+                                           (2, y.split(u'~', 1)) if u'~' in y else \
                                            (1, y))
-        self.__punct = dict ([punct_mapping (c.split (None, 1)) for c in schema.get_config_list (u'Punct')])
-        key_mapping = lambda (x, y): (keysyms.name_to_keycode (x), keysyms.name_to_keycode (y))
-        self.__edit_keys = dict([key_mapping (c.split (None, 1)) for c in schema.get_config_list (u'EditKey')])
-    def get_schema (self):
+        self.__punct = dict([punct_mapping(c.split(None, 1)) for c in schema.get_config_list(u'Punct')])
+        key_mapping = lambda(x, y): (keysyms.name_to_keycode(x), keysyms.name_to_keycode(y))
+        self.__edit_keys = dict([key_mapping(c.split(None, 1)) for c in schema.get_config_list(u'EditKey')])
+    def get_schema(self):
         return self.__schema
-    def check_punct (self, event):
-        ch = event.get_char ()
+    def check_punct(self, event):
+        ch = event.get_char()
         if ch in self.__punct:
             p = self.__punct[ch]
             if p[0] == 1:
@@ -89,21 +89,21 @@ class Parser:
             else:
                 return p[1]
         return None
-    def check_edit_key (self, event):
+    def check_edit_key(self, event):
         if not event.coined and event.keycode in self.__edit_keys:
-            return KeyEvent (self.__edit_keys[event.keycode], 0, coined=True)
+            return KeyEvent(self.__edit_keys[event.keycode], 0, coined=True)
         return None
 
 class Context:
-    def __init__ (self, callback, schema):
+    def __init__(self, callback, schema):
         self.__cb = callback
-        self.__model = Model (schema)
-        self.__delimiter = schema.get_config_char_sequence (u'Delimiter') or u' '
-        self.__auto_delimit = schema.get_config_value (u'AutoDelimit') in (u'yes', u'true')
-        self.__auto_predict = schema.get_config_value (u'Predict') in (None, u'yes', u'true')
+        self.__model = Model(schema)
+        self.__delimiter = schema.get_config_char_sequence(u'Delimiter') or u' '
+        self.__auto_delimit = schema.get_config_value(u'AutoDelimit') in (u'yes', u'true')
+        self.__auto_predict = schema.get_config_value(u'Predict') in (None, u'yes', u'true')
         #self.schema = schema
-        self.__reset ()
-    def __reset (self, keep_context=False):
+        self.__reset()
+    def __reset(self, keep_context=False):
         self.input = []
         self.err = None
         if not keep_context:
@@ -115,196 +115,196 @@ class Context:
         self.__candidates = []
         self.seg = 0, 0
         self.__display = (u'', [0])
-    def clear (self):
-        self.__reset ()
-        self.__cb.update_ui ()
-    def is_empty (self):
+    def clear(self):
+        self.__reset()
+        self.__cb.update_ui()
+    def is_empty(self):
         return not self.input
-    def pop_input (self, till=-1):
+    def pop_input(self, till=-1):
         if till == -1:
-            till = max (0, len (self.input) - 1)
-        while len (self.input) > till:
-            self.input.pop ()
+            till = max(0, len(self.input) - 1)
+        while len(self.input) > till:
+            self.input.pop()
             if self.input and self.input[-1] == self.__delimiter[0]:
-                self.input.pop ()
-    def commit (self):
-        if self.is_completed ():
-            self.__model.train (self, self.sel + self.cur)
-            self.edit ([])
+                self.input.pop()
+    def commit(self):
+        if self.is_completed():
+            self.__model.train(self, self.sel + self.cur)
+            self.edit([])
         else:
-            self.clear ()
-    def edit (self, input, start_conversion=False):
-        self.__reset (keep_context=True)
+            self.clear()
+    def edit(self, input, start_conversion=False):
+        self.__reset(keep_context=True)
         self.input = input
         if input:
-            self.seg = self.__model.segmentation (input)
-            self.__model.query (self)
+            self.seg = self.__model.segmentation(input)
+            self.__model.query(self)
             m, n = self.seg[:2]
-            self.__calculate_display_string (input, self.seg[4], n, m)
+            self.__calculate_display_string(input, self.seg[4], n, m)
             if m != n:
-                self.err = Entry (None, m, n)
+                self.err = Entry(None, m, n)
             elif start_conversion:
-                self.__update_candidates (self.__predict (exclude_the_last=True))
+                self.__update_candidates(self.__predict(exclude_the_last=True))
                 return
             if self.__auto_predict:
-                self.__predict ()
-        self.__cb.update_ui ()
-    def has_error (self):
+                self.__predict()
+        self.__cb.update_ui()
+    def has_error(self):
         return self.err is not None
-    def cancel_conversion (self):
-        self.edit (self.input)
-    def __predict (self, exclude_the_last=False):
+    def cancel_conversion(self):
+        self.edit(self.input)
+    def __predict(self, exclude_the_last=False):
         i = self.sel[-1].j if self.sel else (-1 if self.pre else 0)
         p = (self.sel[-1].next if self.sel else None) or self.pred[i]
         while p:
-            s = p.get_all ()
+            s = p.get_all()
             if s[0].i < 0:
                 del s[0]
             if s:
                 p = s[-1]
                 if exclude_the_last and p.j == self.seg[0]:
                     break
-                self.sel.extend (s)
+                self.sel.extend(s)
             i = p.j
             p = self.pred[i]
-        return max (0, i)
-    def home (self):
-        if not self.being_converted ():
+        return max(0, i)
+    def home(self):
+        if not self.being_converted():
             return False
         self.sel = []
-        self.__update_candidates (0)
+        self.__update_candidates(0)
         return True
-    def end (self, start_conversion=False):
-        if not self.being_converted ():
-            if not start_conversion or self.has_error ():
+    def end(self, start_conversion=False):
+        if not self.being_converted():
+            if not start_conversion or self.has_error():
                 return False
             # do a fresh new prediction in case of a full prediction is present
             self.sel = []
-        self.__update_candidates (self.__predict (exclude_the_last=True))
-    def left (self):
-        if not self.being_converted ():
+        self.__update_candidates(self.__predict(exclude_the_last=True))
+    def left(self):
+        if not self.being_converted():
             return
         i = self.cur[0].i
         j = self.cur[-1].j
-        for k in range (j - 1, i, -1):
+        for k in range(j - 1, i, -1):
             if self.phrase[i][k]:
-                self.__update_candidates (i, k)
+                self.__update_candidates(i, k)
                 return
-        self.back ()
-    def right (self):
-        if not self.being_converted ():
+        self.back()
+    def right(self):
+        if not self.being_converted():
             return
         i = self.cur[0].i
         j = self.cur[-1].j
-        for k in range (j + 1, self.seg[0] + 1):
+        for k in range(j + 1, self.seg[0] + 1):
             if self.phrase[i][k]:
-                self.__update_candidates (i, k)
+                self.__update_candidates(i, k)
                 return
-        self.forth ()
-    def back (self):
-        if not self.being_converted ():
+        self.forth()
+    def back(self):
+        if not self.being_converted():
             return False
         if self.sel:
-            e = self.sel.pop ()
-            self.__update_candidates (e.i)
+            e = self.sel.pop()
+            self.__update_candidates(e.i)
             return True
         return False
-    def forth (self):
-        if not self.being_converted ():
+    def forth(self):
+        if not self.being_converted():
             return False
         i = self.cur[0].i
         p = (self.sel[-1].next if self.sel else None) or self.pred[i]
         if p and p.j < self.seg[0]:
-            self.sel.append (p)
+            self.sel.append(p)
             i = p.j
             j = 0
-            for k in range (i + 1, self.seg[0] + 1):
+            for k in range(i + 1, self.seg[0] + 1):
                 if self.phrase[i][k]:
                     j = k
                     break
-            self.__update_candidates (i, j)
+            self.__update_candidates(i, j)
             return True
         return False
-    def forward (self):
+    def forward(self):
         c = self.cur
         if c:
-            self.sel.extend (c)
-            self.__update_candidates (c[-1].j)
-    def __update_candidates (self, i, j=0):
+            self.sel.extend(c)
+            self.__update_candidates(c[-1].j)
+    def __update_candidates(self, i, j=0):
         #print '__update_candidates:', i, j
-        self.__candidates = self.__model.make_candidate_list (self, i, j)
+        self.__candidates = self.__model.make_candidate_list(self, i, j)
         if self.__candidates:
-            self.cur = self.__candidates[0][1].get_all ()
+            self.cur = self.__candidates[0][1].get_all()
         else:
             err_pos = self.cur[-1].i if self.cur else 0
-            self.err = Entry (None, err_pos, len (self.input))
+            self.err = Entry(None, err_pos, len(self.input))
             self.cur = []
-        self.__cb.update_ui ()
-    def select (self, e):
-        self.cur = e.get_all ()
-    def being_converted (self):
-        return bool (self.cur)
-    def is_completed (self):
-        return self.cur and self.cur[-1].j == len (self.input)
-    def __calculate_display_string (self, s, d, n, m):
+        self.__cb.update_ui()
+    def select(self, e):
+        self.cur = e.get_all()
+    def being_converted(self):
+        return bool(self.cur)
+    def is_completed(self):
+        return self.cur and self.cur[-1].j == len(self.input)
+    def __calculate_display_string(self, s, d, n, m):
         if n == 0:
             return
-        t = [0 for i in range (n + 1)]
+        t = [0 for i in range(n + 1)]
         p = []
         c = 0
-        for i in range (n):
+        for i in range(n):
             if self.__auto_delimit and i > 0 and i in d and s[i - 1] not in self.__delimiter:
-                p.append (self.__delimiter[0])
+                p.append(self.__delimiter[0])
                 c += 1
             t[i] = c
-            p.append (s[i])
-            c += len (s[i])
+            p.append(s[i])
+            c += len(s[i])
         t[-1] = c
-        self.__display = (u''.join (p), t)
-    def get_preedit (self):
-        if self.is_empty ():
+        self.__display = (u''.join(p), t)
+    def get_preedit(self):
+        if self.is_empty():
             return u'', 0, 0
         r = []
         rest = 0
         start = 0
         for s in self.sel:
-            w = s.get_word ()
-            r.append (w)
-            start += len (w)
+            w = s.get_word()
+            r.append(w)
+            start += len(w)
             rest = s.j
         end = start
         for s in self.cur:
-            w = s.get_word ()
-            r.append (w)
-            end += len (w)
+            w = s.get_word()
+            r.append(w)
+            end += len(w)
             rest = s.j
         if rest < self.seg[1]:
             s, t = self.__display
-            r.append (s[t[rest]:])
-            if self.has_error ():
+            r.append(s[t[rest]:])
+            if self.has_error():
                 diff = t[rest] - end
                 start, end = t[self.err.i] - diff, t[self.err.j] - diff
-        return u''.join (r), start, end
-    def get_commit_string (self):
+        return u''.join(r), start, end
+    def get_commit_string(self):
         i = 0
         r = []
         for s in self.sel + self.cur:
-            r.append (s.get_word ())
+            r.append(s.get_word())
             i = s.j
-        if i < len (self.input):
-            r.extend (self.input[i:])
-        return u''.join (r)
-    def get_input_string (self):
-        return u''.join (self.input)
-    def get_aux_string (self):
+        if i < len(self.input):
+            r.extend(self.input[i:])
+        return u''.join(r)
+    def get_input_string(self):
+        return u''.join(self.input)
+    def get_aux_string(self):
         c = self.cur
         if c:
             s, t = self.__display
             # return the corresponding part of display string without trailing space
-            return s[t[c[0].i]:t[c[-1].j]].rstrip ()
+            return s[t[c[0].i]:t[c[-1].j]].rstrip()
         return u''
-    def get_candidates (self):
+    def get_candidates(self):
         return self.__candidates
-    def delete_phrase (self, e):
+    def delete_phrase(self, e):
         pass
 
