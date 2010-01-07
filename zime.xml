@@ -13,23 +13,13 @@
 	<!-- for static engines -->
 	<engines>
 		<engine>
-			<name>stylo</name>
+			<name>zime</name>
 			<language>zh_TW</language>
 			<license>GPL</license>
 			<author>GONG Chen &lt;chen.sst@gmail.com&gt;</author>
 			<icon>/usr/share/ibus-zime/icons/zhung.png</icon>
 			<layout>us</layout>
-			<longname>ZIME Stylo</longname>
-			<description>ZIME Input Method Engine</description>
-		</engine>
-		<engine>
-			<name>plume</name>
-			<language>zh_TW</language>
-			<license>GPL</license>
-			<author>GONG Chen &lt;chen.sst@gmail.com&gt;</author>
-			<icon>/usr/share/ibus-zime/icons/zhung.png</icon>
-			<layout>us</layout>
-			<longname>ZIME Plume</longname>
+			<longname>ZIME</longname>
 			<description>ZIME Input Method Engine</description>
 		</engine>
 	</engines>

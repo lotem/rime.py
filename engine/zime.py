@@ -8,6 +8,8 @@ __all__ = (
 import ibus
 import gobject
 
+import zimeengine
+
 #from gettext import dgettext
 #_  = lambda a : dgettext ("ibus-zime", a)
 _ = lambda a : a
@@ -15,11 +17,11 @@ N_ = lambda a : a
 
 class ZimeEngine (ibus.EngineBase):
 
-    def __init__ (self, conn, object_path, module):
+    def __init__ (self, conn, object_path):
         super (ZimeEngine, self).__init__ (conn, object_path)
         self.__page_size = 5
         self.__lookup_table = ibus.LookupTable (self.__page_size)
-        self.__backend = module.SchemaChooser (self)
+        self.__backend = zimeengine.SchemaChooser (self)
 
     def process_key_event (self, keyval, keycode, mask):
         return self.__backend.process_key_event (keyval, mask)

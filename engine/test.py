@@ -6,8 +6,7 @@ import ibus
 from ibus import keysyms
 from ibus import modifier
 
-#from stylo import zimeengine
-from plume import zimeengine
+import zimeengine
 
 class TestEngine:
 
@@ -186,8 +185,8 @@ def main ():
     #e.test ('wozaixiechengshipspspspspsp')
     #e.test ('woyoulailaHP')
 
-    #from plume.zimedb import DB
-    #DB.open ('/home/lotem/.ibus/zime/plume.db', True)
+    #from zimedb import DB
+    #DB.open ('/home/lotem/.ibus/zime/zime.db', True)
     #db = DB ('Pinyin')
     #print db.list_keywords ()
     #print db.lookup_phrase ('yi yi'.split ())

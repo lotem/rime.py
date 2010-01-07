@@ -1,9 +1,6 @@
 Hi. 
 Thank you for taking the time to read this, and for trying ibus-zime.
 
-ibus-zime consists of two different IM engines, namely `Stylo`, the wholer-sentence model, and `Plume`, the phrase-based model.
-I suggest new users give Plume a try first, since it provides more functionalities, and a slightly better user experience.
-
 Quick Start:
 
 0. Make sure you've installed IBus:
@@ -18,40 +15,35 @@ sudo make install
 2. Install the schema(s) of your choice.
 
 # NOTE: Run the scripts under ibus-zime/data/ as normal user. DB files will be created for current user only.
-# The resulting SQLite3 database files would be ~/.ibus/zime/plume.db, or ~/.ibus/zime/stylo.db.
-# If you prefer Stylo engine, change `plume-' to `stylo-' in the following commands.
+# The resulting SQLite3 database file would be ~/.ibus/zime/zime.db.
 
 cd data
 
 # a) Install schema: Pinyin
-# The installation process may take minutes, as abbreviated input has been enabled. 
-./plume-create-schema.py -v -s pinyin
+./create-schema.py -v -s pinyin
 
 # b) Install schema: Jyutping (Cantonese)
 ./make-phrases.py jyutping
-./plume-create-schema.py -v -s jyutping
+./create-schema.py -v -s jyutping
 
 # c) Install schema: Kuank-hiunn (Middle Chinese)
 ./make-phrases.py kuankhiunn
-./plume-create-schema.py -v -s kuankhiunn
+./create-schema.py -v -s kuankhiunn
 
 # d) Install schema: Zhuyin (Bopomofo)
-./plume-create-schema.py -v -s zhuyin
+./create-schema.py -v -s zhuyin
 
 # e) Install schema: Combo Pinyin (Refer to ZIME project home page)
 # NOTE: This schema requires Pinyin schema already installed (and with fuzzy input options off as default).
-./plume-create-schema.py -k combo-pinyin-schema.txt
-
-# Combo Pinyin for Stylo uses a different schema file from Plume's, due to the differences in their implementation:
-./stylo-create-schema.py -k combo-pinyin-schema-for-stylo.txt
+./create-schema.py -k combo-pinyin-schema.txt
 
 # f) Install schema: Tonal Pinyin
 # NOTE: This schema is supported only by Plume engine.
-./plume-create-schema.py -v -s tonal-pinyin
+./create-schema.py -v -s tonal-pinyin
 
 # g) Invent your own schema!
 
-3. Restart IBus and enable ZIME engine(s) in IBus preferences.
+3. Restart IBus and enable ZIME engine in IBus preferences.
 
 4. When ZIME is active, you can always type Ctrl+` to call schema chooser menu, and choose among installed schemas.
 

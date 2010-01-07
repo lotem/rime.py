@@ -14,16 +14,8 @@ class IMApp:
                                           "0.1.0",
                                           "GPL",
                                           "GONG Chen <chen.sst@gmail.com>")
-        self.__component.add_engine ("stylo",
-                                    "ZIME Stylo",
-                                    "ZIME Input Method Engine",
-                                    "zh_TW",
-                                    "GPL",
-                                    "GONG Chen <chen.sst@gmail.com>",
-                                    "",
-                                    "en")
-        self.__component.add_engine ("plume",
-                                    "ZIME Plume",
+        self.__component.add_engine ("zime",
+                                    "ZIME",
                                     "ZIME Input Method Engine",
                                     "zh_TW",
                                     "GPL",

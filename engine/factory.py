@@ -9,15 +9,6 @@ import zime
 _ = lambda a : a
 N_ = lambda a : a
 
-def get_zime_engine_module (engine_name):
-    if engine_name == "stylo":
-        from stylo import zimeengine
-        return zimeengine
-    if engine_name == "plume":
-        from plume import zimeengine
-        return zimeengine
-    return None
-
 class EngineFactory (ibus.EngineFactoryBase):
     FACTORY_PATH = "/cn/ha/zz/sst/Zime/Factory"
     ENGINE_PATH = "/cn/ha/zz/sst/Zime/Engine"
@@ -39,10 +30,9 @@ class EngineFactory (ibus.EngineFactoryBase):
         self.__config.connect ("value-changed", self.__config_value_changed_cb)
 
     def create_engine (self, engine_name):
-        module = get_zime_engine_module (engine_name)
-        if module:
+        if engine_name == "zime":
             self.__id += 1
-            return zime.ZimeEngine (self.__bus, "%s/%d" % (self.ENGINE_PATH, self.__id), module)
+            return zime.ZimeEngine (self.__bus, "%s/%d" % (self.ENGINE_PATH, self.__id))
         return super (EngineFactory, self).create_engine (engine_name)
 
     def __config_reloaded_cb (self, config):

@@ -17,9 +17,9 @@ def __initialize ():
     IBUS_ZIME_LOCATION = os.getenv ('IBUS_ZIME_LOCATION')
     HOME_PATH = os.getenv ('HOME')
     db_path = os.path.join (HOME_PATH, '.ibus', 'zime')
-    user_db = os.path.join (db_path, 'stylo.db')
+    user_db = os.path.join (db_path, 'zime.db')
     if not os.path.exists (user_db):
-        sys_db = IBUS_ZIME_LOCATION and os.path.join (IBUS_ZIME_LOCATION, 'data', 'stylo.db')
+        sys_db = IBUS_ZIME_LOCATION and os.path.join (IBUS_ZIME_LOCATION, 'data', 'zime.db')
         if sys_db and os.path.exists (sys_db):
             DB.open (sys_db, read_only=True)
             return
@@ -33,10 +33,10 @@ __initialize ()
 class Engine:
     def __init__ (self, frontend, name):
         self.__frontend = frontend
-        self.__schema = Schema (name)
-        self.__parser = Parser.create (self.__schema)
-        self.__ctx = Context (self, self.__schema)
-        self.__fallback = lambda e: self.__process (e)
+        self.__schema = schema = Schema (name)
+        self.__parser = Parser.create (schema)
+        self.__ctx = Context (self, schema)
+        self.__auto_prompt = schema.get_config_value (u'AutoPrompt') in (u'yes', u'true')
         self.__punct = None
         self.__punct_key = 0
         self.__punct_rep = 0
@@ -66,32 +66,77 @@ class Engine:
         if self.__punct:
             if keycode not in (keysyms.Shift_L, keysyms.Shift_R) and not (mask & modifier.RELEASE_MASK):
                 if keycode == self.__punct_key:
-                    # next punct
-                    self.__punct_rep = (self.__punct_rep + 1) % len (self.__punct)
-                    punct = self.__punct[self.__punct_rep]
-                    self.__frontend.update_preedit (punct, 0, len (punct))
+                    self.__next_punct ()
                     return True
                 else:
-                    # clear punct prompt
-                    punct = self.__punct[self.__punct_rep]
-                    self.__punct = None
-                    self.__punct_key = 0
-                    self.__punct_rep = 0
-                    self.__frontend.update_preedit (u'', 0, 0)
                     if keycode in (keysyms.Escape, keysyms.BackSpace):
+                        # clear punct prompt
+                        self.__commit_punct (commit=False)
                         return True
-                    self.__frontend.commit_string (punct)
                     if keycode in (keysyms.space, keysyms.Return):
+                        self.__commit_punct ()
                         return True
-        return self.__parser.process (KeyEvent (keycode, mask), self.__ctx, self.__fallback)
+                    self.__commit_punct ()
+                    # continue processing
+        event = KeyEvent (keycode, mask)
+        result = self.__parser.process_input (event, self.__ctx)
+        if result is True:
+            return True
+        if result is False:
+            return self.__process (event)
+        return self.__handle_parser_result (result)
+    def __handle_parser_result (self, result):
+        if isinstance (result, Commit):
+            self.__frontend.commit_string (result)
+            self.__parser.clear ()
+            self.__ctx.clear ()
+        if isinstance (result, Prompt):
+            if result.is_empty ():
+                self.update_ui ()
+            else:
+                self.__update_prompt (result)
+            return True    
+        if isinstance (result, list):
+            # handle input
+            if self.__is_conversion_mode ():
+                if self.__ctx.is_completed ():
+                    # auto-commit
+                    self.__commit ()
+                else:
+                    return True
+            self.__ctx.edit (self.__ctx.input + result, start_conversion=self.__auto_prompt)
+            return True
+        if isinstance (result, KeyEvent):
+            # coined key event
+            return self.__process (result)
+        # noop
+        return True
+    def __next_punct (self):
+        self.__punct_rep = (self.__punct_rep + 1) % len (self.__punct)
+        punct = self.__punct[self.__punct_rep]
+        self.__frontend.update_preedit (punct, 0, len (punct))
+    def __commit_punct (self, commit=True):
+        punct = self.__punct[self.__punct_rep]
+        self.__punct = None
+        self.__punct_key = 0
+        self.__punct_rep = 0
+        self.__frontend.update_preedit (u'', 0, 0)
+        if commit:
+            self.__frontend.commit_string (punct)
+            self.__ctx.clear ()
     def __judge (self, event):
+        if event.mask & modifier.RELEASE_MASK == 0:
+            self.update_ui ()
         if event.coined:
             if not event.mask:
                 self.__frontend.commit_string (event.get_char ())
             return True
         return False
     def __process (self, event):
-        if self.__ctx.is_empty ():
+        ctx = self.__ctx
+        if ctx.is_empty ():
+            if event.mask & modifier.RELEASE_MASK and self.__punct:
+                return True
             if self.__handle_punct (event, commit=False):
                 return True
             return self.__judge (event)
@@ -100,117 +145,142 @@ class Engine:
         edit_key = self.__parser.check_edit_key (event)
         if edit_key:
             return self.__process (edit_key)
-        if event.keycode == keysyms.Home:
-            self.__ctx.set_cursor (0)
-            return True
         if event.keycode == keysyms.Escape:
-            self.__ctx.set_cursor (-1)
+            if self.__is_conversion_mode ():
+                ctx.cancel_conversion ()
+            elif ctx.has_error ():
+                ctx.pop_input (ctx.err.i)
+                ctx.edit (ctx.input, start_conversion=self.__auto_prompt)
+            else:
+                ctx.edit ([])
+            return True
+        if event.keycode == keysyms.BackSpace:
+            if self.__is_conversion_mode (assumed=bool (event.mask & modifier.SHIFT_MASK)):
+                ctx.back () or self.__auto_prompt or ctx.cancel_conversion ()
+            else:
+                ctx.pop_input ()
+                ctx.edit (ctx.input, start_conversion=self.__auto_prompt)
+            return True
+        if event.keycode == keysyms.space:
+            if ctx.being_converted ():
+                self.__confirm_current ()
+            else:
+                ctx.edit (ctx.input, start_conversion=True)
+            return True
+        if event.keycode == keysyms.Return:
+            if event.mask & modifier.SHIFT_MASK:
+                self.__commit (raw_input=True)
+            elif ctx.being_converted ():
+                self.__confirm_current ()
+            else:
+                self.__commit ()
+            return True
+        if event.keycode == keysyms.Tab:
+            ctx.end (start_conversion=True)
+            return True
+        if event.keycode == keysyms.Home:
+            ctx.home ()
             return True
         if event.keycode == keysyms.End:
-            k = self.__ctx.keywords
-            if len (k) > 1 and not k[-1]:
-                self.__ctx.set_cursor (-2)
-            else:
-                self.__ctx.set_cursor (-1)
+            ctx.end ()
             return True
-        if event.keycode == keysyms.Left or event.keycode == keysyms.Tab and event.mask & modifier.SHIFT_MASK:
-            self.__ctx.move_cursor (-1)
+        if event.keycode == keysyms.Left:
+            ctx.left ()
             return True
-        if event.keycode == keysyms.Right or event.keycode == keysyms.Tab:
-            self.__ctx.move_cursor (1)
+        if event.keycode == keysyms.Right:
+            ctx.right ()
             return True
-        candidates = self.__ctx.get_candidates ()
-        if candidates:
-            if event.keycode in (keysyms.minus, keysyms.comma):
-                self.__frontend.page_up ()
-                return True
-            if event.keycode in (keysyms.equal, keysyms.period):
-                self.__frontend.page_down ()
-                return True
+        candidates = ctx.get_candidates ()
         if event.keycode == keysyms.Page_Up:
             if candidates and self.__frontend.page_up ():
+                self.__select_by_cursor (candidates)
                 return True
             return True
         if event.keycode == keysyms.Page_Down:
             if candidates and self.__frontend.page_down ():
+                self.__select_by_cursor (candidates)
                 return True
             return True
         if event.keycode == keysyms.Up:
             if candidates and self.__frontend.cursor_up ():
+                self.__select_by_cursor (candidates)
                 return True
             return True
         if event.keycode == keysyms.Down:
             if candidates and self.__frontend.cursor_down ():
+                self.__select_by_cursor (candidates)
                 return True
             return True
         if event.keycode >= keysyms._1 and event.keycode <= keysyms._9:
-            if candidates:
-                index = self.__frontend.get_candidate_index (event.keycode - keysyms._1)
-                if index >= 0 and index < len (candidates):
-                    self.__ctx.select (candidates[index][1])
-                    if self.__ctx.is_confirmed ():
-                        self.__commit ()
+            if self.__select_by_index (candidates, event.keycode - keysyms._1):
                 return True
             else:
                 # auto-commit
                 self.__commit ()
                 return self.__judge (event)
-        if event.keycode == keysyms.BackSpace:
-            k = self.__ctx.keywords
-            if k[-1]:
-                k[-1] = u''
-            else:
-                if len (k) < 2:
-                    return self.__judge (event)
-                del k[-2]
-            self.__ctx.update_keywords ()
-            return True
-        if event.keycode == keysyms.space:
-            if candidates:
-                index = self.__frontend.get_candidate_cursor_pos ()
-                if index >= 0 and index < len (candidates):
-                    self.__ctx.select (candidates[index][1])
-                    if self.__ctx.is_confirmed ():
-                        self.__commit ()
-            else:
-                self.__commit ()
-            return True
-        if event.keycode == keysyms.Return:
-            self.__commit ()
-            return True
         # auto-commit
         if self.__handle_punct (event, commit=True):
             return True
         return True
+    def __is_conversion_mode (self, assumed=False):
+        return (not self.__auto_prompt or assumed) and self.__ctx.being_converted ()
     def __handle_punct (self, event, commit):
         punct = self.__parser.check_punct (event)
         if punct:
+            if event.mask & modifier.RELEASE_MASK:
+                return True
             if commit:
                 self.__commit ()
             if isinstance (punct, list):
                 self.__punct = punct
                 self.__punct_key = event.keycode
                 self.__punct_rep = 0
-                # TODO : set punct prompt
+                # prompt punct
                 self.__frontend.update_preedit (punct[0], 0, len (punct[0]))
             else:
                 self.__frontend.commit_string (punct)
             return True
         return False
-    def __commit (self):
-        self.__frontend.commit_string (self.__ctx.get_preedit ())
-        self.__ctx.commit ()
+    def __select_by_index (self, candidates, n):
+        if not candidates:
+            return False
+        index = self.__frontend.get_candidate_index (n)
+        if index >= 0 and index < len (candidates):
+            self.__ctx.select (candidates[index][1])
+            self.__confirm_current ()
+        return True
+    def __select_by_cursor (self, candidates):
+        index = self.__frontend.get_candidate_cursor_pos ()
+        if index >= 0 and index < len (candidates):
+            self.__ctx.select (candidates[index][1])
+            self.__update_preedit ()
+            self.__frontend.update_aux_string (self.__ctx.get_aux_string ())
+            return True
+        return False
+    def __confirm_current (self):
+        if self.__ctx.is_completed ():
+            self.__commit ()
+        else:
+            self.__ctx.forward ()
+    def __commit (self, raw_input=False):
+        s = self.__ctx.get_input_string () if raw_input else self.__ctx.get_commit_string ()
+        self.__frontend.commit_string (s)
         self.__parser.clear ()
+        self.__ctx.commit ()
+    def __update_preedit (self):
+        preedit, start, end = self.__ctx.get_preedit ()
+        self.__frontend.update_preedit (preedit, start, end)
+    def __update_prompt (self, prompt):
+        preedit, start, end = self.__ctx.get_preedit ()
+        start = len (preedit) + prompt.start
+        end = len(preedit) + prompt.end
+        self.__frontend.update_preedit (preedit + prompt.text, start, end)
+        self.__frontend.update_aux_string (u'')
+        self.__frontend.update_candidates ([])
     def update_ui (self):
-        ctx = self.__ctx
-        start = 0
-        #print ctx.preedit
-        for x in ctx.preedit[:ctx.cursor]:
-            start += len (x)
-        end = start + len (ctx.preedit[ctx.cursor])
-        self.__frontend.update_preedit (ctx.get_preedit (), start, end)
-        self.__frontend.update_aux_string (ctx.get_aux_string ())
-        self.__frontend.update_candidates (ctx.get_candidates ())
+        self.__update_preedit ()
+        self.__frontend.update_aux_string (self.__ctx.get_aux_string ())
+        self.__frontend.update_candidates (self.__ctx.get_candidates ())
         
 class SchemaChooser:
     def __init__ (self, frontend, schema_name=None):
@@ -228,6 +298,7 @@ class SchemaChooser:
         self.__schema_list = [(x[1], x[0]) for x in sorted (s, key=last_used_time, reverse=True)]
     def choose (self, schema_name):
         s = [x[1] for x in self.__schema_list]
+        d = [x[0] for x in self.__schema_list]
         c = -1
         if schema_name and schema_name in s:
             c = s.index (schema_name)
@@ -238,6 +309,7 @@ class SchemaChooser:
             DB.update_setting (u'SchemaChooser/LastUsed/%s' % s[c], unicode (now))
             self.__deactivate ()
             self.__engine = Engine (self.__frontend, s[c])
+            self.__frontend.update_aux_string (u'選用【%s】' % d[c])
     def __activate (self):
         self.__active = True
         self.__load_schema_list ()
@@ -257,8 +329,7 @@ class SchemaChooser:
                 return True
             return self.__engine.process_key_event (keycode, mask)
         # ignore hotkeys
-        if mask & (modifier.SHIFT_MASK | \
-            modifier.CONTROL_MASK | modifier.ALT_MASK | \
+        if mask & (modifier.CONTROL_MASK | modifier.ALT_MASK | \
             modifier.SUPER_MASK | modifier.HYPER_MASK | modifier.META_MASK
             ):
             return False
@@ -270,19 +341,19 @@ class SchemaChooser:
                 self.__deactivate ()
                 self.__engine.update_ui ()
             return True
-        if keycode in (keysyms.Page_Up, keysyms.minus, keysyms.comma):
+        if keycode in (keysyms.Page_Up, keysyms.comma):
             if self.__frontend.page_up ():
                 return True
             return True
-        if keycode in (keysyms.Page_Down, keysyms.equal, keysyms.period):
+        if keycode in (keysyms.Page_Down, keysyms.period):
             if self.__frontend.page_down ():
                 return True
             return True
-        if keycode == keysyms.Up:
+        if keycode in (keysyms.Up, keysyms.minus):
             if self.__frontend.cursor_up ():
                 return True
             return True
-        if keycode == keysyms.Down:
+        if keycode in (keysyms.Down, keysyms.equal):
             if self.__frontend.cursor_down ():
                 return True
             return True
