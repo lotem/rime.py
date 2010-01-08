@@ -380,18 +380,18 @@ for s in akas:
         a.append(spelling)
 del akas
 
-def g(s, k, depth):
-    if not k or depth >= max_key_length:
-        return s
+def g(ikeys, okey, depth):
+    if not okey or depth >= max_key_length:
+        return ikeys
     r = []
-    for x in s:
-        if k[0] not in oi_map:
+    for x in ikeys:
+        if okey[0] not in oi_map:
             if options.verbose:
-                print >> sys.stderr, 'invalid keyword encountered: [%s]' % k[0]
+                print >> sys.stderr, 'invalid keyword encountered: [%s]' % okey[0]
             return []
-        for y in oi_map[k[0]]:
+        for y in oi_map[okey[0]]:
             r.append(x + [y])
-    return g(r, k[1:], depth + 1)
+    return g(r, okey[1:], depth + 1)
 
 phrase_counter = 0
 last_okey = None

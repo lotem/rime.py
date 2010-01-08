@@ -13,6 +13,8 @@ class Entry:
         self.next = next
     def get_word(self):
         return self.e[0] if self.e else u''
+    def get_okey(self):
+        return self.e[1] if self.e else u''
     def get_eid(self):
         return self.e[2] if self.e else 0
     def get_all(self):
@@ -88,12 +90,21 @@ class Model:
         for k in d:
             add_aka(d[k], k)
         self.__fuzzy_map = reduce(apply_fuzzy_rule, fuzzy_rules, d)
-        kw = dict()
+        std_spelling = dict()
+        oi_map = dict()
         for s in akas:
-            k = akas[s][0]
+            spelling = akas[s][0]
             for x in akas[s]:
-                kw[x] = k
-        self.__keywords = kw
+                std_spelling[x] = spelling
+            for k in s:
+                if k in oi_map:
+                    a = oi_map[k]
+                else:
+                    a = oi_map[k] = []
+                a.append(spelling)
+        self.__keywords = std_spelling
+        self.__oi_map = oi_map
+
 
     def __is_keyword(self, k):
         return k in self.__keywords
@@ -306,10 +317,23 @@ class Model:
         """
 
     def train(self, ctx, s):
+        def g(ikeys, okey, depth):
+            if not okey or depth >= self.__max_key_length:
+                return ikeys
+            r = []
+            for x in ikeys:
+                if okey[0] not in self.__oi_map:
+                    return []
+                for y in self.__oi_map[okey[0]]:
+                    r.append(x + [y])
+            return g(r, okey[1:], depth + 1)
+        def f(a, b):
+            okey = a.get_okey().split() + b.get_okey().split()
+            return [u' '.join(ikey) for ikey in g([[]], okey, 0)]
         last = None
         for e in s:
             if last:
-                self.__db.update_bigram(last, e)
+                self.__db.update_bigram(last, e, f)
             last = e
             self.__db.update_unigram(e)
         self.__db.update_freq_total(len(s))

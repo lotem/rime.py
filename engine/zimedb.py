@@ -99,6 +99,14 @@ class DB:
         SELECT keyword FROM %(prefix)s_keywords;
         """ % prefix_args
 
+        self.QUERY_KEY_SQL = """
+        SELECT id FROM %(prefix)s_keys WHERE ikey = :ikey;
+        """ % prefix_args
+
+        self.ADD_KEY_SQL = """
+        INSERT INTO %(prefix)s_keys VALUES (NULL, :ikey);
+        """ % prefix_args
+
         self.QUERY_STATS_SQL = """
         SELECT sfreq + ufreq AS freq, ufreq FROM %(prefix)s_stats;
         """ % prefix_args
@@ -138,6 +146,14 @@ class DB:
 
         self.ADD_BIGRAM_SQL = """
         INSERT INTO %(prefix)s_bigram VALUES (:e1, :e2, 1);
+        """ % prefix_args
+
+        self.QUERY_KB_SQL = """
+        SELECT rowid FROM %(prefix)s_kb WHERE k_id = :k_id AND b_id = :b_id;
+        """ % prefix_args
+
+        self.ADD_KB_SQL = """
+        INSERT INTO %(prefix)s_kb VALUES (:k_id, :b_id);
         """ % prefix_args
 
     def read_config_value(self, key):
@@ -186,7 +202,7 @@ class DB:
         args = {'id' : e.get_eid()}
         DB.__conn.execute(self.INC_UFREQ_SQL, args)
 
-    def update_bigram(self, a, b):
+    def update_bigram(self, a, b, get_ikeys):
         #print 'update_bigram:', unicode(a), unicode(b)
         if DB.read_only:
             return
@@ -195,4 +211,22 @@ class DB:
             DB.__conn.execute(self.INC_BFREQ_SQL, args)
         else:
             DB.__conn.execute(self.ADD_BIGRAM_SQL, args)
+            # generate ikey-bigram index
+            b_id = DB.__conn.execute(self.BIGRAM_EXIST_SQL, args).fetchone()[0]
+            k_ids = [self.__get_or_insert_key(k) for k in get_ikeys(a, b)]
+            for k_id in k_ids:
+                self.__add_kb(k_id, b_id)
 
+    def __get_or_insert_key(self, key):
+        args = {'ikey' : key}
+        r = None
+        while not r:
+            r = DB.__conn.execute(self.QUERY_KEY_SQL, args).fetchone()
+            if not r:
+                DB.__conn.execute(self.ADD_KEY_SQL, args)
+        return r[0]
+
+    def __add_kb(self, k_id, b_id):
+        args = {'k_id' : k_id, 'b_id' : b_id}
+        if not DB.__conn.execute(self.QUERY_KB_SQL, args).fetchone():
+            DB.__conn.execute(self.ADD_KB_SQL, args)

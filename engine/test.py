@@ -241,6 +241,10 @@ def main():
     #e = TestEngine(u'TonalPinyin')
     #e.test('biao1diao4  ')
 
+    # test dynamic ikey-bigram index generation
+    #e = TestEngine(u'Pinyin')
+    #e.test('taibangle{Home}23 taibangle ')
+
     pass
 
 if __name__ == "__main__":
