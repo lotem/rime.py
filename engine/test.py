@@ -127,7 +127,7 @@ class TestEngine:
 
 def main():
     #e = TestEngine(u'Zhuyin')
-    #e.test('rm/3rm/3u.3gp6zj/ {Escape}2k7al {Tab}')
+    #e.test('rm/3rm/3u.3gp6zj/ {Escape}2k7al {Tab}{Return}')
     #e.test('5j/ cj86aup6eji6{BackSpace}ji{BackSpace}i6 ')
     #e.test('5j/ eji6{BackSpace}{BackSpace}')
     #e.test('5j/ cj86bp6aup6ej/4ck6eji6{Tab}{Page_Down}{Page_Up}{Tab}{Escape} ')
@@ -207,6 +207,7 @@ def main():
     #e.test('woshi gongchen {Escape}')
 
     #e = TestEngine(u'Pinyin')
+    #e.test('zzzzs ccc')
     # test fuzzy input
     #e.test('qiujiu')
     #e.test('chagnan')

@@ -33,6 +33,25 @@ CREATE TABLE IF NOT EXISTS phrases (
 """
 
 CREATE_DICT_SQLS = """
+CREATE TABLE IF NOT EXISTS %(prefix)s_stats (
+    sfreq INTEGER,
+    ufreq INTEGER
+);
+CREATE TABLE IF NOT EXISTS %(prefix)s_unigram (
+    id INTEGER PRIMARY KEY,
+    p_id INTEGER,
+    okey TEXT,
+    sfreq INTEGER,
+    ufreq INTEGER
+);
+CREATE TABLE IF NOT EXISTS %(prefix)s_bigram (
+    e1 INTEGER,
+    e2 INTEGER,
+    bfreq INTEGER,
+    PRIMARY KEY (e1, e2)
+);
+INSERT INTO %(prefix)s_stats VALUES (0, 0);
+CREATE UNIQUE INDEX IF NOT EXISTS %(prefix)s_entry_idx ON %(prefix)s_unigram (p_id, okey);
 CREATE TABLE IF NOT EXISTS %(prefix)s_keywords (
     keyword TEXT
 );
@@ -40,44 +59,31 @@ CREATE TABLE IF NOT EXISTS %(prefix)s_keys (
     id INTEGER PRIMARY KEY,
     ikey TEXT UNIQUE
 );
-CREATE TABLE IF NOT EXISTS %(prefix)s_k1 (
+CREATE TABLE IF NOT EXISTS %(prefix)s_ku (
     k_id INTEGER,
     u_id INTEGER,
     PRIMARY KEY (k_id, u_id)
 );
-CREATE TABLE IF NOT EXISTS %(prefix)s_g0 (
-    sfreq INTEGER,
-    ufreq INTEGER
+CREATE TABLE IF NOT EXISTS %(prefix)s_kb (
+    k_id INTEGER,
+    b_id INTEGER,
+    PRIMARY KEY (k_id, b_id)
 );
-INSERT INTO %(prefix)s_g0 VALUES (0, 0);
-CREATE TABLE IF NOT EXISTS %(prefix)s_g1 (
-    id INTEGER PRIMARY KEY,
-    p_id INTEGER,
-    okey TEXT,
-    sfreq INTEGER,
-    ufreq INTEGER
-);
-CREATE TABLE IF NOT EXISTS %(prefix)s_g2 (
-    u1_id INTEGER,
-    u2_id INTEGER,
-    freq INTEGER,
-    PRIMARY KEY (u1_id, u2_id)
-);
-CREATE UNIQUE INDEX IF NOT EXISTS %(prefix)s_g1_idx ON %(prefix)s_g1 (p_id, okey);
 """
 
 DROP_DICT_SQLS = """
-DROP INDEX IF EXISTS %(prefix)s_g1_idx;
+DROP INDEX IF EXISTS %(prefix)s_entry_idx;
+DROP TABLE IF EXISTS %(prefix)s_unigram;
+DROP TABLE IF EXISTS %(prefix)s_bigram;
+DROP TABLE IF EXISTS %(prefix)s_stats;
 DROP TABLE IF EXISTS %(prefix)s_keywords;
 DROP TABLE IF EXISTS %(prefix)s_keys;
-DROP TABLE IF EXISTS %(prefix)s_k1;
-DROP TABLE IF EXISTS %(prefix)s_g0;
-DROP TABLE IF EXISTS %(prefix)s_g1;
-DROP TABLE IF EXISTS %(prefix)s_g2;
+DROP TABLE IF EXISTS %(prefix)s_ku;
+DROP TABLE IF EXISTS %(prefix)s_kb;
 """
 
 CLEAN_UP_SQLS = """
-DROP INDEX IF EXISTS %(prefix)s_g1_idx;
+DROP INDEX IF EXISTS %(prefix)s_entry_idx;
 """
 
 CLEAR_SETTING_VALUE_SQL = """
@@ -138,7 +144,7 @@ if not options.db_file:
     db_path = os.path.join(home_path, '.ibus', 'zime')
     if not os.path.isdir(db_path):
         os.makedirs(db_path)
-    db_file = os.path.join(db_path, 'plume.db')
+    db_file = os.path.join(db_path, 'zime.db')
 else:
     db_file = options.db_file
 
@@ -150,7 +156,7 @@ schema = None
 prefix = None
 #delim = None
 
-max_key_length = 3
+max_key_length = 2
 
 def get_or_insert_setting_path(path):
     args = {'path' : path}
@@ -198,7 +204,7 @@ if schema_file:
             #    else:
             #        delim = value[0]
             if path == u'Config/%s/MaxKeyLength' % schema:
-                max_key_length = int(value)
+                max_key_length = max (2, int(value))
             elif path == u'Config/%s/SpellingRule' % schema:
                 spelling_rules.append(compile_repl_pattern(value.split()))
             elif path == u'Config/%s/FuzzyRule' % schema:
@@ -233,42 +239,28 @@ ADD_KEY_SQL = """
 INSERT INTO %(prefix)s_keys VALUES (NULL, :ikey);
 """ % prefix_args
 
-INC_G0_SQL = """
-UPDATE %(prefix)s_g0 SET sfreq = sfreq + :freq;
+INC_SFREQ_SQL = """
+UPDATE %(prefix)s_stats SET sfreq = sfreq + :freq;
 """ % prefix_args
 
-INC_G1_SQL = """
-UPDATE %(prefix)s_g1 SET sfreq = sfreq + :freq 
-WHERE p_id = :p_id AND okey = :okey;
+ADD_UNIGRAM_SQL = """
+INSERT INTO %(prefix)s_unigram VALUES (NULL, :p_id, :okey, :freq, 0);
 """ % prefix_args
 
-QUERY_G1_SQL = """
-SELECT id FROM %(prefix)s_g1 
-WHERE p_id = :p_id AND okey = :okey;
+QUERY_UNIGRAM_SQL = """
+SELECT id FROM %(prefix)s_unigram WHERE p_id = :p_id AND okey = :okey;
 """ % prefix_args
 
-ADD_G1_SQL = """
-INSERT INTO %(prefix)s_g1 VALUES (NULL, :p_id, :okey, :freq, 0);
+INC_EFREQ_SQL = """
+UPDATE %(prefix)s_unigram SET sfreq = sfreq + :freq WHERE p_id = :p_id AND okey = :okey;
 """ % prefix_args
 
-QUERY_K1_SQL = """
-SELECT rowid FROM %(prefix)s_k1 WHERE k_id = :k_id AND u_id = :u_id;
+QUERY_KU_SQL = """
+SELECT rowid FROM %(prefix)s_ku WHERE k_id = :k_id AND u_id = :u_id;
 """ % prefix_args
 
-ADD_K1_SQL = """
-INSERT INTO %(prefix)s_k1 VALUES (:k_id, :u_id);
-""" % prefix_args
-
-INC_G2_SQL = """
-UPDATE %(prefix)s_g2 SET freq = freq + :freq WHERE u1_id = :u1_id AND u2_id = :u2_id;
-""" % prefix_args
-
-QUERY_G2_SQL = """
-SELECT freq FROM %(prefix)s_g2 WHERE u1_id = :u1_id AND u2_id = :u2_id;
-""" % prefix_args
-
-ADD_G2_SQL = """
-INSERT INTO %(prefix)s_g2 VALUES (:u1_id, :u2_id, :freq);
+ADD_KU_SQL = """
+INSERT INTO %(prefix)s_ku VALUES (:k_id, :u_id);
 """ % prefix_args
 
 def add_keyword(keyword):
@@ -293,33 +285,25 @@ def get_or_insert_phrase(phrase):
             cur.execute(ADD_PHRASE_SQL, args)
     return r[0]
 
-def inc_g0(freq):
+def inc_sfreq(freq):
     args = {'freq' : freq}
-    cur.execute(INC_G0_SQL, args)
+    cur.execute(INC_SFREQ_SQL, args)
 
-def inc_g1(okey, p_id, freq):
-    args = {'okey' : okey, 'p_id' : p_id, 'freq' : freq}
-    r = cur.execute(QUERY_G1_SQL, args).fetchone()
+def inc_efreq_and_get_u_id(phrase, okey, freq):
+    p_id = get_or_insert_phrase(phrase)
+    args = {'p_id' : p_id, 'okey' : okey, 'freq' : freq}
+    r = cur.execute(QUERY_UNIGRAM_SQL, args).fetchone()
     if not r:
-        cur.execute(ADD_G1_SQL, args)
+        cur.execute(ADD_UNIGRAM_SQL, args)
+        r = cur.execute(QUERY_UNIGRAM_SQL, args).fetchone()
     elif freq > 0:
-        cur.execute(INC_G1_SQL, args)
-    if not r:
-        r = cur.execute(QUERY_G1_SQL, args).fetchone()
+        cur.execute(INC_EFREQ_SQL, args)
     return r[0]
 
-def inc_g2(u1_id, u2_id, freq):
-    args = {'u1_id' : u1_id, 'u2_id' : u2_id, 'freq' : freq}
-    if cur.execute(QUERY_G2_SQL, args).fetchone():
-        if freq > 0:
-            cur.execute(INC_G2_SQL, args)
-    else:
-        cur.execute(ADD_G2_SQL, args)
-
-def add_rel(k_id, u_id):
+def add_ku(k_id, u_id):
     args = {'k_id' : k_id, 'u_id' : u_id}
-    if not cur.execute(QUERY_K1_SQL, args).fetchone():
-        cur.execute(ADD_K1_SQL, args)
+    if not cur.execute(QUERY_KU_SQL, args).fetchone():
+        cur.execute(ADD_KU_SQL, args)
 
 keywords = dict()
 if keyword_file:
@@ -396,10 +380,6 @@ for s in akas:
         a.append(spelling)
 del akas
 
-phrase_counter = 0
-last_okey = None
-key_ids = None
-
 def g(s, k, depth):
     if not k or depth >= max_key_length:
         return s
@@ -413,20 +393,23 @@ def g(s, k, depth):
             r.append(x + [y])
     return g(r, k[1:], depth + 1)
 
+phrase_counter = 0
+last_okey = None
+key_ids = None
+
 def process_phrase(okey, phrase, freq):
     global phrase_counter, last_okey, key_ids
     phrase_counter += 1
-    p_id = get_or_insert_phrase(phrase)
-    u_id = inc_g1(okey, p_id, freq)
+    u_id = inc_efreq_and_get_u_id(phrase, okey, freq)
     if freq != 0:
-        inc_g0(freq)
+        inc_sfreq(freq)
     if okey != last_okey:
         last_okey = okey
         key_ids = [get_or_insert_key(k) for k in g([[]], okey.split(), 0)]
         if not key_ids and options.verbose:
             print >> sys.stderr, 'failed index generation for phrase [%s] %s.' % (okey, phrase)
     for k_id in key_ids:
-        add_rel(k_id, u_id)
+        add_ku(k_id, u_id)
 
 for k in keywords:
     add_keyword(k)

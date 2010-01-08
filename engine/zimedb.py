@@ -5,7 +5,7 @@ import time
 
 class DB:
 
-    LIMIT = 512
+    LIMIT = 1024
 
     INIT_PLUME_DB_SQLS = """
     CREATE TABLE IF NOT EXISTS setting_paths (
@@ -94,42 +94,50 @@ class DB:
         self.__name = name
         self.__conf_path = 'Config/%s/' % name
         prefix_args = {'prefix' : self.read_config_value('Prefix')}
+
         self.LIST_KEYWORDS_SQL = """
         SELECT keyword FROM %(prefix)s_keywords;
         """ % prefix_args
-        self.QUERY_G0_SQL = """
-        SELECT sfreq + ufreq AS freq, ufreq FROM %(prefix)s_g0;
+
+        self.QUERY_STATS_SQL = """
+        SELECT sfreq + ufreq AS freq, ufreq FROM %(prefix)s_stats;
         """ % prefix_args
-        self.QUERY_G1_SQL = """
-        SELECT phrase, okey, g1.id, sfreq + ufreq AS freq, ufreq 
-        FROM %(prefix)s_g1 g1, %(prefix)s_k1 k1, %(prefix)s_keys k, phrases p 
-        WHERE ikey = :ikey AND k.id = k_id AND u_id = g1.id AND p_id = p.id
+
+        self.QUERY_UNIGRAM_SQL = """
+        SELECT phrase, okey, u.id, sfreq + ufreq AS freq, ufreq 
+        FROM %(prefix)s_unigram u, %(prefix)s_ku ku, %(prefix)s_keys k, phrases p 
+        WHERE ikey = :ikey AND k.id = k_id AND u_id = u.id AND p_id = p.id
         ORDER BY freq DESC;
         """ % prefix_args
-        self.FETCH_G1_SQL = """
-        SELECT sfreq + ufreq AS freq FROM %(prefix)s_g1 WHERE id = :id;
-        """ % prefix_args
-        self.QUERY_G2_SQL = """
-        SELECT u2_id, freq FROM %(prefix)s_g2 WHERE u1_id = :u1_id
+
+        self.QUERY_BIGRAM_SQL = """
+        SELECT e1, e2, bfreq AS freq FROM %(prefix)s_bigram b , %(prefix)s_kb kb, %(prefix)s_keys k
+        WHERE ikey = :ikey AND k.id = k_id AND b_id = b.rowid
         ORDER BY freq;
         """ % prefix_args
-        self.UPDATE_G0_SQL = """
-        UPDATE %(prefix)s_g0 SET ufreq = ufreq + :n;
+
+        self.QUERY_BIGRAM_BY_ENTRY_SQL = """
+        SELECT e2, bfreq FROM %(prefix)s_bigram WHERE e1 = :e1;
         """ % prefix_args
-        self.UPDATE_G1_SQL = """
-        UPDATE %(prefix)s_g1 SET ufreq = ufreq + 1 
-        WHERE id = :id;
+
+        self.UPDATE_STATS_SQL = """
+        UPDATE %(prefix)s_stats SET ufreq = ufreq + :n;
         """ % prefix_args
-        self.G2_EXIST_SQL = """
-        SELECT freq FROM %(prefix)s_g2 
-        WHERE u1_id = :u1_id AND u2_id = :u2_id;
+
+        self.INC_UFREQ_SQL = """
+        UPDATE %(prefix)s_unigram SET ufreq = ufreq + 1 WHERE id = :id;
         """ % prefix_args
-        self.UPDATE_G2_SQL = """
-        UPDATE %(prefix)s_g2 SET freq = freq + 1 
-        WHERE u1_id = :u1_id AND u2_id = :u2_id;
+
+        self.BIGRAM_EXIST_SQL = """
+        SELECT rowid FROM %(prefix)s_bigram WHERE e1 = :e1 AND e2 = :e2;
         """ % prefix_args
-        self.ADD_G2_SQL = """
-        INSERT INTO %(prefix)s_g2 VALUES (:u1_id, :u2_id, 1);
+
+        self.INC_BFREQ_SQL = """
+        UPDATE %(prefix)s_bigram SET bfreq = bfreq + 1 WHERE e1 = :e1 AND e2 = :e2;
+        """ % prefix_args
+
+        self.ADD_BIGRAM_SQL = """
+        INSERT INTO %(prefix)s_bigram VALUES (:e1, :e2, 1);
         """ % prefix_args
 
     def read_config_value(self, key):
@@ -142,22 +150,25 @@ class DB:
         return [x[0] for x in DB.__conn.execute(self.LIST_KEYWORDS_SQL, ()).fetchall()]
 
     def lookup_freq_total(self):
-        r = DB.__conn.execute(self.QUERY_G0_SQL).fetchone()
+        r = DB.__conn.execute(self.QUERY_STATS_SQL).fetchone()
         return r
 
-    def lookup_phrase(self, key):
-        args = {'ikey' : u' '.join(key)}
-        r = DB.__conn.execute(self.QUERY_G1_SQL, args).fetchmany(DB.LIMIT)
+    def lookup_unigram(self, key):
+        #print 'lookup_unigram:', key
+        args = {'ikey' : key}
+        r = DB.__conn.execute(self.QUERY_UNIGRAM_SQL, args).fetchmany(DB.LIMIT)
         return r
 
-    def lookup_phrase_by_id(self, id):
-        args = {'id' : id}
-        r = DB.__conn.execute(self.FETCH_G1_SQL, args).fetchone()
+    def lookup_bigram(self, key):
+        #print 'lookup_bigram:', key
+        args = {'ikey' : key}
+        r = DB.__conn.execute(self.QUERY_BIGRAM_SQL, args).fetchmany(DB.LIMIT)
         return r
 
-    def lookup_bigram(self, id):
-        args = {'u1_id' : id}
-        r = DB.__conn.execute(self.QUERY_G2_SQL, args).fetchmany(DB.LIMIT)
+    def lookup_bigram_by_entry(self, e):
+        #print 'lookup_bigram_by_entry:', unicode(e)
+        args = {'e1' : e.get_eid()}
+        r = DB.__conn.execute(self.QUERY_BIGRAM_BY_ENTRY_SQL, args).fetchmany(DB.LIMIT)
         return r
 
     def update_freq_total(self, n):
@@ -165,23 +176,23 @@ class DB:
         if DB.read_only:
             return
         args = {'n' : n}
-        DB.__conn.execute(self.UPDATE_G0_SQL, args)
+        DB.__conn.execute(self.UPDATE_STATS_SQL, args)
         DB.flush()
         
-    def update_unigram(self, a):
-        #print 'update_unigram:', unicode(a)
+    def update_unigram(self, e):
+        #print 'update_unigram:', unicode(e)
         if DB.read_only:
             return
-        args = {'id' : a.get_uid()}
-        DB.__conn.execute(self.UPDATE_G1_SQL, args)
+        args = {'id' : e.get_eid()}
+        DB.__conn.execute(self.INC_UFREQ_SQL, args)
 
     def update_bigram(self, a, b):
         #print 'update_bigram:', unicode(a), unicode(b)
         if DB.read_only:
             return
-        args = {'u1_id' : a.get_uid(), 'u2_id' : b.get_uid()}
-        if DB.__conn.execute(self.G2_EXIST_SQL, args).fetchone():
-            DB.__conn.execute(self.UPDATE_G2_SQL, args)
+        args = {'e1' : a.get_eid(), 'e2' : b.get_eid()}
+        if DB.__conn.execute(self.BIGRAM_EXIST_SQL, args).fetchone():
+            DB.__conn.execute(self.INC_BFREQ_SQL, args)
         else:
-            DB.__conn.execute(self.ADD_G2_SQL, args)
+            DB.__conn.execute(self.ADD_BIGRAM_SQL, args)
 

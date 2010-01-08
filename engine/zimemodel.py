@@ -4,17 +4,17 @@
 import re
 
 class Entry:
-    def __init__(self, u, i, j, prob=1.0, use_count=0, next=None):
-        self.u = u
+    def __init__(self, e, i, j, prob=1.0, use_count=0, next=None):
+        self.e = e
         self.i = i
         self.j = j
         self.prob = prob
         self.use_count = use_count
         self.next = next
     def get_word(self):
-        return self.u[0] if self.u else u''
-    def get_uid(self):
-        return self.u[2] if self.u else 0
+        return self.e[0] if self.e else u''
+    def get_eid(self):
+        return self.e[2] if self.e else 0
     def get_all(self):
         w = []
         s = self
@@ -33,7 +33,7 @@ class Model:
     PENALTY = 1e-4
 
     def __init__(self, schema):
-        self.__max_key_length = int(schema.get_config_value(u'MaxKeyLength') or u'3')
+        self.__max_key_length = max(2, int(schema.get_config_value(u'MaxKeyLength') or u'2'))
         self.__max_keyword_length = int(schema.get_config_value(u'MaxKeywordLength') or u'7')
         self.__delimiter = schema.get_config_char_sequence(u'Delimiter') or u' '
         get_rules = lambda f, key: [f(r.split()) for r in schema.get_config_list(key)]
@@ -180,18 +180,11 @@ class Model:
         queries = {}
         total, utotal = [x + 0.1 for x in self.__db.lookup_freq_total()]
         to_prob = lambda x: (x + 0.1) / total
-        def fetch_big(id):
-            r = self.__db.lookup_bigram(id)
-            s = big[id] = {}
-            for x in r:
-                s[x[0]] = to_prob(x[1])
         def add_word(x, i, j):
             #print 'add_word:', x[0], x[1], i, j
-            uid = x[2]
+            eid = x[2]
             prob = to_prob(x[3])
-            unig[uid] = prob
-            if uid not in big:
-                fetch_big(uid)
+            unig[eid] = prob
             if not c[i][j]:
                 c[i][j] = []
             e = Entry(x, i, j, prob, x[4])
@@ -212,15 +205,24 @@ class Model:
         def lookup(i, j, k):
             key = u' '.join(k)
             if key in queries:
-                r = queries[key]
+                ru = queries[key]
+                rb = None
             else:
-                r = queries[key] = self.__db.lookup_phrase(k)
-            for x in r:
+                ru = queries[key] = self.__db.lookup_unigram(key)
+                rb = self.__db.lookup_bigram(key) if len (k) > 1 else None
+            for x in ru:
                 okey = x[1].split()
                 if len(okey) <= self.__max_key_length:
                     add_word(x, i, j)
                 else:
                     match_key(x, i, j, okey[self.__max_key_length:])
+            if rb:
+                for x in rb:
+                    if x[0] in big:
+                        s = big[x[0]]
+                    else:
+                        s = big[x[0]] = {}
+                    s[x[1]] = to_prob(x[2])
         # traverse
         visited = []
         for i in reversed(b):
@@ -229,14 +231,22 @@ class Model:
                     ok = True
                     e = (j, a[j][i])
                     edges[i].append(e)
-                    keys = make_keys(e[0], [e[1]], self.__max_key_length)
+                    keys = make_keys(e[0], [e[1]], self.__max_key_length - 1)
                     for t, k in keys:
                         lookup(i, t, k)
             visited.append(i)
         queries = None
         # last committed word's data goes to ctx.phrase[-1] and ctx.pred[-1]
         if ctx.pre:
-            add_word(ctx.pre.u, -1, 0)
+            add_word(ctx.pre.e, -1, 0)
+            r = self.__db.lookup_bigram_by_entry(ctx.pre)
+            eid = ctx.pre.get_eid()
+            if eid in big:
+                s = big[eid]
+            else:
+                s = big[eid] = {}
+            for x in r:
+                s[x[0]] = to_prob(x[1])
         # calculate sentence prediction
         pred = [None for i in range(m + 1 + 1)]
         for j in reversed(b):
@@ -249,24 +259,24 @@ class Model:
                         else:
                             x.prob *= pred[j].prob * Model.PENALTY
                             # make phrases
-                            uid = x.get_uid()
-                            if uid in big:
+                            eid = x.get_eid()
+                            if eid in big:
                                 if next is None:
-                                    # all phrases that starts at j, grouped by uid
+                                    # all phrases that starts at j, grouped by eid
                                     next = dict()
                                     for k in range(j + 1, m + 1):
                                         if c[j][k]:
                                             for y in c[j][k]:
-                                                v = y.get_uid()
+                                                v = y.get_eid()
                                                 if v in next:
                                                     next[v].append(y)
                                                 else:
                                                     next[v] = [y]
-                                for v in big[uid]:
+                                for v in big[eid]:
                                     if v in next:
                                         for y in next[v]:
-                                            prob = big[uid][v] / unig[v] * y.prob
-                                            e = Entry(x.u, i, j, prob, min(x.use_count, y.use_count), y)
+                                            prob = big[eid][v] / unig[v] * y.prob
+                                            e = Entry(x.e, i, j, prob, min(x.use_count, y.use_count), y)
                                             #print 'made phrase:', unicode(e)
                                             # save phrase
                                             k = e.get_all()[-1].j
@@ -303,7 +313,7 @@ class Model:
             last = e
             self.__db.update_unigram(e)
         self.__db.update_freq_total(len(s))
-        ctx.pre = Entry(last.u, -1, 0) if last else None
+        ctx.pre = Entry(last.e, -1, 0) if last else None
 
     def make_candidate_list(self, ctx, i, j):
         c = ctx.phrase
@@ -322,21 +332,21 @@ class Model:
         if prev:
             #print 'prev:', prev.get_phrase()
             prev_award = 1.0
-            prev_uid = prev.get_uid()
+            prev_eid = prev.get_eid()
             for x in c[prev.i][prev.j]:
-                if x.get_uid() == prev_uid:
+                if x.get_eid() == prev_eid:
                     prev_award = ctx.pred[x.j].prob / x.prob
                     break
             for y in c[prev.i][prev.j:]:
                 if y:
                     for x in y:
-                        if x.next and x.get_uid() == prev_uid:
+                        if x.next and x.get_eid() == prev_eid:
                             prev_table[id(x.next)] = x.prob * prev_award
         def adjust(e):
             if id(e) not in prev_table:
                 return e
             prob = prev_table[id(e)]
-            return Entry(e.u, e.i, e.j, prob, e.use_count, e.next)
+            return Entry(e.e, e.i, e.j, prob, e.use_count, e.next)
         #print 'range:', u''.join(ctx.input[i:j])
         for k in range(j, i, -1):
             if c[i][k]:
