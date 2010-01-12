@@ -1,0 +1,99 @@
+# ZIME Schema v3
+Schema = Pinyin
+DisplayName = 拼音
+Dict = pinyin
+Parser = roman
+AutoPrompt = yes
+AutoDelimit = yes
+Delimiter = [ '-]
+MaxKeywordLength = 6
+# 不要聲調
+MappingRule = ^(.+)\d$ \1
+# 模糊音
+#FuzzyRule = ^([zcs])h \1
+#FuzzyRule = ^([zcs])([^h]) \1h\2
+#FuzzyRule = ^l n
+#FuzzyRule = ^n l
+#FuzzyRule = ([ei])ng$ \1n
+#FuzzyRule = ([ei])n$ \1ng
+# 簡拼
+FuzzyRule = ^([a-z]).+$ \1
+FuzzyRule = ^([a-z]h).+$ \1
+# 兼容拼寫形式
+AlternativeRule = ^([fvw])ei$ \1i
+AlternativeRule = ^([nl])ei$ \1ui
+AlternativeRule = ([^nl])ue$ \1uo
+AlternativeRule = ^([nl])ong$ \1iong
+AlternativeRule = ^we(ng?|i)$ wu\1
+AlternativeRule = ui$ uei
+AlternativeRule = iu$ iou
+AlternativeRule = ^([jqx])i([aoe]) \1\2
+AlternativeRule = ^([jqx])i([aoe]) \1y\2
+AlternativeRule = ^([jqx])u \1yu
+AlternativeRule = ^j([iy][aoeun]) z\1
+AlternativeRule = ^q([iy][aoeun]) c\1
+AlternativeRule = ^x([iy][aoeun]) s\1
+AlternativeRule = ^ji(n|$) zyi\1
+AlternativeRule = ^qi(n|$) cyi\1
+AlternativeRule = ^xi(n|$) syi\1
+AlternativeRule = ^([nl])ue$ \1yue
+AlternativeRule = ^([nl])v$ \1yu
+AlternativeRule = ^weng$ ong
+AlternativeRule = ^(.+)ong$ \1ung
+AlternativeRule = ao$ au
+AlternativeRule = ^w v
+AlternativeRule = ([aeiou])n$ \1m
+# 拼式糾錯
+AlternativeRule = ([aeiou])ng$ \1gn
+# 音節切分
+SplitRule = [mng]$ ^[aeiou]
+#DivideRule = ^.*[iu]([aoe].*)$ \1
+# punctuation
+Punct = , ，
+Punct = . 。
+Punct = < 《 〈
+Punct = > 》 〉
+Punct = / ／
+Punct = ? ？
+Punct = ; ；
+Punct = : ：
+Punct = ' ‘~’
+Punct = " “~”
+Punct = \ 、
+Punct = | ｜
+Punct = ` ｀
+Punct = ~ ～
+Punct = ! ！
+Punct = @ ＠
+Punct = # ＃
+Punct = % ％
+Punct = $ ￥
+Punct = ^ ……
+Punct = & ＆
+Punct = * ＊
+Punct = ( （
+Punct = ) ）
+Punct = - －
+Punct = _ ——
+Punct = + ＋
+Punct = = ＝
+Punct = [ 「 【 ［
+Punct = ] 」 】 ］
+Punct = { 『 ｛
+Punct = } 』 ｝
+# edit keys
+#EditKey = bracketleft Left
+#EditKey = bracketright Right
+#EditKey = minus Up
+#EditKey = equal Down
+EditKey = comma Page_Up
+EditKey = period Page_Down
+EditKey = I Up
+EditKey = K Down
+EditKey = J Left
+EditKey = L Right
+EditKey = Y Page_Up
+EditKey = H Page_Down
+EditKey = U Home
+EditKey = O End
+EditKey = P Escape

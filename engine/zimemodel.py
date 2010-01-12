@@ -30,31 +30,22 @@ class Entry:
         return u'<%s (%d, %d) %g%s>' % \
             (self.get_word(), self.i, self.j, self.prob, (u' => %s' % self.next.get_phrase()) if self.next else u'')
 
-class Model:
+class SpellingCollisionError:
+    def __init__(self, rule, vars):
+        self.rule = rule
+        self.vars = vars
+    def __str__(self):
+        return 'spelling collision detected in %s: %s' % (self.rule, repr(self.vars))
 
-    PENALTY = 1e-4
+class SpellingAlgebra:
 
-    def __init__(self, schema):
-        self.__max_key_length = max(2, int(schema.get_config_value(u'MaxKeyLength') or u'2'))
-        self.__max_keyword_length = int(schema.get_config_value(u'MaxKeywordLength') or u'7')
-        self.__delimiter = schema.get_config_char_sequence(u'Delimiter') or u' '
-        get_rules = lambda f, key: [f(r.split()) for r in schema.get_config_list(key)]
-        compile_repl_pattern = lambda x: (re.compile(x[0]), x[1])
-        #self.__split_rules = get_rules(tuple, u'SplitRule')
-        self.__divide_rules = get_rules(compile_repl_pattern, u'DivideRule')
-        spelling_rules = get_rules(compile_repl_pattern, u'SpellingRule')
-        fuzzy_rules = get_rules(compile_repl_pattern, u'FuzzyRule')
-        self.__db = schema.get_db()
-        keywords = self.__db.list_keywords()
-        def apply_spelling_rule(m, r):
-            return(r[0].sub(r[1], m[0], 1), m[1])
-        d = dict()
-        for k, v in [reduce(apply_spelling_rule, spelling_rules, (k, frozenset([k]))) for k in keywords]:
-            if k in d:
-                d[k] |= v
-            else:
-                d[k] = v
+    def __init__(self, report_errors=True):
+        self.__report_errors = report_errors
+
+    def calculate(self, mapping_rules, fuzzy_rules, spelling_rules, alternative_rules, keywords):
+
         akas = dict()
+
         def add_aka(s, x):
             if s in akas:
                 a = akas[s]
@@ -62,6 +53,7 @@ class Model:
                 a = akas[s] = []
             if x not in a:
                 a.append(x)
+
         def del_aka(s, x):
             if s in akas:
                 a = akas[s]
@@ -71,12 +63,16 @@ class Model:
                 a.remove(x)
             if not a:
                 del akas[s]
+
+        def transform(x, r):
+            return r[0].sub(r[1], x, 1)
+
         def apply_fuzzy_rule(d, r):
             dd = dict(d)
             for x in d:
                 if not r[0].search(x):
                     continue
-                y = r[0].sub(r[1], x, 1)
+                y = transform(x, r)
                 if y == x:
                     continue
                 if y not in dd:
@@ -87,24 +83,86 @@ class Model:
                     dd[y] |= d[x]
                     add_aka(dd[y], y)
             return dd
-        for k in d:
-            add_aka(d[k], k)
-        self.__fuzzy_map = reduce(apply_fuzzy_rule, fuzzy_rules, d)
-        std_spelling = dict()
+
+        def apply_alternative_rule(d, r):
+            for x in d.keys():
+                if not r[0].search(x):
+                    continue
+                y = transform(x, r)
+                if y == x:
+                    continue
+                if y not in d:
+                    d[y] = d[x]
+                elif self.__report_errors:
+                    raise SpellingCollisionError('AlternativeRule', (x, d[x], y, d[y]))
+            return d
+
+        io_map = dict()
+        for okey in keywords:
+            ikey = reduce(transform, mapping_rules, okey)
+            s = frozenset([okey])
+            if ikey in io_map:
+                io_map[ikey] |= s
+            else:
+                io_map[ikey] = s
+        for ikey in io_map:
+            add_aka(io_map[ikey], ikey)
+        io_map = reduce(apply_fuzzy_rule, fuzzy_rules, io_map)
+
         oi_map = dict()
-        for s in akas:
-            spelling = akas[s][0]
-            for x in akas[s]:
-                std_spelling[x] = spelling
-            for k in s:
+        ikeys = []
+        spellings = []
+        for okeys in akas:
+            ikey = akas[okeys][0]
+            ikeys.append(ikey)
+            for x in akas[okeys]:
+                spellings.append((x, ikey))
+            for k in okeys:
                 if k in oi_map:
                     a = oi_map[k]
                 else:
                     a = oi_map[k] = []
-                a.append(spelling)
-        self.__keywords = std_spelling
-        self.__oi_map = oi_map
+                a.append(ikey)
+        akas = None
 
+        # remove non-ikey keys
+        io_map = dict([(k, io_map[k]) for k in ikeys])
+
+        spelling_map = dict()
+        for s, ikey in spellings:
+            t = reduce(transform, spelling_rules, s)
+            if t not in spelling_map:
+                spelling_map[t] = s
+            elif self.__report_errors:
+                raise SpellingCollisionError('SpellingRule', (s, ikey, t, spelling_map[t]))
+        spelling_map = reduce(apply_alternative_rule, alternative_rules, spelling_map)
+
+        return spelling_map, io_map, oi_map
+
+class Model:
+
+    PENALTY = 1e-4
+
+    def __init__(self, schema):
+        self.__max_key_length = max(2, int(schema.get_config_value(u'MaxKeyLength') or u'2'))
+        self.__max_keyword_length = int(schema.get_config_value(u'MaxKeywordLength') or u'7')
+        self.__delimiter = schema.get_config_char_sequence(u'Delimiter') or u' '
+        get_rules = lambda f, key: [f(r.split()) for r in schema.get_config_list(key)]
+        compile_repl_pattern = lambda x: (re.compile(x[0]), x[1])
+        mapping_rules = get_rules(compile_repl_pattern, u'MappingRule')
+        fuzzy_rules = get_rules(compile_repl_pattern, u'FuzzyRule')
+        spelling_rules = get_rules(compile_repl_pattern, u'SpellingRule')
+        alternative_rules = get_rules(compile_repl_pattern, u'AlternativeRule')
+        self.__split_rules = get_rules(compile_repl_pattern, u'SplitRule')
+        self.__divide_rules = get_rules(compile_repl_pattern, u'DivideRule')
+        self.__db = schema.get_db()
+        keywords = self.__db.list_keywords()
+        sa = SpellingAlgebra(report_errors=False)
+        self.__keywords, self.__io_map, self.__oi_map = sa.calculate(mapping_rules, 
+                                                                     fuzzy_rules, 
+                                                                     spelling_rules, 
+                                                                     alternative_rules, 
+                                                                     keywords)
 
     def __is_keyword(self, k):
         return k in self.__keywords
@@ -141,6 +199,7 @@ class Model:
             if i == n:
                 p.append(i)
                 break
+            # TODO: implement split rules
             ok = False
             for j in range(i + 1, min(n, i + self.__max_keyword_length) + 1):
                 s = u''.join(input[i:j])
@@ -207,7 +266,7 @@ class Model:
             if j == m:
                 return
             for y in edges[j]:
-                if k[0] in self.__fuzzy_map[y[1]]:
+                if k[0] in self.__io_map[y[1]]:
                     match_key(x, i, y[0], k[1:])
         def make_keys(i, k, length):
             if length == 0 or i == m:    

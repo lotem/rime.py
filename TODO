@@ -1,30 +1,5 @@
-# data
-#make-phrases script not handling words that exists only in keyword file -- that is OK.
-#*starred keyword should be given zero freq and should not participate phrase interpretation.
-#multi-character words should be separated from other words in a phrase by spaces.
-# model
-#learning from user input: 
-#record every 4-gram;
-#take rows of adjacent singles that have length of 2 or 3 as new words.
-#sort candidates by user freq.
-# engine
-#ommit key combos with modifiers.
-#clear key.
-#combo parser.
-#punctuation.
-#preedit cursor not visible in firefox.
-#up/down keys move candidate selection; space key selects highlighted candidate unless at the end of the context.
-#in auto-prompt mode, place the cursor at the beginning of the last proposed phrase.
-#delete words with Ctrl-1~9.
 mode switch by pressing Shift key.
-activate schema chooser by clicking on property icon.
-# questions
-#about jyutping split rules.
-#about hiding the cursor in candidate list -- that's OK
+activate schema chooser by clicking on an property icon.
 Shift+Tab not functioning.
-# plume
-#true fuzzy input: changes in DB layout and key generation; DivideRule support.
-#ajust candidate order in regard to previously selected phrase.
-#show segmentation results while editing the input string.
-#configurable quote char and acceptable charset in raw string mode.
-#fix prompt padding in non-auto-predict editing mode
+split rules.
+ChangeLog.

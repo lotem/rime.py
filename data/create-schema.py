@@ -16,6 +16,114 @@ import re
 def debug(*what):
     print >> sys.stderr, u'[DEBUG]: ', u' '.join(map(unicode, what))
 
+class SpellingCollisionError:
+    def __init__(self, rule, vars):
+        self.rule = rule
+        self.vars = vars
+    def __str__(self):
+        return 'spelling collision detected in %s: %s' % (self.rule, repr(self.vars))
+
+class SpellingAlgebra:
+
+    def __init__(self, report_errors=True):
+        self.__report_errors = report_errors
+
+    def calculate(self, mapping_rules, fuzzy_rules, spelling_rules, alternative_rules, keywords):
+
+        akas = dict()
+
+        def add_aka(s, x):
+            if s in akas:
+                a = akas[s]
+            else:
+                a = akas[s] = []
+            if x not in a:
+                a.append(x)
+
+        def del_aka(s, x):
+            if s in akas:
+                a = akas[s]
+            else:
+                a = akas[s] = []
+            if x in a:
+                a.remove(x)
+            if not a:
+                del akas[s]
+
+        def transform(x, r):
+            return r[0].sub(r[1], x, 1)
+
+        def apply_fuzzy_rule(d, r):
+            dd = dict(d)
+            for x in d:
+                if not r[0].search(x):
+                    continue
+                y = transform(x, r)
+                if y == x:
+                    continue
+                if y not in dd:
+                    dd[y] = d[x]
+                    add_aka(dd[y], y)
+                else:
+                    del_aka(dd[y], y)
+                    dd[y] |= d[x]
+                    add_aka(dd[y], y)
+            return dd
+
+        def apply_alternative_rule(d, r):
+            for x in d.keys():
+                if not r[0].search(x):
+                    continue
+                y = transform(x, r)
+                if y == x:
+                    continue
+                if y not in d:
+                    d[y] = d[x]
+                elif self.__report_errors:
+                    raise SpellingCollisionError('AlternativeRule', (x, d[x], y, d[y]))
+            return d
+
+        io_map = dict()
+        for okey in keywords:
+            ikey = reduce(transform, mapping_rules, okey)
+            s = frozenset([okey])
+            if ikey in io_map:
+                io_map[ikey] |= s
+            else:
+                io_map[ikey] = s
+        for ikey in io_map:
+            add_aka(io_map[ikey], ikey)
+        io_map = reduce(apply_fuzzy_rule, fuzzy_rules, io_map)
+
+        oi_map = dict()
+        ikeys = []
+        spellings = []
+        for okeys in akas:
+            ikey = akas[okeys][0]
+            ikeys.append(ikey)
+            for x in akas[okeys]:
+                spellings.append((x, ikey))
+            for k in okeys:
+                if k in oi_map:
+                    a = oi_map[k]
+                else:
+                    a = oi_map[k] = []
+                a.append(ikey)
+        akas = None
+
+        # remove non-ikey keys
+        io_map = dict([(k, io_map[k]) for k in ikeys])
+
+        spelling_map = dict()
+        for s, ikey in spellings:
+            t = reduce(transform, spelling_rules, s)
+            if t not in spelling_map:
+                spelling_map[t] = s
+            elif self.__report_errors:
+                raise SpellingCollisionError('SpellingRule', (s, ikey, t, spelling_map[t]))
+        spelling_map = reduce(apply_alternative_rule, alternative_rules, spelling_map)
+
+        return spelling_map, io_map, oi_map
 
 INIT_PLUME_DB_SQLS = """
 CREATE TABLE IF NOT EXISTS setting_paths (
@@ -113,31 +221,24 @@ ADD_PHRASE_SQL = """
 INSERT INTO phrases VALUES (NULL, :phrase);
 """
 
-usage = 'usage: %prog [options] schema-file [keyword-file [phrase-file]]'
+usage = 'usage: %prog [options] YourSchema.txt'
 parser = optparse.OptionParser(usage)
 
-parser.add_option('-s', '--schema', dest='schema', help='shortcut to specifying a standard set of input file names')
+parser.add_option('-c', '--compact', action='store_true', dest='compact', default=False, help='compact db file')
 
 parser.add_option('-d', '--db-file', dest='db_file', help='specify destination sqlite db', metavar='FILE')
 
 parser.add_option('-k', '--keep', action='store_true', dest='keep', default=False, help='keep existing dict')
 
-parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, help='make lots of noice')
+parser.add_option('-s', '--source', dest='source', help='specify the prefix of source dict files', metavar='PREFIX')
 
-parser.add_option('-c', '--compact', action='store_true', dest='compact', default=False, help='compact db file')
+parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, help='make lots of noice')
 
 options, args = parser.parse_args()
 
-if options.schema:
-    schema_file = '%s-schema.txt' % options.schema
-    keyword_file = '%s-keywords.txt' % options.schema
-    phrase_file = '%s-phrases.txt' % options.schema
-else:
-    if len(args) not in range(1, 4):
-        parser.error('incorrect number of arguments')
-    schema_file = args[0] if len(args) > 0 else None
-    keyword_file = args[1] if len(args) > 1 else None
-    phrase_file = args[2] if len(args) > 2 else None
+if len(args) != 1:
+    parser.error('incorrect number of arguments')
+schema_file = args[0] if len(args) > 0 else None
 
 if not options.db_file:
     home_path = os.getenv('HOME')
@@ -152,12 +253,6 @@ conn = sqlite3.connect(db_file)
 cur = conn.cursor()
 cur.executescript(INIT_PLUME_DB_SQLS)
 
-schema = None
-prefix = None
-#delim = None
-
-max_key_length = 2
-
 def get_or_insert_setting_path(path):
     args = {'path' : path}
     r = cur.execute(QUERY_SETTING_PATH_SQL, args).fetchone()
@@ -171,8 +266,15 @@ def clear_schema_setting(path):
     cur.execute(CLEAR_SETTING_VALUE_SQL, {'path' : path})
     cur.execute(CLEAR_SETTING_PATH_SQL, {'path' : path})
 
-spelling_rules = []
+schema = None
+dict_prefix = None
+
+max_key_length = 2
+
+mapping_rules = []
 fuzzy_rules = []
+spelling_rules = []
+alternative_rules = []
 
 if schema_file:
     equal_sign = re.compile(ur'\s*=\s*')
@@ -187,42 +289,76 @@ if schema_file:
         except:
             print >> sys.stderr, 'error parsing (%s) %s' % (schema_file, x)
             exit()
-        if not schema:
-            m = re.match(ur'Schema/(\w+)', path)
-            if m:
-                schema = m.group(1)
-                print >> sys.stderr, 'processing schema: %s' % schema
-                clear_schema_setting(path)
-                clear_schema_setting(u'Config/%s/%%' % schema)
-        else:
-            if not prefix and path == u'Config/%s/Prefix' % schema:
-                prefix = value
-                print >> sys.stderr, 'dict prefix: %s' % prefix
-            #if not delim and path == u'Config/%s/Delimiter' % schema:
-            #    if value[0] == u'[' and value[-1] == u']':
-            #        delim = value[1]
-            #    else:
-            #        delim = value[0]
-            if path == u'Config/%s/MaxKeyLength' % schema:
+        if not schema and path == u'Schema':
+            schema = value
+            print >> sys.stderr, 'schema: %s' % schema
+            clear_schema_setting(u'SchemaList/%s' % schema)
+            clear_schema_setting(u'%s/%%' % schema)
+        if schema:
+            if path == u'DisplayName':
+                path_id = get_or_insert_setting_path(u'SchemaList/%s' % schema)
+                cur.execute(ADD_SETTING_VALUE_SQL, {'path_id' : path_id, 'value' : value})
+            if not dict_prefix and path == u'Dict':
+                dict_prefix = value
+                print >> sys.stderr, 'dict: %s' % dict_prefix
+            if path == u'MaxKeyLength':
                 max_key_length = max (2, int(value))
-            elif path == u'Config/%s/SpellingRule' % schema:
-                spelling_rules.append(compile_repl_pattern(value.split()))
-            elif path == u'Config/%s/FuzzyRule' % schema:
+            elif path == u'MappingRule':
+                mapping_rules.append(compile_repl_pattern(value.split()))
+            elif path == u'FuzzyRule':
                 fuzzy_rules.append(compile_repl_pattern(value.split()))
-        path_id = get_or_insert_setting_path(path)
-        cur.execute(ADD_SETTING_VALUE_SQL, {'path_id' : path_id, 'value' : value})
+            elif path == u'SpellingRule':
+                spelling_rules.append(compile_repl_pattern(value.split()))
+            elif path == u'AlternativeRule':
+                alternative_rules.append(compile_repl_pattern(value.split()))
+            path_id = get_or_insert_setting_path(u'%s/%s' % (schema, path))
+            cur.execute(ADD_SETTING_VALUE_SQL, {'path_id' : path_id, 'value' : value})
     f.close()
+
+if not dict_prefix:
+    print >> sys.stderr, 'error: no dict specified in schema file.'
+    exit()
+
+prefix_args = {'prefix' : dict_prefix}
+
+keyword_file = '%s-keywords.txt' % (options.source or dict_prefix.replace(u'_', u'-'))
+phrase_file = '%s-phrases.txt' % (options.source or dict_prefix.replace(u'_', u'-'))
+
+keywords = dict()
+if keyword_file:
+    f = open(keyword_file, 'r')
+    for line in f:
+        x = line.strip().decode('utf-8')
+        if not x or x.startswith(u'#'):
+            continue
+        try:
+            ll = x.split(u'\t', 1)
+            (okey, phrase) = ll
+        except:
+            print >> sys.stderr, 'error: invalid format (%s) %s' % (phrase_file, x)
+            exit()
+        if okey not in keywords:
+            keywords[okey] = [phrase]
+        else:
+            keywords[okey].append(phrase)
+    f.close()
+
+sa = SpellingAlgebra()
+try:
+    spelling_map, io_map, oi_map = sa.calculate(mapping_rules, 
+                                                fuzzy_rules, 
+                                                spelling_rules, 
+                                                alternative_rules, 
+                                                keywords)
+except SpellingCollisionError as e:
+    print >> sys.stderr, e
+    exit()
 
 if options.keep:
     conn.commit()
     conn.close()
     print >> sys.stderr, 'done.'
     exit()
-
-if not prefix:
-    print >> sys.stderr, 'error: no prefix specified in schema file.'
-    exit()
-prefix_args = {'prefix' : prefix}
 
 cur.executescript(DROP_DICT_SQLS % prefix_args)
 cur.executescript(CREATE_DICT_SQLS % prefix_args)
@@ -304,81 +440,6 @@ def add_ku(k_id, u_id):
     args = {'k_id' : k_id, 'u_id' : u_id}
     if not cur.execute(QUERY_KU_SQL, args).fetchone():
         cur.execute(ADD_KU_SQL, args)
-
-keywords = dict()
-if keyword_file:
-    f = open(keyword_file, 'r')
-    for line in f:
-        x = line.strip().decode('utf-8')
-        if not x or x.startswith(u'#'):
-            continue
-        try:
-            ll = x.split(u'\t', 1)
-            (okey, phrase) = ll
-        except:
-            print >> sys.stderr, 'error: invalid format (%s) %s' % (phrase_file, x)
-            exit()
-        if okey not in keywords:
-            keywords[okey] = [phrase]
-        else:
-            keywords[okey].append(phrase)
-    f.close()
-
-def apply_spelling_rule(m, r):
-    return(r[0].sub(r[1], m[0], 1), m[1])
-d = dict()
-for k, v in [reduce(apply_spelling_rule, spelling_rules, (k, frozenset([k]))) for k in keywords]:
-    if k in d:
-        d[k] |= v
-    else:
-        d[k] = v
-akas = dict()
-def add_aka(s, x):
-    if s in akas:
-        a = akas[s]
-    else:
-        a = akas[s] = []
-    if x not in a:
-        a.append(x)
-def del_aka(s, x):
-    if s in akas:
-        a = akas[s]
-    else:
-        a = akas[s] = []
-    if x in a:
-        a.remove(x)
-    if not a:
-        del akas[s]
-def apply_fuzzy_rule(d, r):
-    dd = dict(d)
-    for x in d:
-        if not r[0].search(x):
-            continue
-        y = r[0].sub(r[1], x, 1)
-        if y == x:
-            continue
-        if y not in dd:
-            dd[y] = d[x]
-            add_aka(dd[y], y)
-        else:
-            del_aka(dd[y], y)
-            dd[y] |= d[x]
-            add_aka(dd[y], y)
-    return dd
-for k in d:
-    add_aka(d[k], k)
-reduce(apply_fuzzy_rule, fuzzy_rules, d)
-
-oi_map = dict()
-for s in akas:
-    spelling = akas[s][0]
-    for k in s:
-        if k in oi_map:
-            a = oi_map[k]
-        else:
-            a = oi_map[k] = []
-        a.append(spelling)
-del akas
 
 def g(ikeys, okey, depth):
     if not okey or depth >= max_key_length:

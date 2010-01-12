@@ -92,8 +92,8 @@ class DB:
 
     def __init__(self, name):
         self.__name = name
-        self.__conf_path = 'Config/%s/' % name
-        prefix_args = {'prefix' : self.read_config_value('Prefix')}
+        self.__section = '%s/' % name
+        prefix_args = {'prefix' : self.read_config_value('Dict')}
 
         self.LIST_KEYWORDS_SQL = """
         SELECT keyword FROM %(prefix)s_keywords;
@@ -157,10 +157,10 @@ class DB:
         """ % prefix_args
 
     def read_config_value(self, key):
-        return DB.read_setting(self.__conf_path + key)
+        return DB.read_setting(self.__section + key)
 
     def read_config_list(self, key):
-        return DB.read_setting_list(self.__conf_path + key)
+        return DB.read_setting_list(self.__section + key)
         
     def list_keywords(self):
         return [x[0] for x in DB.__conn.execute(self.LIST_KEYWORDS_SQL, ()).fetchall()]

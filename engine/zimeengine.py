@@ -290,12 +290,12 @@ class SchemaChooser:
         self.__load_schema_list()
         self.choose(schema_name)
     def __load_schema_list(self):
-        s = DB.read_setting_items(u'Schema/')
         t = dict()
         for x in DB.read_setting_items(u'SchemaChooser/LastUsed/'):
             t[x[0]] = float(x[1])
-        last_used_time = lambda a: t[a[0]] if a[0] in t else 0.0
-        self.__schema_list = [(x[1], x[0]) for x in sorted(s, key=last_used_time, reverse=True)]
+        last_used_time = lambda s: t[s[0]] if s[0] in t else 0.0
+        schema_list = sorted(DB.read_setting_items(u'SchemaList/'), key=last_used_time, reverse=True)
+        self.__schema_list = [(s[1], s[0]) for s in schema_list]
     def choose(self, schema_name):
         s = [x[1] for x in self.__schema_list]
         d = [x[0] for x in self.__schema_list]
