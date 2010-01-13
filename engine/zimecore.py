@@ -2,6 +2,7 @@
 
 import ibus
 from ibus import keysyms
+from ibus import modifier
 
 from zimedb import DB
 from zimemodel import *
@@ -119,16 +120,18 @@ class Parser:
     def check_punct(self, event):
         ch = event.get_char()
         if ch in self.__punct:
+            if event.mask & modifier.RELEASE_MASK:
+                return True, None
             p = self.__punct[ch]
             if p[0] == 1:
-                return p[1]
+                return True, p[1]
             elif p[0] == 2:
-                x = p[1]
-                x.reverse()
-                return x[-1]
+                x = p[1][0]
+                p[1].reverse()
+                return True, x
             else:
-                return p[1]
-        return None
+                return True, p[1]
+        return False, None
     def check_edit_key(self, event):
         if not event.coined and event.keycode in self.__edit_keys:
             return KeyEvent(self.__edit_keys[event.keycode], 0, coined=True)

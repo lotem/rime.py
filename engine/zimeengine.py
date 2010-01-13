@@ -225,10 +225,8 @@ class Engine:
     def __is_conversion_mode(self, assumed=False):
         return(not self.__auto_prompt or assumed) and self.__ctx.being_converted()
     def __handle_punct(self, event, commit):
-        punct = self.__parser.check_punct(event)
+        result, punct = self.__parser.check_punct(event)
         if punct:
-            if event.mask & modifier.RELEASE_MASK:
-                return True
             if commit:
                 self.__commit()
             if isinstance(punct, list):
@@ -239,8 +237,7 @@ class Engine:
                 self.__frontend.update_preedit(punct[0], 0, len(punct[0]))
             else:
                 self.__frontend.commit_string(punct)
-            return True
-        return False
+        return result
     def __select_by_index(self, candidates, n):
         if not candidates:
             return False
