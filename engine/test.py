@@ -242,14 +242,15 @@ def main():
     #e.test('biao1diao4  ')
 
     # test dynamic ikey-bigram index generation
-    e = TestEngine(u'Pinyin')
+    #e = TestEngine(u'Pinyin')
     #e.test('taibangle{Home}23 taibangle ')
-    e.test("''")
-    e.test('""""')
 
     #e = TestEngine(u'Cangjie5')
     #e.test('jjomnoh-egi yyy{Escape}')
     #e.test('hbu-su su-vfmvm{Left}2 su-vfmvm hbu-su ')
+
+    #e = TestEngine(u'DoublePinyin')
+    #e.test('woy;glhkhkxtxi2;')
 
     pass
 

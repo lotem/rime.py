@@ -59,7 +59,7 @@ class RomanParser(Parser):
 class TableParser(Parser):
     def __init__(self, schema):
         Parser.__init__(self, schema)
-        self.__max_keyword_length = int(schema.get_config_value(u'MaxKeywordLength') or u'7')
+        self.__auto_commit_keyword_length = int(schema.get_config_value(u'AutoCommitKeywordLength') or schema.get_config_value(u'MaxKeywordLength') or u'4')
         self.clear()
     def clear(self):
         self.__input = []
@@ -67,7 +67,7 @@ class TableParser(Parser):
     def is_empty(self):
         return len(self.__input) == 0
     def __auto_commit(self):
-        complete = len(self.__input) == self.__max_keyword_length
+        complete = len(self.__input) == self.__auto_commit_keyword_length
         if complete:
             self.clear()
         return complete
