@@ -35,6 +35,7 @@ TransformRule = ^([jqxy])y$ \1u
 TransformRule = ^([nl])y$ \1v
 TransformRule = ^(.)y$ \1uai
 TransformRule = ^([^bpmfwo])o$ \1uo
+TransformRule = ^(.)p$ \1un
 TransformRule = ^([jqx])s$ \1iong
 TransformRule = ^(.)s$ \1ong
 TransformRule = ^([jqxnl])d$ \1iang
