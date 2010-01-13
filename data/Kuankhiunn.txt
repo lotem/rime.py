@@ -6,6 +6,7 @@ Parser = roman
 AutoPrompt = yes
 AutoDelimit = yes
 Delimiter = [ '-]
+MaxKeyLength = 1
 MaxKeywordLength = 6
 AlternativeRule = ng f
 #SplitRule = [jywv]$ ^[aeiou]
