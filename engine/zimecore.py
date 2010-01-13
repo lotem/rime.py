@@ -68,14 +68,54 @@ class Parser:
         return cls.get_parser_class(schema.get_parser_name()) (schema)
     def __init__(self, schema):
         self.__schema = schema
+        self.auto_prompt = schema.get_config_value(u'AutoPrompt') in (u'yes', u'true')
+        self.auto_predict = schema.get_config_value(u'Predict') in (None, u'yes', u'true')
+        self.alphabet = schema.get_config_char_sequence(u'Alphabet') or u'abcdefghijklmnopqrstuvwxyz'
+        self.initial = self.alphabet.split(None, 1)[0]
+        self.delimiter = schema.get_config_char_sequence(u'Delimiter') or u' '
+        self.quote = schema.get_config_char_sequence('Quote') or u'`'
+        acc = (schema.get_config_char_sequence('Acceptable') or \
+               u'''ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
+                   0123456789!@#$%^&*()`~-_=+[{]}\\|;:'",<.>/?''').split(None, 1)
+        self.acceptable = lambda x: x == u' ' or any([x in s for s in acc])
+        self.initial_acceptable = lambda x: x in self.quote or x in acc[0]
+        get_rules = lambda f, key: [f(r.split()) for r in schema.get_config_list(key)]
+        compile_repl_pattern = lambda x: (re.compile(x[0]), x[1])
+        transform = lambda s, r: r[0].sub(r[1], s)
+        self.xform_rules = get_rules(compile_repl_pattern, u'TransformRule')
+        self.xform = lambda s: reduce(transform, self.xform_rules, s)
         punct_mapping = lambda(x, y): (x, (0, y.split(u' ')) if u' ' in y else \
                                            (2, y.split(u'~', 1)) if u'~' in y else \
                                            (1, y))
         self.__punct = dict([punct_mapping(c.split(None, 1)) for c in schema.get_config_list(u'Punct')])
         key_mapping = lambda(x, y): (keysyms.name_to_keycode(x), keysyms.name_to_keycode(y))
         self.__edit_keys = dict([key_mapping(c.split(None, 1)) for c in schema.get_config_list(u'EditKey')])
+        self.prompt = u''
     def get_schema(self):
         return self.__schema
+    def start_raw_mode(self, ch):
+        self.prompt = ch
+        return Prompt(self.prompt)
+    def process_raw_mode(self, event):
+        p = self.prompt
+        ch = event.get_char()
+        if event.keycode == keysyms.Return:
+            if len(p) > 1 and p[0] in self.quote:
+                return Commit(p[1:]) 
+            else:
+                return Commit(p)
+        if event.keycode == keysyms.Escape:
+            self.clear()
+            return Prompt()
+        if event.keycode == keysyms.BackSpace:
+            self.prompt = p[:-1]
+            return Prompt(self.prompt)
+        if ch in self.quote and p[0] in self.quote:
+            return Commit(p + ch)
+        if self.acceptable(ch):
+            self.prompt += ch
+            return Prompt(self.prompt)
+        return True
     def check_punct(self, event):
         ch = event.get_char()
         if ch in self.__punct:
@@ -84,7 +124,7 @@ class Parser:
                 return p[1]
             elif p[0] == 2:
                 x = p[1]
-                x[:] = x[::-1]
+                x.reverse()
                 return x[-1]
             else:
                 return p[1]
@@ -98,10 +138,17 @@ class Context:
     def __init__(self, callback, schema):
         self.__cb = callback
         self.__model = Model(schema)
+        #self.schema = schema
         self.__delimiter = schema.get_config_char_sequence(u'Delimiter') or u' '
         self.__auto_delimit = schema.get_config_value(u'AutoDelimit') in (u'yes', u'true')
         self.__auto_predict = schema.get_config_value(u'Predict') in (None, u'yes', u'true')
-        #self.schema = schema
+        prompt_char = schema.get_config_char_sequence(u'PromptChar')
+        if prompt_char:
+            alphabet = schema.get_config_char_sequence(u'Alphabet') or u'abcdefghijklmnopqrstuvwxyz'
+            xlit = dict(zip(list(alphabet), list(prompt_char)))
+            self.__translit = lambda s: u''.join([xlit[c] if c in xlit else c for c in s])
+        else:
+            self.__translit = None
         self.__reset()
     def __reset(self, keep_context=False):
         self.input = []
@@ -257,8 +304,9 @@ class Context:
                 p.append(self.__delimiter[0])
                 c += 1
             t[i] = c
-            p.append(s[i])
-            c += len(s[i])
+            w = self.__translit(s[i]) if self.__translit else s[i]
+            p.append(w)
+            c += len(w)
         t[-1] = c
         self.__display = (u''.join(p), t)
     def get_preedit(self):

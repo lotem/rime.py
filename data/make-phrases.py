@@ -33,7 +33,7 @@ for line in keyword_file:
     x = line.strip().decode('utf-8')
     if not x or x.startswith(u'#'):
         continue
-    k, w = x.split(None, 1)
+    k, w = x.split(u'\t', 1)
     if w in word_map:
         word_map[w].add(k)
     else:

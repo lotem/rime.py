@@ -226,7 +226,7 @@ def main():
     #e.test('renmindegongchen 2.')
     #e.test('congmingdegongchentongxue {Left}{Left}')
     #"""
-    #e.test('gongminquanli 2;guowangquanli 3;gongmin quanli {Escape}{Escape};guowang quanli ')
+    #e.test('guowangquanli 3;gongmin quanli {Escape}{Escape};guowang quanli ')
     #e.test('shishikanzhongbuzhongyong {Home}')
     #e.test('Ubuntu9.10{Return}')
     # test Shift-Return
@@ -242,8 +242,14 @@ def main():
     #e.test('biao1diao4  ')
 
     # test dynamic ikey-bigram index generation
-    #e = TestEngine(u'Pinyin')
+    e = TestEngine(u'Pinyin')
     #e.test('taibangle{Home}23 taibangle ')
+    e.test("''")
+    e.test('""""')
+
+    #e = TestEngine(u'Cangjie5')
+    #e.test('jjomnoh-egi yyy{Escape}')
+    #e.test('hbu-su su-vfmvm{Left}2 su-vfmvm hbu-su ')
 
     pass
 

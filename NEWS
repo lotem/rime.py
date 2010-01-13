@@ -1,0 +1,4 @@
+ibus-zime 3.0:
+    added table parser.
+    adopted new schema file format as defined in ZIME Schema Specification v3.
+    full support for Spelling Algebra now implemented, enabling dict sharing between related schemas.

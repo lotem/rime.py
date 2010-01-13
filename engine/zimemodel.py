@@ -144,7 +144,7 @@ class Model:
     PENALTY = 1e-4
 
     def __init__(self, schema):
-        self.__max_key_length = max(2, int(schema.get_config_value(u'MaxKeyLength') or u'2'))
+        self.__max_key_length = int(schema.get_config_value(u'MaxKeyLength') or u'2')
         self.__max_keyword_length = int(schema.get_config_value(u'MaxKeywordLength') or u'7')
         self.__delimiter = schema.get_config_char_sequence(u'Delimiter') or u' '
         get_rules = lambda f, key: [f(r.split()) for r in schema.get_config_list(key)]
@@ -201,12 +201,19 @@ class Model:
                 break
             # TODO: implement split rules
             ok = False
-            for j in range(i + 1, min(n, i + self.__max_keyword_length) + 1):
+            beyond_delimiter = False
+            for j in range(i + 1, n + 1):
+                if beyond_delimiter:
+                    break
                 s = u''.join(input[i:j])
+                if len (s) > self.__max_keyword_length:
+                    break
+                #print j, s
                 if not self.__is_keyword(s):
                     continue
                 if j < n and input[j] in self.__delimiter:
                     t = j + 1
+                    beyond_delimiter = True
                 else:
                     t = j
                 #print i, t, s
@@ -274,12 +281,13 @@ class Model:
             return [(i, k)] + reduce(lambda x, y: x + y, [make_keys(z[0], k + [z[1]], length - 1) for z in edges[i]])
         def lookup(i, j, k):
             key = u' '.join(k)
+            #print 'lookup:', i, j, key
             if key in queries:
                 ru = queries[key]
                 rb = None
             else:
                 ru = queries[key] = self.__db.lookup_unigram(key)
-                rb = self.__db.lookup_bigram(key) if len (k) > 1 else None
+                rb = self.__db.lookup_bigram(key) if len(key) >= min(2, self.__max_key_length) else None
             for x in ru:
                 okey = x[1].split()
                 if len(okey) <= self.__max_key_length:

@@ -230,6 +230,8 @@ parser.add_option('-d', '--db-file', dest='db_file', help='specify destination s
 
 parser.add_option('-k', '--keep', action='store_true', dest='keep', default=False, help='keep existing dict')
 
+parser.add_option('-n', '--no-phrases', action='store_true', dest='no_phrases', default=False, help='do not use phrase file')
+
 parser.add_option('-s', '--source', dest='source', help='specify the prefix of source dict files', metavar='PREFIX')
 
 parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False, help='make lots of noice')
@@ -302,7 +304,7 @@ if schema_file:
                 dict_prefix = value
                 print >> sys.stderr, 'dict: %s' % dict_prefix
             if path == u'MaxKeyLength':
-                max_key_length = max (2, int(value))
+                max_key_length = int(value)
             elif path == u'MappingRule':
                 mapping_rules.append(compile_repl_pattern(value.split()))
             elif path == u'FuzzyRule':
@@ -321,8 +323,9 @@ if not dict_prefix:
 
 prefix_args = {'prefix' : dict_prefix}
 
-keyword_file = '%s-keywords.txt' % (options.source or dict_prefix.replace(u'_', u'-'))
-phrase_file = '%s-phrases.txt' % (options.source or dict_prefix.replace(u'_', u'-'))
+source_file_prefix = options.source or dict_prefix.replace(u'_', u'-')
+keyword_file = '%s-keywords.txt' % source_file_prefix
+phrase_file = '%s-phrases.txt' % source_file_prefix if not options.no_phrases else None
 
 keywords = dict()
 if keyword_file:
@@ -335,7 +338,7 @@ if keyword_file:
             ll = x.split(u'\t', 1)
             (okey, phrase) = ll
         except:
-            print >> sys.stderr, 'error: invalid format (%s) %s' % (phrase_file, x)
+            print >> sys.stderr, 'error: invalid format (%s) %s' % (keyword_file, x)
             exit()
         if okey not in keywords:
             keywords[okey] = [phrase]
