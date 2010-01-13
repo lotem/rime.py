@@ -64,20 +64,20 @@ class Engine:
             # ignore other hotkeys
             return False
         if self.__punct:
-            if keycode not in (keysyms.Shift_L, keysyms.Shift_R) and not (mask & modifier.RELEASE_MASK):
-                if keycode == self.__punct_key:
-                    self.__next_punct()
-                    return True
-                else:
-                    if keycode in (keysyms.Escape, keysyms.BackSpace):
-                        # clear punct prompt
-                        self.__commit_punct(commit=False)
-                        return True
-                    if keycode in(keysyms.space, keysyms.Return):
-                        self.__commit_punct()
-                        return True
-                    self.__commit_punct()
-                    # continue processing
+            if keycode in (keysyms.Shift_L, keysyms.Shift_R) or (mask & modifier.RELEASE_MASK):
+                return True
+            if keycode == self.__punct_key:
+                self.__next_punct()
+                return True
+            if keycode in (keysyms.Escape, keysyms.BackSpace):
+                # clear punct prompt
+                self.__commit_punct(commit=False)
+                return True
+            if keycode in(keysyms.space, keysyms.Return):
+                self.__commit_punct()
+                return True
+            self.__commit_punct()
+            # continue processing
         event = KeyEvent(keycode, mask)
         result = self.__parser.process_input(event, self.__ctx)
         if result is True:

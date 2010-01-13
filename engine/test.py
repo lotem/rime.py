@@ -252,9 +252,6 @@ def main():
     #e = TestEngine(u'DoublePinyin')
     #e.test('woy;glhkhkxtxi2;')
 
-    e = TestEngine(u'DoublePinyin')
-    e.test('\'\'""')
-
     pass
 
 if __name__ == "__main__":
