@@ -251,6 +251,7 @@ def main():
 
     #e = TestEngine(u'DoublePinyin')
     #e.test('woy;glhkhkxtxi2;')
+    #e.test('woy;glhkhkxtxi{BackSpace}{BackSpace}{BackSpace}{BackSpace}{BackSpace}-xtx-{BackSpace}{BackSpace}')
 
     pass
 

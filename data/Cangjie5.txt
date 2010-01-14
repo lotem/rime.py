@@ -6,9 +6,9 @@ Parser = table
 MaxKeyLength = 1
 MaxKeywordLength = 5
 AutoPrompt = yes
-Delimiter = ['-;]
-Alphabet = abcdefghijklmnopqrstuvwxyz '
-PromptChar = 日月金木水火土竹戈十大中一弓人心手口尸廿山女田難卜符 ・
+Delimiter = [ '-;]
+Alphabet = abcdefghijklmnopqrstuvwxyz '-;
+PromptChar = 日月金木水火土竹戈十大中一弓人心手口尸廿山女田難卜符　・・・
 # punctuation
 Punct = , ，
 Punct = . 。

@@ -63,20 +63,18 @@ class TableParser(Parser):
         self.clear()
     def clear(self):
         self.__input = []
+        self.__keyword = []
         self.prompt = u''
     def is_empty(self):
-        return len(self.__input) == 0
-    def __auto_commit(self):
-        complete = len(self.__input) == self.__auto_commit_keyword_length
-        if complete:
-            self.clear()
-        return complete
+        return not bool(self.__input) and not bool(self.__keyword)
+    def __is_keyword_empty(self):
+        return not bool(self.__keyword)
     def __get_keyword(self):
         if self.xform_rules:
             # apply transform rules
-            return self.xform(u''.join(self.__input))
+            return self.xform(u''.join(self.__keyword))
         else:
-            return u''.join(self.__input)
+            return u''.join(self.__keyword)
     def process_input(self, event, ctx):
         if event.mask & modifier.RELEASE_MASK:
             return False
@@ -98,32 +96,42 @@ class TableParser(Parser):
         if event.keycode == keysyms.BackSpace:
             if self.is_empty():
                 return False
-            self.__input.pop()
-            if not self.is_empty():
-                ctx.input[-1] = self.__get_keyword()
-            else:
+            if self.__is_keyword_empty():
+                self.__keyword = self.__input.pop()
+            # back a character
+            self.__keyword.pop()
+            if self.__is_keyword_empty():
                 ctx.pop_input()
+            else:
+                ctx.input[-1] = self.__get_keyword()
             return []
         ch = event.get_char()
         # finish current keyword
-        if not ctx.is_empty() and ch in self.delimiter:
-            self.clear()
-            return [self.delimiter[0]]
+        if not self.is_empty() and ch in self.delimiter:
+            if not self.__is_keyword_empty():
+                self.__input.append(self.__keyword)
+            self.__input.append([ch])
+            self.__keyword = []
+            return [ch]
         if ch in self.initial:
             # auto-commit keywords with max keyword length
-            self.__auto_commit()
+            is_keword_complete = len(self.__keyword) == self.__auto_commit_keyword_length
+            if is_keword_complete:
+                self.__input.append(self.__keyword)
+                self.__keyword = []
             # start a new keyword
-            if self.is_empty():
-                self.__input.append(ch)
+            if self.__is_keyword_empty():
+                self.__keyword.append(ch)
                 result = []
-                if not ctx.is_empty() and ctx.input[-1] != self.delimiter[0]:
+                # add default delimiter char into continual input
+                if self.__input and self.__input[-1][0] not in self.delimiter:
                     result.append(self.delimiter[0])
                 result.append(self.__get_keyword())
                 return result
-        if not self.is_empty():
+        if not self.__is_keyword_empty():
             # continue current keyword
             if ch in self.alphabet:
-                self.__input.append(ch)
+                self.__keyword.append(ch)
                 ctx.input[-1] = self.__get_keyword()
                 return []
         # start raw mode
