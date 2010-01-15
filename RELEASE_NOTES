@@ -1,6 +1,10 @@
 
 ibus-zime - release notes
 
+ibus-zime 3.2 - 2010-01-15
+==========================
+  - removed extra schemas.
+
 ibus-zime 3.1 - 2010-01-14
 ==========================
   - fixed issue 2: improve backsapce key behavior in table parser.
