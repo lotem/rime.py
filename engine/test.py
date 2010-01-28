@@ -253,6 +253,10 @@ def main():
     #e.test('woy;glhkhkxtxi2;')
     #e.test('woy;glhkhkxtxi{BackSpace}{BackSpace}{BackSpace}{BackSpace}{BackSpace}-xtx-{BackSpace}{BackSpace}')
 
+    #e = TestEngine(u'Jyutping')
+    #e.test('jyuhomindeoicangjatheizaugwodikjatzi')
+    #e.test('fanhoifongziganbunsamgikci')
+
     pass
 
 if __name__ == "__main__":

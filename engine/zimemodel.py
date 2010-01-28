@@ -26,6 +26,13 @@ class Entry:
         return w
     def get_phrase(self):
         return u''.join([e.get_word() for e in self.get_all()])
+    def partof(self, other):
+        if self.use_count != other.use_count:
+            return False
+        a, b = self, other
+        while a and b and a.get_eid() == b.get_eid():
+            a, b = a.next, b.next
+        return not a
     def __unicode__(self):
         return u'<%s (%d, %d) %g%s>' % \
             (self.get_word(), self.i, self.j, self.prob, (u' => %s' % self.next.get_phrase()) if self.next else u'')
@@ -445,7 +452,8 @@ class Model:
                     e = adjust(x)
                     if e.next:
                         #print "concat'd phrase:", e.get_phrase(), e.prob
-                        p.append((k, e))
+                        if not any([e.partof(x[1]) for x in p]):
+                            p.append((k, e))
                     else:
                         r[k].append(e)
         phrase_cmp = lambda a, b: -cmp(a[1].prob, b[1].prob)
