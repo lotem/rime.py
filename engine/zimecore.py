@@ -158,6 +158,7 @@ class Context:
         self.err = None
         if not keep_context:
             self.pre = None
+            self.context_data = None
         self.sel = []
         self.cur = []
         self.phrase = []

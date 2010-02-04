@@ -4,6 +4,7 @@ ibus-zime - release notes
 ibus-zime 3.3 - 
 ==========================
   - improved candidate generation algorithm for long sentences.
+  - performance enhancement.
 
 ibus-zime 3.2 - 2010-01-15
 ==========================

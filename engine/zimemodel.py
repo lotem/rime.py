@@ -149,6 +149,7 @@ class SpellingAlgebra:
 class Model:
 
     PENALTY = 1e-4
+    LIMIT = 256
 
     def __init__(self, schema):
         self.__max_key_length = int(schema.get_config_value(u'MaxKeyLength') or u'2')
@@ -261,7 +262,7 @@ class Model:
         c = [[None for j in range(m + 1)] for i in range(m + 1)]
         unig = {}
         big = {}
-        queries = {}
+        queries = ctx.context_data or {}
         total, utotal = [x + 0.1 for x in self.__db.lookup_freq_total()]
         to_prob = lambda x: (x + 0.1) / total
         def add_word(x, i, j):
@@ -290,11 +291,10 @@ class Model:
             key = u' '.join(k)
             #print 'lookup:', i, j, key
             if key in queries:
-                ru = queries[key]
-                rb = None
+                ru, rb = queries[key]
             else:
-                ru = queries[key] = self.__db.lookup_unigram(key)
-                rb = self.__db.lookup_bigram(key) if len(key) >= min(2, self.__max_key_length) else None
+                ru, rb = queries[key] = (self.__db.lookup_unigram(key),
+                                         self.__db.lookup_bigram(key) if len(key) >= min(2, self.__max_key_length) else None)
             for x in ru:
                 okey = x[1].split()
                 if len(okey) <= self.__max_key_length:
@@ -320,25 +320,26 @@ class Model:
                     for t, k in keys:
                         lookup(i, t, k)
             visited.append(i)
-        queries = None
         # last committed word's data goes to ctx.phrase[-1] and ctx.pred[-1]
         if ctx.pre:
             add_word(ctx.pre.e, -1, 0)
-            r = self.__db.lookup_bigram_by_entry(ctx.pre)
-            eid = ctx.pre.get_eid()
-            if eid in big:
-                s = big[eid]
-            else:
-                s = big[eid] = {}
-            for x in r:
-                s[x[0]] = to_prob(x[1])
+            if not ctx.context_data:
+                r = self.__db.lookup_bigram_by_entry(ctx.pre)
+                eid = ctx.pre.get_eid()
+                if eid in big:
+                    s = big[eid]
+                else:
+                    s = big[eid] = {}
+                for x in r:
+                    s[x[0]] = to_prob(x[1])
+        ctx.context_data = queries
         # calculate sentence prediction
         pred = [None for i in range(m + 1 + 1)]
         for j in reversed(b):
             next = None
             for i in range(-1, j):
                 if c[i][j]:
-                    for x in c[i][j]:
+                    for x in c[i][j][:Model.LIMIT]:
                         if j == m:
                             pass
                         else:
@@ -351,7 +352,7 @@ class Model:
                                     next = dict()
                                     for k in range(j + 1, m + 1):
                                         if c[j][k]:
-                                            for y in c[j][k]:
+                                            for y in c[j][k][:Model.LIMIT]:
                                                 v = y.get_eid()
                                                 if v in next:
                                                     next[v].append(y)
@@ -412,6 +413,7 @@ class Model:
             self.__db.update_unigram(e)
         self.__db.update_freq_total(len(s))
         ctx.pre = Entry(last.e, -1, 0) if last else None
+        ctx.context_data = None
 
     def make_candidate_list(self, ctx, i, j):
         c = ctx.phrase
@@ -431,13 +433,13 @@ class Model:
             #print 'prev:', prev.get_phrase()
             prev_award = 1.0
             prev_eid = prev.get_eid()
-            for x in c[prev.i][prev.j]:
+            for x in c[prev.i][prev.j][:Model.LIMIT]:
                 if x.get_eid() == prev_eid:
                     prev_award = ctx.pred[x.j].prob / x.prob
                     break
             for y in c[prev.i][prev.j:]:
                 if y:
-                    for x in y:
+                    for x in y[:Model.LIMIT]:
                         if x.next and x.get_eid() == prev_eid:
                             prev_table[id(x.next)] = x.prob * prev_award
         def adjust(e):
