@@ -146,6 +146,19 @@ class SpellingAlgebra:
 
         return spelling_map, io_map, oi_map
 
+class ContextInfo:
+
+    def __init__(self):
+        self.m = 0
+        self.n = 0
+        self.e = []
+        self.q = {}
+        self.unig = {}
+        self.big = {}
+        self.cand = []
+        self.pred = [None]
+        self.last = None
+
 class Model:
 
     PENALTY = 1e-4
@@ -181,11 +194,14 @@ class Model:
         else:
             return k
 
-    def segmentation(self, input):
+    def create_context_info(self):
+        return ContextInfo()
+
+    def __segmentation(self, input):
         n = len(input)
         m = 0
-        p = []
         a = [[None] * j for j in range(n + 1)]
+        p = []
         q = [0]
         def allow_divide(i, j, s):
             flag = True
@@ -239,6 +255,7 @@ class Model:
             p.append(m)
         b = []
         d = []
+        e = [[] for i in range(m + 1)]
         # path finding
         for i in reversed(p):
             ok = i == m
@@ -246,6 +263,7 @@ class Model:
                 if i < j and a[j][i]:
                     ok = True
                     d = [k for k in d if k >= j]
+                    e[i].append((j, a[j][i]))
             if ok:
                 b.append(i)
                 d.append(i)
@@ -253,87 +271,131 @@ class Model:
                 a[i] = [None for j in range(len(a[i]))]
         b.reverse()
         d.reverse()
-        return m, n, a, b, d
+        return m, n, b, d, e
 
     def query(self, ctx):
-        m, n, a, b, d = ctx.seg
-        # lookup words
-        edges = [[] for i in range(m)]
-        c = [[None for j in range(m + 1)] for i in range(m + 1)]
-        unig = {}
-        big = {}
-        queries = ctx.context_data or {}
+        m, n, b, d, e = self.__segmentation(ctx.input)
+        prev_e = ctx.info.e
+        ctx.info.m = m
+        ctx.info.n = n
+        ctx.info.b = b
+        ctx.info.d = d
+        ctx.info.e = e
+        # find the start position of altered input
+        diff = 0
+        while diff < m and diff < len(prev_e) and prev_e[diff] == e[diff]:
+            diff += 1
+        #print 'diff:', diff
+        self.__lookup_candidates(ctx.info, diff)
+        """
+        print 'cand:'
+        c = ctx.info.cand
+        for i in range(len(c)):
+            for j in range(len(c[i])):
+                if c[i][j]:
+                    print i, j, u''.join(ctx.input[i:j])
+                    for z in c[i][j]:
+                        print z.get_phrase(),
+                    print
+        """
+        self.__calculate_prediction(ctx.info)
+        """
+        print 'pred:'
+        pred = ctx.info.pred
+        for i in b: print unicode(pred[i])
+        """
+
+    def __lookup_candidates(self, info, diff):
+        m = info.m
+        b = info.b
+        e = info.e
+        c = info.cand
+        unig = info.unig
+        big = info.big
         total, utotal = [x + 0.1 for x in self.__db.lookup_freq_total()]
         to_prob = lambda x: (x + 0.1) / total
-        def add_word(x, i, j):
-            #print 'add_word:', x[0], x[1], i, j
-            eid = x[2]
-            prob = to_prob(x[3])
-            unig[eid] = prob
-            if not c[i][j]:
-                c[i][j] = []
-            e = Entry(x, i, j, prob, x[4])
-            c[i][j].append(e)
-        def match_key(x, i, j, k):
-            if not k:
-                add_word(x, i, j)
-                return
-            if j == m:
-                return
-            for y in edges[j]:
-                if k[0] in self.__io_map[y[1]]:
-                    match_key(x, i, y[0], k[1:])
         def make_keys(i, k, length):
             if length == 0 or i == m:    
                 return [(i, k)]
-            return [(i, k)] + reduce(lambda x, y: x + y, [make_keys(z[0], k + [z[1]], length - 1) for z in edges[i]])
-        def lookup(i, j, k):
+            keys = sum([make_keys(jw, k + [kw], length - 1) for jw, kw in e[i]], [])
+            return [(i, k)] + keys
+        def lookup(k):
             key = u' '.join(k)
-            #print 'lookup:', i, j, key
-            if key in queries:
-                ru, rb = queries[key]
-            else:
-                ru, rb = queries[key] = (self.__db.lookup_unigram(key),
-                                         self.__db.lookup_bigram(key) if len(key) >= min(2, self.__max_key_length) else None)
-            for x in ru:
-                okey = x[1].split()
-                if len(okey) <= self.__max_key_length:
-                    add_word(x, i, j)
-                else:
-                    match_key(x, i, j, okey[self.__max_key_length:])
-            if rb:
-                for x in rb:
+            if key in info.q:
+                return info.q[key]
+            result = info.q[key] = self.__db.lookup_unigram(key)
+            for x in result:
+                prob = to_prob(x[3])
+                unig[x[2]] = prob
+            if len(k) >= min(2, self.__max_key_length):
+                for x in self.__db.lookup_bigram(key):
                     if x[0] in big:
                         s = big[x[0]]
                     else:
                         s = big[x[0]] = {}
                     s[x[1]] = to_prob(x[2])
+            return result
+        def add_word(x, i, j):
+            #print 'add_word:', i, j, x[0], x[1]
+            eid = x[2]
+            prob = unig[eid]
+            use_count = x[4]
+            e = Entry(x, i, j, prob, use_count)
+            if not c[i][j]:
+                c[i][j] = []
+            c[i][j].append(e)
+        def match_key(x, i, j, k):
+            if not k:
+                if j > diff:
+                    add_word(x, i, j)
+                return
+            if j == m:
+                return
+            for jw, kw in e[j]:
+                if k[0] in self.__io_map[kw]:
+                    match_key(x, i, jw, k[1:])
+        def judge(x):
+            okey = x[1].split()
+            if len(okey) <= self.__max_key_length:
+                if j > diff:
+                    add_word(x, i, j)
+            else:
+                match_key(x, i, j, okey[self.__max_key_length:])
+        # clear invalidated candidates
+        #print 'before truncate:', [[len(y) if y else 0 for y in x] for x in c]
+        for i in range(diff):
+            c[i][diff + 1:] = [None for j in range(diff + 1, m + 1)]
+        c[diff:] = [[None for j in range(m + 1)] for i in range(diff, m + 1)]
+        #print 'after truncate:', [[len(y) if y else 0 for y in x] for x in c]
+        # last committed word goes to array index -1
+        if info.last:
+            c[-1][0] = [info.last]
+            if not info.q:
+                r = self.__db.lookup_bigram_by_entry(info.last)
+                if r:
+                    eid = info.last.get_eid()
+                    if eid in big:
+                        s = big[eid]
+                    else:
+                        s = big[eid] = {}
+                    for x in r:
+                        s[x[0]] = to_prob(x[1])
         # traverse
-        visited = []
-        for i in reversed(b):
-            for j in visited:
-                if i < j and a[j][i]:
-                    ok = True
-                    e = (j, a[j][i])
-                    edges[i].append(e)
-                    keys = make_keys(e[0], [e[1]], self.__max_key_length - 1)
-                    for t, k in keys:
-                        lookup(i, t, k)
-            visited.append(i)
-        # last committed word's data goes to ctx.phrase[-1] and ctx.pred[-1]
-        if ctx.pre:
-            add_word(ctx.pre.e, -1, 0)
-            if not ctx.context_data:
-                r = self.__db.lookup_bigram_by_entry(ctx.pre)
-                eid = ctx.pre.get_eid()
-                if eid in big:
-                    s = big[eid]
-                else:
-                    s = big[eid] = {}
-                for x in r:
-                    s[x[0]] = to_prob(x[1])
-        ctx.context_data = queries
-        # calculate sentence prediction
+        for i in b:
+            for jw, kw in e[i]:
+                for j, k in make_keys(jw, [kw], self.__max_key_length - 1):
+                    if j <= diff and len(k) < self.__max_key_length:
+                        continue
+                    #print 'lookup:', i, j, k
+                    for x in lookup(k):
+                        judge(x)
+
+    def __calculate_prediction(self, info):
+        m = info.m
+        b = info.b
+        c = info.cand
+        unig = info.unig
+        big = info.big
         pred = [None for i in range(m + 1 + 1)]
         for j in reversed(b):
             next = None
@@ -375,21 +437,9 @@ class Model:
                                                 pred[i] = e
                         # update pred[i] with the current word
                         if not pred[i] or x.prob > pred[i].prob:
+                            #print 'pred updated:', i, unicode(x)
                             pred[i] = x
-        ctx.phrase = c
-        ctx.pred = pred
-        """
-        print 'phrase:'
-        for i in range(len(c)):
-            for j in range(len(c[i])):
-                if c[i][j]:
-                    print i, j, u''.join(ctx.input[i:j])
-                    for z in c[i][j]:
-                        print z.get_phrase(),
-                    print
-        print 'pred:'
-        for x in pred: print unicode(x)
-        """
+        info.pred = pred
 
     def train(self, ctx, s):
         def g(ikeys, okey, depth):
@@ -412,12 +462,13 @@ class Model:
             last = e
             self.__db.update_unigram(e)
         self.__db.update_freq_total(len(s))
-        ctx.pre = Entry(last.e, -1, 0) if last else None
-        ctx.context_data = None
+        ctx.info = self.create_context_info()
+        ctx.info.last = Entry(last.e, -1, 0) if last else None
 
     def make_candidate_list(self, ctx, i, j):
-        c = ctx.phrase
-        m = ctx.seg[0]
+        m = ctx.info.m
+        c = ctx.info.cand
+        pred = ctx.info.pred
         if i >= m:
             return []
         r = [[] for k in range(m + 1)]
@@ -426,16 +477,16 @@ class Model:
             j = m
             while j > i and not c[i][j]:
                 j -= 1
-        # info about the last phrase selected
+        # info about the previously selected phrase
         prev_table = dict()
-        prev = ctx.sel[-1] if ctx.sel else ctx.pre
+        prev = ctx.sel[-1] if ctx.sel else ctx.info.last
         if prev:
             #print 'prev:', prev.get_phrase()
             prev_award = 1.0
             prev_eid = prev.get_eid()
             for x in c[prev.i][prev.j][:Model.LIMIT]:
                 if x.get_eid() == prev_eid:
-                    prev_award = ctx.pred[x.j].prob / x.prob
+                    prev_award = pred[x.j].prob / x.prob
                     break
             for y in c[prev.i][prev.j:]:
                 if y:
@@ -454,19 +505,19 @@ class Model:
                     e = adjust(x)
                     if e.next:
                         #print "concat'd phrase:", e.get_phrase(), e.prob
-                        if not any([e.partof(x[1]) for x in p]):
+                        if not any([e.partof(ex) for kx, ex in p]):
                             p.append((k, e))
                     else:
                         r[k].append(e)
         phrase_cmp = lambda a, b: -cmp(a[1].prob, b[1].prob)
         p.sort(cmp=phrase_cmp)
-        LIMIT = 3
-        for x in p[:LIMIT]:
-            r[x[0]].append(x[1])
+        MAX_CONCAT_PHRASE = 3
+        for k, e in p[:MAX_CONCAT_PHRASE]:
+            r[k].append(e)
         if not r[j]:
-            for x in p:
-                if x[0] == j:
-                    r[j].append(x[1])
+            for kx, ex in p:
+                if kx == j:
+                    r[j].append(ex)
                     break
             #print 'supplemented:', r[j][0].get_phrase()
         cand_cmp = lambda a, b: -cmp(a.use_count + a.prob, b.use_count + b.prob)

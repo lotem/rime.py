@@ -156,15 +156,11 @@ class Context:
     def __reset(self, keep_context=False):
         self.input = []
         self.err = None
-        if not keep_context:
-            self.pre = None
-            self.context_data = None
         self.sel = []
         self.cur = []
-        self.phrase = []
-        self.pred = []
+        if not keep_context:
+            self.info = self.__model.create_context_info()
         self.__candidates = []
-        self.seg = 0, 0
         self.__display = (u'', [0])
     def clear(self):
         self.__reset()
@@ -188,10 +184,9 @@ class Context:
         self.__reset(keep_context=True)
         self.input = input
         if input:
-            self.seg = self.__model.segmentation(input)
             self.__model.query(self)
-            m, n = self.seg[:2]
-            self.__calculate_display_string(input, self.seg[4], n, m)
+            m, n = self.info.m, self.info.n
+            self.__calculate_display_string(input, self.info.d, n, m)
             if m != n:
                 self.err = Entry(None, m, n)
             elif start_conversion:
@@ -205,19 +200,19 @@ class Context:
     def cancel_conversion(self):
         self.edit(self.input)
     def __predict(self, exclude_the_last=False):
-        i = self.sel[-1].j if self.sel else (-1 if self.pre else 0)
-        p = (self.sel[-1].next if self.sel else None) or self.pred[i]
+        i = self.sel[-1].j if self.sel else (-1 if self.info.last else 0)
+        p = (self.sel[-1].next if self.sel else None) or self.info.pred[i]
         while p:
             s = p.get_all()
             if s[0].i < 0:
                 del s[0]
             if s:
                 p = s[-1]
-                if exclude_the_last and p.j == self.seg[0]:
+                if exclude_the_last and p.j == self.info.m:
                     break
                 self.sel.extend(s)
             i = p.j
-            p = self.pred[i]
+            p = self.info.pred[i]
         return max(0, i)
     def home(self):
         if not self.being_converted():
@@ -238,7 +233,7 @@ class Context:
         i = self.cur[0].i
         j = self.cur[-1].j
         for k in range(j - 1, i, -1):
-            if self.phrase[i][k]:
+            if self.info.phrase[i][k]:
                 self.__update_candidates(i, k)
                 return
         self.back()
@@ -247,8 +242,8 @@ class Context:
             return
         i = self.cur[0].i
         j = self.cur[-1].j
-        for k in range(j + 1, self.seg[0] + 1):
-            if self.phrase[i][k]:
+        for k in range(j + 1, self.info.m + 1):
+            if self.info.phrase[i][k]:
                 self.__update_candidates(i, k)
                 return
         self.forth()
@@ -264,13 +259,13 @@ class Context:
         if not self.being_converted():
             return False
         i = self.cur[0].i
-        p = (self.sel[-1].next if self.sel else None) or self.pred[i]
-        if p and p.j < self.seg[0]:
+        p = (self.sel[-1].next if self.sel else None) or self.info.pred[i]
+        if p and p.j < self.info.m:
             self.sel.append(p)
             i = p.j
             j = 0
-            for k in range(i + 1, self.seg[0] + 1):
-                if self.phrase[i][k]:
+            for k in range(i + 1, self.info.m + 1):
+                if self.info.phrase[i][k]:
                     j = k
                     break
             self.__update_candidates(i, j)
@@ -330,7 +325,7 @@ class Context:
             r.append(w)
             end += len(w)
             rest = s.j
-        if rest < self.seg[1]:
+        if rest < self.info.n:
             s, t = self.__display
             r.append(s[t[rest]:])
             if self.has_error():

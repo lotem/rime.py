@@ -42,9 +42,12 @@ class DB:
 
     FLUSH_INTERVAL = 3 * 60  # 3 minutes
     __last_flush_time = 0
+    __conn = None
 
     @classmethod
     def open(cls, db_file, read_only=False):
+        if cls.__conn:
+            return
         cls.__conn = sqlite3.connect(db_file)
         cls.read_only = read_only
         if not read_only:

@@ -257,6 +257,9 @@ def main():
     #e.test('jyuhomindeoicangjatheizaugwodikjatzi')
     #e.test('fanhoifongziganbunsamgikci')
 
+    e = TestEngine(u'Pinyin')
+    e.test('henanquansssssssssssszzzzzzzzzzzzhenanquan')
+
     pass
 
 if __name__ == "__main__":
