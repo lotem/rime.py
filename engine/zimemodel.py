@@ -286,9 +286,17 @@ class Model:
         diff = 0
         while diff < m and diff < len(prev_e) and prev_e[diff] == e[diff]:
             diff += 1
-        #print 'diff:', diff
+        # clear unconfirmed selection
+        i = ctx.confirmed
+        s = ctx.sel
+        while i > 0 and s[i - 1].j > diff:
+            i -= 1
+        del ctx.sel[i:]
+        ctx.confirmed = i
         self.__lookup_candidates(ctx.info, diff)
+        self.__calculate_prediction(ctx.info)
         """
+        print 'diff:', diff, ctx.sel
         print 'cand:'
         c = ctx.info.cand
         for i in range(len(c)):
@@ -298,9 +306,6 @@ class Model:
                     for z in c[i][j]:
                         print z.get_phrase(),
                     print
-        """
-        self.__calculate_prediction(ctx.info)
-        """
         print 'pred:'
         pred = ctx.info.pred
         for i in b: print unicode(pred[i])
@@ -511,7 +516,7 @@ class Model:
             return Entry(e.e, e.i, e.j, prob, e.use_count, e.next)
         r = [[] for k in range(m + 1)]
         p = []
-        print 'range:', u''.join(ctx.input[i:j])
+        #print 'range:', u''.join(ctx.input[i:j])
         for k in range(j, i, -1):
             if c[i][k]:
                 for x in c[i][k]:
@@ -520,7 +525,7 @@ class Model:
             if f[i][k]:
                 for x in f[i][k]:
                     e = adjust(x)
-                    print "concat'd phrase:", e.get_phrase(), e.prob
+                    #print "concat'd phrase:", e.get_phrase(), e.prob
                     if not any([e.partof(ex) for kx, ex in p]):
                         p.append((k, e))
         phrase_cmp = lambda a, b: -cmp(a[1].prob, b[1].prob)

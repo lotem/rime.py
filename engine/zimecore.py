@@ -156,10 +156,10 @@ class Context:
     def __reset(self, keep_context=False):
         self.input = []
         self.err = None
-        self.sel = []
         self.cur = []
-        self.confirmed = 0
         if not keep_context:
+            self.sel = []
+            self.confirmed = 0
             self.info = self.__model.create_context_info()
         self.__candidates = []
         self.__display = (u'', [0])
@@ -219,6 +219,7 @@ class Context:
         if not self.being_converted():
             return False
         self.sel = []
+        self.confirmed = 0
         self.__update_candidates(0)
         return True
     def end(self, start_conversion=False):
@@ -227,6 +228,7 @@ class Context:
                 return False
             # do a fresh new prediction in case of a full prediction is present
             self.sel = []
+            self.confirmed = 0
         self.__update_candidates(self.__predict(exclude_the_last=True))
     def left(self):
         if not self.being_converted():
@@ -253,6 +255,7 @@ class Context:
             return False
         if self.sel:
             e = self.sel.pop()
+            self.confirmed = min(self.confirmed, len(self.sel))
             self.__update_candidates(e.i)
             return True
         return False
@@ -276,9 +279,8 @@ class Context:
         c = self.cur
         if c:
             self.sel.extend(c)
-            i = c[-1].j
-            self.confirmed = i
-            self.__update_candidates(i)
+            self.confirmed = len(self.sel)
+            self.__update_candidates(c[-1].j)
     def __update_candidates(self, i, j=0):
         #print '__update_candidates:', i, j
         self.__candidates = self.__model.make_candidate_list(self, i, j)
