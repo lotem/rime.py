@@ -118,7 +118,7 @@ class SpellingAlgebra:
         for s, ikey in spellings:
             t = reduce(transform, spelling_rules, s)
             if t not in spelling_map:
-                spelling_map[t] = s
+                spelling_map[t] = ikey
             elif self.__report_errors:
                 raise SpellingCollisionError('SpellingRule', (s, ikey, t, spelling_map[t]))
         spelling_map = reduce(apply_alternative_rule, alternative_rules, spelling_map)

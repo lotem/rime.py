@@ -7,6 +7,7 @@ ibus-zime 3.3 - 2010-02-06
   - improvement in candidate generation algorithm for long sentences.
   - memorize partially confirmed sentence against further editing.
   - insert delimiters to raw input committed by hitting Return.
+  - bug fix: inconsistent keyword mapping in spelling algebra.
 
 ibus-zime 3.2 - 2010-01-15
 ==========================
