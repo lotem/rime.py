@@ -1,10 +1,12 @@
 
 ibus-zime - release notes
 
-ibus-zime 3.3 - 
+ibus-zime 3.3 - 2010-02-06
 ==========================
-  - improved candidate generation algorithm for long sentences.
   - performance enhancement.
+  - improvement in candidate generation algorithm for long sentences.
+  - memorize partially confirmed sentence against further editing.
+  - insert delimiters to raw input committed by hitting Return.
 
 ibus-zime 3.2 - 2010-01-15
 ==========================
