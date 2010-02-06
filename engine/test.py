@@ -240,6 +240,7 @@ def main():
 
     #e = TestEngine(u'TonalPinyin')
     #e.test('biao1diao4  ')
+    #e.test('biao1diao4{Return}')
 
     # test dynamic ikey-bigram index generation
     #e = TestEngine(u'Pinyin')

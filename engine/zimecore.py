@@ -344,7 +344,8 @@ class Context:
             r.append(s.get_word())
             i = s.j
         if i < len(self.input):
-            r.extend(self.input[i:])
+            s, t = self.__display
+            r.append(s[t[i]:])
         return u''.join(r)
     def get_input_string(self):
         return u''.join(self.input)
