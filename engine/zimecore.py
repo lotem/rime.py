@@ -158,6 +158,7 @@ class Context:
         self.err = None
         self.sel = []
         self.cur = []
+        self.confirmed = 0
         if not keep_context:
             self.info = self.__model.create_context_info()
         self.__candidates = []
@@ -275,7 +276,9 @@ class Context:
         c = self.cur
         if c:
             self.sel.extend(c)
-            self.__update_candidates(c[-1].j)
+            i = c[-1].j
+            self.confirmed = i
+            self.__update_candidates(i)
     def __update_candidates(self, i, j=0):
         #print '__update_candidates:', i, j
         self.__candidates = self.__model.make_candidate_list(self, i, j)
