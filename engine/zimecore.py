@@ -236,7 +236,7 @@ class Context:
         i = self.cur[0].i
         j = self.cur[-1].j
         for k in range(j - 1, i, -1):
-            if self.info.phrase[i][k]:
+            if self.info.cand[i][k] or self.info.fraz[i][k]:
                 self.__update_candidates(i, k)
                 return
         self.back()
@@ -246,7 +246,7 @@ class Context:
         i = self.cur[0].i
         j = self.cur[-1].j
         for k in range(j + 1, self.info.m + 1):
-            if self.info.phrase[i][k]:
+            if self.info.cand[i][k] or self.info.fraz[i][k]:
                 self.__update_candidates(i, k)
                 return
         self.forth()
@@ -269,7 +269,7 @@ class Context:
             i = p.j
             j = 0
             for k in range(i + 1, self.info.m + 1):
-                if self.info.phrase[i][k]:
+                if self.info.cand[i][k] or self.info.fraz[i][k]:
                     j = k
                     break
             self.__update_candidates(i, j)

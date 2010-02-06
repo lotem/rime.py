@@ -257,9 +257,11 @@ def main():
     #e.test('jyuhomindeoicangjatheizaugwodikjatzi')
     #e.test('fanhoifongziganbunsamgikci')
 
-    e = TestEngine(u'Pinyin')
-    e.test('henanquan{Home}5 ')
-    e.test('zzzzggjj{Home}4henanquanshshshshhenanquan')
+    #e = TestEngine(u'Pinyin')
+    #e.test('henanquan{Home}5 ')
+    #e.test('zzzzggjj{Home}4henanquanshshshshhenanquan')
+    #e.test('gongchentongxue{Home}  .')
+    #e.test('gongchentongxue{Home}')
 
     pass
 

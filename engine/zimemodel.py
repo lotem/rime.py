@@ -295,21 +295,6 @@ class Model:
         ctx.confirmed = i
         self.__lookup_candidates(ctx.info, diff)
         self.__calculate_prediction(ctx.info)
-        """
-        print 'diff:', diff, ctx.sel
-        print 'cand:'
-        c = ctx.info.cand
-        for i in range(len(c)):
-            for j in range(len(c[i])):
-                if c[i][j]:
-                    print i, j, u''.join(ctx.input[i:j])
-                    for z in c[i][j]:
-                        print z.get_phrase(),
-                    print
-        print 'pred:'
-        pred = ctx.info.pred
-        for i in b: print unicode(pred[i])
-        """
 
     def __lookup_candidates(self, info, diff):
         m = info.m
@@ -368,11 +353,9 @@ class Model:
             else:
                 match_key(x, i, j, okey[self.__max_key_length:])
         # clear invalidated candidates
-        #print 'before truncate:', [[len(y) if y else 0 for y in x] for x in c]
         for i in range(diff):
             c[i][diff + 1:] = [None for j in range(diff + 1, m + 1)]
         c[diff:] = [[None for j in range(m + 1)] for i in range(diff, m + 1)]
-        #print 'after truncate:', [[len(y) if y else 0 for y in x] for x in c]
         # last committed word goes to array index -1
         if info.last:
             c[-1][0] = [info.last]
@@ -415,7 +398,14 @@ class Model:
             succ = dict()
             for k in range(j + 1, m + 1):
                 if c[j][k]:
-                    for x in c[j][k][:Model.LIMIT] + (f[j][k] or []):
+                    for x in c[j][k][:Model.LIMIT]:
+                        eid = x.get_eid()
+                        if eid in succ:
+                            succ[eid].append(x)
+                        else:
+                            succ[eid] = [x]
+                if f[j][k]:
+                    for x in f[j][k]:
                         eid = x.get_eid()
                         if eid in succ:
                             succ[eid].append(x)
