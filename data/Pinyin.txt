@@ -4,7 +4,6 @@ DisplayName = 拼音
 Dict = pinyin
 Parser = roman
 AutoPrompt = yes
-AutoDelimit = yes
 Delimiter = [ '-]
 MaxKeywordLength = 6
 # 不要聲調

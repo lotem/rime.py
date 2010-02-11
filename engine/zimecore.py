@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import ibus
 from ibus import keysyms
 from ibus import modifier
 

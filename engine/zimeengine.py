@@ -3,10 +3,8 @@
 
 import os
 import time
-import ibus
 from ibus import keysyms
 from ibus import modifier
-from ibus import ascii
 
 from zimecore import *
 from zimedb import *

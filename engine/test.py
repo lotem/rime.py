@@ -126,36 +126,16 @@ class TestEngine:
                 self.process_key_event(ord(c), 0)
 
 def main():
-    #e = TestEngine(u'Zhuyin')
-    #e.test('rm/3rm/3u.3gp6zj/ {Escape}2k7al {Tab}{Return}')
-    #e.test('5j/ cj86aup6eji6{BackSpace}ji{BackSpace}i6 ')
-    #e.test('5j/ eji6{BackSpace}{BackSpace}')
-    #e.test('5j/ cj86bp6aup6ej/4ck6eji6{Tab}{Page_Down}{Page_Up}{Tab}{Escape} ')
-    #e.test('5j/ eji62k75j/{Tab}{Page_Down}')
-    #e.test('5j/ eji62k75j/ {Left}1{Home}2{Left}1{Tab}1 ')
-    #e.test('5j/ cj86bp6aup6ej/4ck6eji6{Home}1{Home}')
-    #e.test('5j/ cj86bp6aup6ej/4ck6eji6j04njo4{Left}{Left}5{End}{BackSpace}{BackSpace}{BackSpace}{BackSpace}{BackSpace}{BackSpace}{BackSpace} ')
-    #e.test('5j/ 5. mp4{Left}2gj bj4 ')
-    #e.test('5j/ 5. mp4gj {Left}{Left}2bj4z83{Home}{Tab}{Tab}4')
     # test schema chooser menu
     #e.process_key_event(keysyms.grave, modifier.CONTROL_MASK)  # Ctrl+grave
     #e.test('2')
-    #e.process_key_event(keysyms.grave, modifier.CONTROL_MASK)  # Ctrl+grave
-    #e.test('{Page_Down}{Up}{Escape}')
-    #e.process_key_event(keysyms.grave, modifier.CONTROL_MASK)  # Ctrl+grave
-    #e.test('1')
-    #e.test('g4{Tab}.=,- ')
-    #e.test('ji{Escape}ji353gji {Tab}{Escape}{Escape}')
+
+    #e = TestEngine(u'Zhuyin')
+    #e.test('rm/3rm/3u.3gp6zj/ {Escape}2k7al {Tab}{Return}')
 
     #e = TestEngine(u'Pinyin')
     #e.test("pinyin-shuru'fa' ")
-    #e.test("an'an anan chang'an changang2 ")
-    #e.test('xauxin xiauxin ')
-    #e.test('pin-yim zioush hauyung ')
-    #e.test('gong{Page_Down}3chen5-tongxuo ')
-    #e.test('woshi-gong{Page_Down}3chen5-tongxuo ')
-    #e.test('zanmen-qu2-ta-jia2-zaishuo ')
-    #e.test('wozhishuo{Escape}ni')
+    #e.test('henanquan{Home}{Tab} ')
 
     #e = TestEngine(u'ComboPinyin')
     #e.process_key_event(keysyms.r, 0)
@@ -169,100 +149,9 @@ def main():
     #e.process_key_event(keysyms.space, 0)
     #e.process_key_event(keysyms.space, modifier.RELEASE_MASK)
 
-    #e = TestEngine(u'Pinyin')
-    #e.test('wo! .<>[[]]""""')
-    #e = TestEngine(u'Zhuyin')
-    #e.test('ji!3! >')
-    #e = TestEngine(u'ComboPinyin')
-    #e.test('!')
-
-    #e = TestEngine(u'Test')
-    #e.test('yorenyoxau2 yosiauxau yosiauxohxau ')
-    #e.test('cioqai-ni-shashou-qai-le-ya ')
-
-    #e = TestEngine(u'Pinyin')
-    #e.test('guantasanqi-ershiyi ')
-    #e.test('wozaixiechengshipspspspspsp')
-    #e.test('woyoulailaHP')
-
-    #from zimedb import DB
-    #DB.open('/home/lotem/.ibus/zime/zime.db', True)
-    #db = DB('Pinyin')
-    #print db.list_keywords()
-    #print db.lookup_phrase('yi yi'.split())
-
-    #e = TestEngine(u'Pinyin')
-    #e.test('zhunghuarenmingungheguo-vansui {Return}{Return}')
-    #e.test('aspasp {BackSpace}{Escape}')
-    #e.test('changanjiushixian {BackSpace}{BackSpace}{Tab}{Tab} {Left}{Right} ....5{Escape}')
-    #e.test('pinyim-shurufa {BackSpace} {BackSpace}{BackSpace}{BackSpace}{Escape}')
-    #e.test('pinyim-shurufa {BackSpace}{BackSpace} {BackSpace} {Escape}')
-    #e.test('wo-xihuan  ')
-    #e.test('pinyim-shurufa  ')
-    #e.test('gongchen {BackSpace}85.')
-    #e.test('renminde gongchen 2.')
-    #e.test('woshi gongchen  .')
-    #e.test('gongchen {Escape}')
-    #e.test('renminde gongchen {Escape}')
-    #e.test('woshi gongchen {Escape}')
-
-    #e = TestEngine(u'Pinyin')
-    #e.test('zzzzs ccc')
-    # test fuzzy input
-    #e.test('qiujiu')
-    #e.test('chagnan')
-    #e.test('changansbssyiandejioucen')
-    #e.test('zhonghrmghg')
-    #e.test('lzsb')
-    #e.test('rminyxongychbxiuuiuiuiui {Escape} {BackSpace}{BackSpace}{BackSpace} {Home}{Tab}{Page_Down}{Page_Up}')
-    #e.test('lanzhoushaobing  lzsb {Escape}{Escape}')
-    #e.test('shishemeyisi .4ssmys {Escape}{Escape}')
-    #e.test('ruguodachangjuhuishishemexiaoguo {Home} .52.    rgdchjhshshmxg {Escape}{Escape}')
-    #e.test('shishutang {Home}{Left}.434.shishutangshaozhu 2 shishutangshzh {Home}{Escape}{Escape}')
-    # a rare case: when the longest concat'd phrases fail to rank in top LIMIT, and there are not dict phrase of that length. when testing, LIMIT in Context.__update_candidate should be set to 1
-    #e.test('gongchenchong {Home} ...3gongchenchongmi {Home}')
-    #"""
-    #e.test('gongchentongxue  .')
-    #e.test('renmindegongchen 2.')
-    #e.test('congmingdegongchentongxue {Left}{Left}')
-    #"""
-    #e.test('guowangquanli 3;gongmin quanli {Escape}{Escape};guowang quanli ')
-    #e.test('shishikanzhongbuzhongyong {Home}')
-    #e.test('Ubuntu9.10{Return}')
-    # test Shift-Return
-    #e.test('vutuvuzhensiang')
-    #e.process_key_event(keysyms.Shift_L, 0)
-    #e.process_key_event(keysyms.Return, modifier.SHIFT_MASK)
-    #e.process_key_event(keysyms.Return, modifier.SHIFT_MASK | modifier.RELEASE_MASK)
-    #e.process_key_event(keysyms.Shift_L, modifier.RELEASE_MASK)
-    # BUG: fail to recognize `[zcs]huang` due to misuse of max_keyword_length
-    #e.test('anzhuang')
-
-    #e = TestEngine(u'TonalPinyin')
-    #e.test('biao1diao4  ')
-    #e.test('biao1diao4{Return}')
-
-    # test dynamic ikey-bigram index generation
-    #e = TestEngine(u'Pinyin')
-    #e.test('taibangle{Home}23 taibangle ')
-
-    #e = TestEngine(u'Cangjie5')
-    #e.test('jjomnoh-egi yyy{Escape}')
-    #e.test('hbu-su su-vfmvm{Left}2 su-vfmvm hbu-su ')
-
-    #e = TestEngine(u'DoublePinyin')
-    #e.test('woy;glhkhkxtxi2;')
-    #e.test('woy;glhkhkxtxi{BackSpace}{BackSpace}{BackSpace}{BackSpace}{BackSpace}-xtx-{BackSpace}{BackSpace}')
-
     #e = TestEngine(u'Jyutping')
     #e.test('jyuhomindeoicangjatheizaugwodikjatzi')
     #e.test('fanhoifongziganbunsamgikci')
-
-    #e = TestEngine(u'Pinyin')
-    #e.test('henanquan{Home}5 ')
-    #e.test('zzzzggjj{Home}4henanquanshshshshhenanquan')
-    #e.test('gongchentongxue{Home}  .')
-    #e.test('gongchentongxue{Home}')
 
     pass
 
