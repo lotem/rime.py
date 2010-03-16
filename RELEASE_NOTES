@@ -1,6 +1,10 @@
 
 ibus-zime - release notes
 
+ibus-zime 3.3.1 - 2010-03-16
+============================
+  - bug-fix in Makefile: create a separate libexec dir /usr/lib/ibus-zime.
+
 ibus-zime 3.3 - 2010-02-06
 ==========================
   - performance enhancement.
