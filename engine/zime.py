@@ -5,21 +5,43 @@ __all__ = (
     "ZimeEngine",
 )
 
+import os
 import ibus
 import gobject
-
-import zimeengine
 
 #from gettext import dgettext
 #_  = lambda a : dgettext("ibus-zime", a)
 _ = lambda a : a
 N_ = lambda a : a
 
+import zimeengine
+import zimeparser
+from zimedb import DB
+
+def _initialize():
+    zimeparser.register_parsers()
+    # initialize DB 
+    IBUS_ZIME_LOCATION = os.getenv('IBUS_ZIME_LOCATION')
+    HOME_PATH = os.getenv('HOME')
+    db_path = os.path.join(HOME_PATH, '.ibus', 'zime')
+    user_db = os.path.join(db_path, 'zime.db')
+    if not os.path.exists(user_db):
+        sys_db = IBUS_ZIME_LOCATION and os.path.join(IBUS_ZIME_LOCATION, 'data', 'zime.db')
+        if sys_db and os.path.exists(sys_db):
+            DB.open(sys_db, read_only=True)
+            return
+        else:
+            if not os.path.isdir(db_path):
+                os.makedirs(db_path)
+    DB.open(user_db)
+
+_initialize()
+
 class ZimeEngine(ibus.EngineBase):
 
     def __init__(self, conn, object_path):
         super(ZimeEngine, self).__init__(conn, object_path)
-        self.__page_size = 5
+        self.__page_size = DB.read_setting(u'Option/PageSize') or 7
         self.__lookup_table = ibus.LookupTable(self.__page_size)
         self.__backend = zimeengine.SchemaChooser(self)
 

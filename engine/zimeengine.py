@@ -1,32 +1,12 @@
 # -*- coding: utf-8 -*-
 # vim:set et sts=4 sw=4:
 
-import os
 import time
 from ibus import keysyms
 from ibus import modifier
 
 from zimecore import *
 from zimedb import *
-import zimeparser
-
-def __initialize():
-    zimeparser.register_parsers()
-    IBUS_ZIME_LOCATION = os.getenv('IBUS_ZIME_LOCATION')
-    HOME_PATH = os.getenv('HOME')
-    db_path = os.path.join(HOME_PATH, '.ibus', 'zime')
-    user_db = os.path.join(db_path, 'zime.db')
-    if not os.path.exists(user_db):
-        sys_db = IBUS_ZIME_LOCATION and os.path.join(IBUS_ZIME_LOCATION, 'data', 'zime.db')
-        if sys_db and os.path.exists(sys_db):
-            DB.open(sys_db, read_only=True)
-            return
-        else:
-            if not os.path.isdir(db_path):
-                os.makedirs(db_path)
-    DB.open(user_db)
-
-__initialize()
 
 class Engine:
     def __init__(self, frontend, name):
@@ -285,6 +265,9 @@ class Engine:
         self.__frontend.update_candidates(self.__ctx.get_candidates())
         
 class SchemaChooser:
+    SELECTED = u'選用【%s】'
+    MENU = u'方案選單'
+    NO_SCHEMA = u'無方案'
     def __init__(self, frontend, schema_name=None):
         self.__frontend = frontend
         self.__engine = None
@@ -311,18 +294,18 @@ class SchemaChooser:
             DB.update_setting(u'SchemaChooser/LastUsed/%s' % s[c], unicode(now))
             self.__deactivate()
             self.__engine = Engine(self.__frontend, s[c])
-            self.__frontend.update_aux_string(u'選用【%s】' % d[c])
+            self.__frontend.update_aux_string(SchemaChooser.SELECTED % d[c])
     def __activate(self):
         self.__active = True
         self.__load_schema_list()
-        self.__frontend.update_aux_string(u'方案選單')
+        self.__frontend.update_aux_string(SchemaChooser.MENU)
         self.__frontend.update_candidates(self.__schema_list)
     def __deactivate(self):
         self.__active = False
         self.__schema_list = []
     def process_key_event(self, keycode, mask):
         if not self.__engine:
-            self.__frontend.update_aux_string(u'無方案')
+            self.__frontend.update_aux_string(SchemaChooser.NO_SCHEMA)
             return False
         if not self.__active:
             # Ctrl-` calls schema chooser menu
