@@ -143,6 +143,8 @@ class Context:
         #self.schema = schema
         self.__delimiter = schema.get_config_char_sequence(u'Delimiter') or u' '
         self.__auto_delimit = schema.get_config_value(u'AutoDelimit') in (u'yes', u'true')
+        self.__auto_prompt = schema.get_config_value(u'AutoPrompt') in (u'yes', u'true')
+        self.__aux_length = int(schema.get_config_value(u'AuxLength') or 20)
         self.__auto_predict = schema.get_config_value(u'Predict') in (None, u'yes', u'true')
         prompt_char = schema.get_config_char_sequence(u'PromptChar')
         if prompt_char:
@@ -346,15 +348,22 @@ class Context:
             s, t = self.__display
             r.append(s[t[i]:])
         return u''.join(r)
+    def get_display_string(self):
+        return self.__display[0]
     def get_input_string(self):
         return u''.join(self.input)
     def get_aux_string(self):
+        if self.info.m == 0:
+            return u''
+        s, t = self.__display
         c = self.cur
-        if c:
-            s, t = self.__display
-            # return the corresponding part of display string without trailing space
-            return s[t[c[0].i]:t[c[-1].j]].rstrip()
-        return u''
+        if self.__auto_prompt:
+            if not c or c[-1].j == self.info.n:
+                return s if len(s) <= self.__aux_length else u'...' + s[-self.__aux_length:]
+        elif not c:
+            return u''
+        # return the corresponding part of display string without trailing space
+        return s[t[c[0].i]:t[c[-1].j]].rstrip()
     def get_candidates(self):
         return self.__candidates
     def delete_phrase(self, e):

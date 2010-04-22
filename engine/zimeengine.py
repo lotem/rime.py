@@ -168,6 +168,8 @@ class Engine:
         if event.keycode == keysyms.Return:
             if event.mask & modifier.SHIFT_MASK:
                 self.__commit(raw_input=True)
+            elif self.__auto_prompt:
+                self.__commit(code_input=True)
             elif ctx.being_converted():
                 self.__confirm_current()
             else:
@@ -257,8 +259,13 @@ class Engine:
             self.__commit()
         else:
             self.__ctx.forward()
-    def __commit(self, raw_input=False):
-        s = self.__ctx.get_input_string() if raw_input else self.__ctx.get_commit_string()
+    def __commit(self, code_input=False, raw_input=False):
+        if raw_input:
+            s = self.__ctx.get_input_string() 
+        elif code_input:
+            s = self.__ctx.get_display_string()
+        else:
+            s = self.__ctx.get_commit_string()
         self.__frontend.commit_string(s)
         self.__parser.clear()
         self.__ctx.commit()
