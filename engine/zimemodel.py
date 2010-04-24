@@ -529,4 +529,14 @@ class Model:
                     break
             #print 'supplemented:', r[j][0].get_phrase()
         cand_cmp = lambda a, b: -cmp(a.use_count + a.prob, b.use_count + b.prob)
-        return [(e.get_phrase(), e) for s in reversed(r) if s for e in sorted(s, cand_cmp)]
+        ret = []
+        for s in reversed(r):  # longer words come first
+            if s:
+                phrases = set()
+                for e in sorted(s, cand_cmp):
+                    p = e.get_phrase()
+                    # ignore less freqently used phrases with identical representation
+                    if p not in phrases:
+                        phrases.add(p)
+                        ret.append((p, e))
+        return ret

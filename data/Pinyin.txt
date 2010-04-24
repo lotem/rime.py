@@ -4,10 +4,13 @@ DisplayName = 拼音
 Dict = pinyin
 Parser = roman
 AutoPrompt = yes
+AutoDelimit = yes
 Delimiter = [ '-]
 MaxKeywordLength = 6
-# 不要聲調
-MappingRule = ^(.+)\d$ \1
+# 輕聲不標
+MappingRule = ^(.+)5$ \1
+# 無調號兼表四聲
+FuzzyRule = ^(.+)\d$ \1
 # 模糊音
 #FuzzyRule = ^([zcs])h \1
 #FuzzyRule = ^([zcs])([^h]) \1h\2
@@ -41,7 +44,7 @@ AlternativeRule = ^weng$ ong
 AlternativeRule = ^(.+)ong$ \1ung
 AlternativeRule = ao$ au
 AlternativeRule = ^w v
-AlternativeRule = ([aeiou])n$ \1m
+#AlternativeRule = ([aeiou])n$ \1m
 # 拼式糾錯
 AlternativeRule = ([aeiou])ng$ \1gn
 # 音節切分
