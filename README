@@ -15,9 +15,12 @@ sudo make install
 
 2. Install the schema(s) of your choice.
 
-# NOTE: Run the scripts under ibus-zime/data/ as normal user. DB files will be created for current user only.
+# NOTE: Run the commands under ibus-zime/data/ as normal user. DB files will be created for current user only.
 # The resulting SQLite3 database file would be ~/.ibus/zime/zime.db.
 # delete this file if you've been using a previous major version of ibus-zime.
+
+# NOTE: If you are installing new schemas upon existing ZIME install, 
+# you should restart IBus daemon before the following operation once it reports error that the database is locked.
 
 cd data/
 
