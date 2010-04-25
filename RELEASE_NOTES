@@ -1,6 +1,14 @@
 
 ibus-zime - release notes
 
+ibus-zime 3.4 - 2010-04-25
+==========================
+  - the most previously inputted pinyin is made always visible.
+  - the number of candidates per page can now be defined by setting Option/PageSize (defaults to 7).
+  - cancel phrase creation by hitting BackSpace within 5 seconds immediately after committing.
+  - replaced Pinyin data with a Simplified Chinese dictionary from Android PinyinIME.
+  - removed Zhuyin, TonalPinyin from the install package. they are still available at ZIME website.
+
 ibus-zime 3.3.1 - 2010-03-16
 ============================
   - bug-fix in Makefile: create a separate libexec dir /usr/lib/ibus-zime.

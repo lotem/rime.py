@@ -24,29 +24,22 @@ cd data/
 # a.1) Install schema: Pinyin
 ./create-schema.py -v Pinyin.txt
 
-# a.2) Install schema: Tonal Pinyin
-# NOTE: If you haven't got Pinyin schema already installed, remove `-k` option in the following command.
-./create-schema.py -v -k TonalPinyin.txt
-
-# a.3) Install schema: Double Pinyin
+# a.2) Install schema: Double Pinyin
 # NOTE: If you haven't got Pinyin schema already installed, remove `-k` option in the following command.
 ./create-schema.py -v -k DoublePinyin.txt
 
-# a.4) Install schema: Combo Pinyin (Refer to ZIME project home page)
+# a.3) Install schema: Combo Pinyin (Refer to ZIME project home page)
 # NOTE: If you haven't got Pinyin schema already installed, remove `-k` option in the following command.
 ./create-schema.py -v -k ComboPinyin.txt
 
-# b) Install schema: Zhuyin (Bopomofo)
-./create-schema.py -v Zhuyin.txt
-
-# c) Install schema: Jyutping (Cantonese)
+# b) Install schema: Jyutping (Cantonese)
 ./make-phrases.py jyutping
 ./create-schema.py -v Jyutping.txt
 
-# d) More schema samples available at
+# c) More schema samples available at
 http://code.google.com/p/zime/source/browse/#svn/trunk/zime-data
 
-# e) Invent your own schema!
+# d) Invent your own schema!
 
 3. Restart IBus and enable ZIME engine in IBus preferences.
 
