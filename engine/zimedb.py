@@ -40,7 +40,7 @@ class DB:
     UPDATE setting_values SET value = :value WHERE path_id == :path_id;
     """
 
-    FLUSH_INTERVAL = 3 * 60  # 3 minutes
+    FLUSH_INTERVAL = 2 * 60  # 2 minutes
     __last_flush_time = 0
     __conn = None
 
@@ -159,6 +159,8 @@ class DB:
         INSERT INTO %(prefix)s_kb VALUES (:k_id, :b_id);
         """ % prefix_args
 
+        self.__pending_updates = []
+
     def read_config_value(self, key):
         return DB.read_setting(self.__section + key)
 
@@ -168,7 +170,18 @@ class DB:
     def list_keywords(self):
         return [x[0] for x in DB.__conn.execute(self.LIST_KEYWORDS_SQL, ()).fetchall()]
 
+    def proceed_pending_updates(self):
+        if self.__pending_updates:
+            for f in self.__pending_updates:
+                f()
+            self.__pending_updates = []
+
+    def cancel_pending_updates(self):
+        if self.__pending_updates:
+            self.__pending_updates = []
+
     def lookup_freq_total(self):
+        self.proceed_pending_updates()
         r = DB.__conn.execute(self.QUERY_STATS_SQL).fetchone()
         return r
 
@@ -192,6 +205,9 @@ class DB:
 
     def update_freq_total(self, n):
         #print 'update_freq_total:', n
+        self.__pending_updates.append(lambda: self.__update_freq_total(n))
+
+    def __update_freq_total(self, n):
         if DB.read_only:
             return
         args = {'n' : n}
@@ -200,6 +216,9 @@ class DB:
         
     def update_unigram(self, e):
         #print 'update_unigram:', unicode(e)
+        self.__pending_updates.append(lambda: self.__update_unigram(e))
+
+    def __update_unigram(self, e):
         if DB.read_only:
             return
         args = {'id' : e.get_eid()}
@@ -207,6 +226,9 @@ class DB:
 
     def update_bigram(self, a, b, get_ikeys):
         #print 'update_bigram:', unicode(a), unicode(b)
+        self.__pending_updates.append(lambda: self.__update_bigram(a, b, get_ikeys))
+
+    def __update_bigram(self, a, b, get_ikeys):
         if DB.read_only:
             return
         args = {'e1' : a.get_eid(), 'e2' : b.get_eid()}

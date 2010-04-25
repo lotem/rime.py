@@ -9,15 +9,20 @@ from zimecore import *
 from zimedb import *
 
 class Engine:
+
+    ROLLBACK_COUNTDOWN = 5  # seconds
+
     def __init__(self, frontend, name):
         self.__frontend = frontend
         self.__schema = schema = Schema(name)
+        self.__db = schema.get_db()
         self.__parser = Parser.create(schema)
         self.__ctx = Context(self, schema)
         self.__auto_prompt = schema.get_config_value(u'AutoPrompt') in (u'yes', u'true')
         self.__punct = None
         self.__punct_key = 0
         self.__punct_rep = 0
+        self.__rollback_time = 0
         self.update_ui()
     def process_key_event(self, keycode, mask):
         # disable engine when Caps Lock is on
@@ -105,6 +110,12 @@ class Engine:
     def __judge(self, event):
         if event.mask & modifier.RELEASE_MASK == 0:
             self.update_ui()
+            now = time.time()
+            if now < self.__rollback_time:
+                if event.keycode == keysyms.BackSpace:
+                    self.__db.cancel_pending_updates()
+            else:
+                self.__db.proceed_pending_updates()
         if event.coined:
             if not event.mask:
                 self.__frontend.commit_string(event.get_char())
@@ -249,6 +260,7 @@ class Engine:
         self.__frontend.commit_string(s)
         self.__parser.clear()
         self.__ctx.commit()
+        self.__rollback_time = time.time() + Engine.ROLLBACK_COUNTDOWN
     def __update_preedit(self):
         preedit, start, end = self.__ctx.get_preedit()
         self.__frontend.update_preedit(preedit, start, end)
