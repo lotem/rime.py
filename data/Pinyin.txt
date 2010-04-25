@@ -7,10 +7,8 @@ AutoPrompt = yes
 AutoDelimit = yes
 Delimiter = [ '-]
 MaxKeywordLength = 6
-# 輕聲不標
-MappingRule = ^(.+)5$ \1
-# 無調號兼表四聲
-FuzzyRule = ^(.+)\d$ \1
+# 不標聲調
+MappingRule = ^(.+)\d$ \1
 # 模糊音
 #FuzzyRule = ^([zcs])h \1
 #FuzzyRule = ^([zcs])([^h]) \1h\2
@@ -38,13 +36,13 @@ AlternativeRule = ^x([iy][aoeun]) s\1
 AlternativeRule = ^ji(n|$) zyi\1
 AlternativeRule = ^qi(n|$) cyi\1
 AlternativeRule = ^xi(n|$) syi\1
+AlternativeRule = ^([nl])ue$ \1ve
 AlternativeRule = ^([nl])ue$ \1yue
 AlternativeRule = ^([nl])v$ \1yu
 AlternativeRule = ^weng$ ong
 AlternativeRule = ^(.+)ong$ \1ung
 AlternativeRule = ao$ au
 AlternativeRule = ^w v
-#AlternativeRule = ([aeiou])n$ \1m
 # 拼式糾錯
 AlternativeRule = ([aeiou])ng$ \1gn
 # 音節切分
