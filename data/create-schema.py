@@ -478,7 +478,7 @@ def process_phrase(okey, phrase, freq):
 for k in keywords:
     add_keyword(k)
     for p in keywords[k]:
-        process_phrase(k, p, 0)
+        process_phrase(k, p[1:] if p.startswith(u'*') else p, 0)
         if options.verbose and phrase_counter % 1000 == 0:
             print >> sys.stderr, '%dk phrases imported from %s.' % (phrase_counter / 1000, keyword_file)
 del keywords
@@ -496,8 +496,6 @@ if phrase_file:
                 freq = int(freq_str)
             else:
                 (okey, phrase) = ll
-                if phrase.startswith(u'*'):
-                    phrase = phrase[1:]
                 freq = 0
             if u' ' in phrase:
                 phrase = phrase.replace(u' ', '')
