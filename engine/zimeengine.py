@@ -10,7 +10,7 @@ from zimedb import *
 
 class Engine:
 
-    ROLLBACK_COUNTDOWN = 5  # seconds
+    ROLLBACK_COUNTDOWN = 3  # seconds
 
     def __init__(self, frontend, name):
         self.__frontend = frontend
@@ -46,6 +46,11 @@ class Engine:
                     return True
             # ignore other hotkeys
             return False
+        if self.__rollback_time:
+            now = time.time()
+            if now > self.__rollback_time:
+                self.__db.proceed_pending_updates()
+                self.__rollback_time = 0
         if self.__punct:
             if keycode in (keysyms.Shift_L, keysyms.Shift_R) or (mask & modifier.RELEASE_MASK):
                 return True
@@ -110,12 +115,9 @@ class Engine:
     def __judge(self, event):
         if event.mask & modifier.RELEASE_MASK == 0:
             self.update_ui()
-            now = time.time()
-            if now < self.__rollback_time:
-                if event.keycode == keysyms.BackSpace:
-                    self.__db.cancel_pending_updates()
-            else:
-                self.__db.proceed_pending_updates()
+            if self.__rollback_time and event.keycode == keysyms.BackSpace:
+                self.__db.cancel_pending_updates()
+                self.__rollback_time = 0
         if event.coined:
             if not event.mask:
                 self.__frontend.commit_string(event.get_char())

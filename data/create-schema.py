@@ -496,6 +496,8 @@ if phrase_file:
                 freq = int(freq_str)
             else:
                 (okey, phrase) = ll
+                if phrase.startswith(u'*'):
+                    phrase = phrase[1:]
                 freq = 0
             if u' ' in phrase:
                 phrase = phrase.replace(u' ', '')
