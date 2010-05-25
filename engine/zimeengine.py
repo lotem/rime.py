@@ -160,9 +160,9 @@ class Engine:
             return True
         if event.keycode == keysyms.Return:
             if event.mask & modifier.SHIFT_MASK:
-                self.__commit(raw_input=True)
-            elif self.__auto_prompt:
                 self.__commit(code_input=True)
+            elif self.__auto_prompt:
+                self.__commit(raw_input=True)
             elif ctx.being_converted():
                 self.__confirm_current()
             else:
