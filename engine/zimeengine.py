@@ -10,7 +10,7 @@ from zimedb import *
 
 class Engine:
 
-    ROLLBACK_COUNTDOWN = 5  # seconds
+    ROLLBACK_COUNTDOWN = 3  # seconds
 
     def __init__(self, frontend, name):
         self.__frontend = frontend
@@ -46,6 +46,11 @@ class Engine:
                     return True
             # ignore other hotkeys
             return False
+        if self.__rollback_time:
+            now = time.time()
+            if now > self.__rollback_time:
+                self.__db.proceed_pending_updates()
+                self.__rollback_time = 0
         if self.__punct:
             if keycode in (keysyms.Shift_L, keysyms.Shift_R) or (mask & modifier.RELEASE_MASK):
                 return True
@@ -110,12 +115,9 @@ class Engine:
     def __judge(self, event):
         if event.mask & modifier.RELEASE_MASK == 0:
             self.update_ui()
-            now = time.time()
-            if now < self.__rollback_time:
-                if event.keycode == keysyms.BackSpace:
-                    self.__db.cancel_pending_updates()
-            else:
-                self.__db.proceed_pending_updates()
+            if self.__rollback_time and event.keycode == keysyms.BackSpace:
+                self.__db.cancel_pending_updates()
+                self.__rollback_time = 0
         if event.coined:
             if not event.mask:
                 self.__frontend.commit_string(event.get_char())
@@ -158,9 +160,9 @@ class Engine:
             return True
         if event.keycode == keysyms.Return:
             if event.mask & modifier.SHIFT_MASK:
-                self.__commit(raw_input=True)
-            elif self.__auto_prompt:
                 self.__commit(code_input=True)
+            elif self.__auto_prompt:
+                self.__commit(raw_input=True)
             elif ctx.being_converted():
                 self.__confirm_current()
             else:
@@ -320,8 +322,9 @@ class SchemaChooser:
             self.__frontend.update_aux_string(SchemaChooser.NO_SCHEMA)
             return False
         if not self.__active:
-            # Ctrl-` calls schema chooser menu
-            if keycode == keysyms.grave and mask & modifier.CONTROL_MASK:
+            # Ctrl-` or F1 calls schema chooser menu
+            if keycode == keysyms.grave and mask & modifier.CONTROL_MASK or \
+                keycode == keysyms.F1 and mask == 0:
                 self.__activate()
                 return True
             return self.__engine.process_key_event(keycode, mask)
@@ -333,6 +336,12 @@ class SchemaChooser:
         if mask & modifier.RELEASE_MASK:
             return True
         # schema chooser menu
+        # press F1 the second time, close chooser and send F1
+        if keycode == keysyms.F1:
+            if self.__engine:
+                self.__deactivate()
+                self.__engine.update_ui()
+            return False
         if keycode == keysyms.Escape:
             if self.__engine:
                 self.__deactivate()

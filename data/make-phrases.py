@@ -14,7 +14,7 @@ import optparse
 def debug(*what):
     print >> sys.stderr, u'[DEBUG]: ', u' '.join(map(unicode, what))
 
-usage = 'usage: %prog [options] prefix'
+usage = 'usage: %prog [options] dictname'
 parser = optparse.OptionParser(usage)
 parser.add_option('-s', '--source', dest='source_file', default='phrases.txt', help='specify source dict file.', metavar='FILE')
 parser.add_option('-p', '--precise', action='store_true', dest='precise', default=False, help='generate comments on interpreted words only.')
@@ -22,13 +22,13 @@ parser.add_option('-v', '--verbose', action='store_true', dest='verbose', defaul
 options, args = parser.parse_args()
 
 if len(args) < 1:
-    parser.error('missing prefix')
+    parser.error('missing dictname')
 prefix = args[0]
 
 max_word_length = 0
 word_map = dict()
 
-keyword_file = open('%s-keywords.txt' % prefix )
+keyword_file = open('%s-keywords.txt' % prefix)
 for line in keyword_file:
     x = line.strip().decode('utf-8')
     if not x or x.startswith(u'#'):

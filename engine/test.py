@@ -15,8 +15,11 @@ def _initialize():
     zimeparser.register_parsers()
     # initialize DB 
     IBUS_ZIME_LOCATION = os.getenv('IBUS_ZIME_LOCATION')
-    HOME_PATH = os.getenv('HOME')
-    db_path = os.path.join(HOME_PATH, '.ibus', 'zime')
+    home_path = os.getenv('HOME') or os.getenv('USERPROFILE')
+    if home_path:
+        db_path = os.path.join(home_path, '.ibus', 'zime')
+    else:
+        db_path = '.'
     user_db = os.path.join(db_path, 'zime.db')
     if not os.path.exists(user_db):
         sys_db = IBUS_ZIME_LOCATION and os.path.join(IBUS_ZIME_LOCATION, 'data', 'zime.db')
@@ -155,9 +158,10 @@ def main():
     #e = TestEngine(u'Zhuyin')
     #e.test('rm/3rm/3u.3gp6zj/ {Escape}2k7al {Tab}{Return}')
 
-    #e = TestEngine(u'Pinyin')
+    e = TestEngine(u'Pinyin')
     #e.test("pinyin-shuru'fa' ")
     #e.test('henanquan{Home}{Tab} ')
+    e.test('jiong ')
 
     #e = TestEngine(u'ComboPinyin')
     #e.process_key_event(keysyms.r, 0)
