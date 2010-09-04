@@ -322,8 +322,9 @@ class SchemaChooser:
             self.__frontend.update_aux_string(SchemaChooser.NO_SCHEMA)
             return False
         if not self.__active:
-            # Ctrl-` calls schema chooser menu
-            if keycode == keysyms.grave and mask & modifier.CONTROL_MASK:
+            # Ctrl-` or F1 calls schema chooser menu
+            if keycode == keysyms.grave and mask & modifier.CONTROL_MASK or \
+                keycode == keysyms.F1 and mask == 0:
                 self.__activate()
                 return True
             return self.__engine.process_key_event(keycode, mask)
@@ -335,6 +336,12 @@ class SchemaChooser:
         if mask & modifier.RELEASE_MASK:
             return True
         # schema chooser menu
+        # press F1 the second time, close chooser and send F1
+        if keycode == keysyms.F1:
+            if self.__engine:
+                self.__deactivate()
+                self.__engine.update_ui()
+            return False
         if keycode == keysyms.Escape:
             if self.__engine:
                 self.__deactivate()
