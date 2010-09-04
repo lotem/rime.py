@@ -5,7 +5,7 @@ Dict = pinyin
 Parser = roman
 AutoPrompt = yes
 AutoDelimit = yes
-Delimiter = [ '-]
+Delimiter = [ ']
 MaxKeywordLength = 6
 # 不標聲調
 MappingRule = ^(.+)\d$ \1
@@ -17,8 +17,8 @@ MappingRule = ^(.+)\d$ \1
 #FuzzyRule = ([ei])ng$ \1n
 #FuzzyRule = ([ei])n$ \1ng
 # 簡拼
-FuzzyRule = ^([a-z]).+$ \1
-FuzzyRule = ^([a-z]h).+$ \1
+FuzzyRule = ^([bcdfghjklmnpqrstvwxyz]).+$ \1
+FuzzyRule = ^([zcs]h).+$ \1
 # 兼容拼寫形式
 AlternativeRule = ^([fvw])ei$ \1i
 AlternativeRule = ^([nl])ei$ \1ui
@@ -84,16 +84,16 @@ Punct = } 』 ｝
 # edit keys
 #EditKey = bracketleft Left
 #EditKey = bracketright Right
-#EditKey = minus Up
-#EditKey = equal Down
+EditKey = minus Up
+EditKey = equal Down
 EditKey = comma Page_Up
 EditKey = period Page_Down
 EditKey = I Up
 EditKey = K Down
 EditKey = J Left
 EditKey = L Right
-EditKey = Y Page_Up
-EditKey = H Page_Down
-EditKey = U Home
-EditKey = O End
+EditKey = U Page_Up
+EditKey = O Page_Down
+EditKey = H Home
+EditKey = N End
 EditKey = P Escape

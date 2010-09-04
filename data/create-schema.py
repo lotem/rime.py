@@ -243,7 +243,7 @@ if len(args) != 1:
 schema_file = args[0] if len(args) > 0 else None
 
 if not options.db_file:
-    home_path = os.getenv('HOME')
+    home_path = os.getenv('HOME') or os.getenv('USERPROFILE')
     db_path = os.path.join(home_path, '.ibus', 'zime')
     if not os.path.isdir(db_path):
         os.makedirs(db_path)
