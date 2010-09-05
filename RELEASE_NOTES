@@ -1,6 +1,12 @@
 
 ibus-zime - release notes
 
+ibus-zime 3.5 - 2010-09-05
+==========================
+  - merged branch from weasel/engine.
+  - updated schema files, introducing Wu - Shanghainese input.
+  - add make targets for schema installation.
+
 ibus-zime 3.4 - 2010-04-25
 ==========================
   - the most previously inputted pinyin is made always visible.

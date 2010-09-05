@@ -1,6 +1,6 @@
 # README
 
-Hi. Thank you for taking the time to read this, and for trying ibus-zime.
+Hi. Thank you for taking time to read this, and for trying ibus-zime.
 
 Quick Start:
 
@@ -8,47 +8,45 @@ Quick Start:
 
 http://ibus.googlecode.com/
 
-1. Run `make' with super user privilege under extracted ibus-zime folder.
+1. Run `make install' with super user privilege under extracted ibus-zime folder.
 
 cd ibus-zime/
 sudo make install
 
 2. Install the schema(s) of your choice.
 
-# NOTE: Run the commands under ibus-zime/data/ as normal user. DB files will be created for current user only.
-# The resulting SQLite3 database file would be ~/.ibus/zime/zime.db.
-# delete this file if you've been using a previous major version of ibus-zime.
+# NOTE: Run these commands under ibus-zime/data/ as normal user. 
+# The resulting SQLite3 database file will be created for current user only, at ~/.ibus/zime/zime.db.
 
-# NOTE: If you are installing new schemas upon existing ZIME install, 
-# you should restart IBus daemon before the following operation once it reports error that the database is locked.
+# NOTE: If you're upgrading from a previous MAJOR version of ibus-zime (say, 2.x verus 3.x), 
+# clear the incompatible DB file with the command `make clear_db'.
 
-cd data/
+# Install schema: Pinyin :(simplified), DoublePinyin, ComboPinyin (ZIME special offer)
+make schema_pinyin
 
-# a.1) Install schema: Pinyin
-./create-schema.py -v Pinyin.txt
+# Install schema: TonalPinyin (recommended:)
+make schema_tonal_pinyin
 
-# a.2) Install schema: Double Pinyin
-# NOTE: If you haven't got Pinyin schema already installed, remove `-k` option in the following command.
-./create-schema.py -v -k DoublePinyin.txt
+# Install schema: Zhuyin (Bopomofo)
+make schema_zhuyin
 
-# a.3) Install schema: Combo Pinyin (Refer to ZIME project home page)
-# NOTE: If you haven't got Pinyin schema already installed, remove `-k` option in the following command.
-./create-schema.py -v -k ComboPinyin.txt
+# Install schema: Jyutping (Cantonese)
+make schema_jyutping
 
-# b) Install schema: Jyutping (Cantonese)
-./make-phrases.py jyutping
-./create-schema.py -v Jyutping.txt
+# Install schema: Wu (Shanghainese)
+make schema_wu
 
-# c) More schema samples available at
-http://code.google.com/p/zime/source/browse/#svn/trunk/zime-data
+# Invent your own schema!
+# Guides and more schema samples available at
+http://code.google.com/p/zime/wiki/ZIMEData
 
-# d) Invent your own schema!
 
 3. Restart IBus and enable ZIME engine in IBus preferences.
 
-4. When ZIME is active, you can always type Ctrl+` to call schema chooser menu, and choose among installed schemas.
+4. When ZIME is active, type Ctrl+` to choose from installed schemas.
 
 Sorry for the temporary short of documentation. Feel free to explore.
 
 Visit ZIME project home page http://zime.googlecode.com/ for lastest news.
 Questions go to <chen.sst@gmail.com>.
+Thanks.
