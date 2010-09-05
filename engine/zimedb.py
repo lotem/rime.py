@@ -5,7 +5,8 @@ import time
 
 class DB:
 
-    LIMIT = 1024
+    UNIG_LIMIT = 1000
+    BIG_LIMIT = 50
 
     INIT_PLUME_DB_SQLS = """
     CREATE TABLE IF NOT EXISTS setting_paths (
@@ -188,19 +189,19 @@ class DB:
     def lookup_unigram(self, key):
         #print 'lookup_unigram:', key
         args = {'ikey' : key}
-        r = DB.__conn.execute(self.QUERY_UNIGRAM_SQL, args).fetchmany(DB.LIMIT)
+        r = DB.__conn.execute(self.QUERY_UNIGRAM_SQL, args).fetchmany(DB.UNIG_LIMIT)
         return r
 
     def lookup_bigram(self, key):
         #print 'lookup_bigram:', key
         args = {'ikey' : key}
-        r = DB.__conn.execute(self.QUERY_BIGRAM_SQL, args).fetchmany(DB.LIMIT)
+        r = DB.__conn.execute(self.QUERY_BIGRAM_SQL, args).fetchmany(DB.BIG_LIMIT)
         return r
 
     def lookup_bigram_by_entry(self, e):
         #print 'lookup_bigram_by_entry:', unicode(e)
         args = {'e1' : e.get_eid()}
-        r = DB.__conn.execute(self.QUERY_BIGRAM_BY_ENTRY_SQL, args).fetchmany(DB.LIMIT)
+        r = DB.__conn.execute(self.QUERY_BIGRAM_BY_ENTRY_SQL, args).fetchmany(DB.BIG_LIMIT)
         return r
 
     def update_freq_total(self, n):

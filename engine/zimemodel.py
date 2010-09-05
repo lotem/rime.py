@@ -162,7 +162,7 @@ class ContextInfo:
 class Model:
 
     PENALTY = 1e-4
-    LIMIT = 256
+    LIMIT = 50
     MAX_CONCAT_PHRASE = 3
 
     def __init__(self, schema):

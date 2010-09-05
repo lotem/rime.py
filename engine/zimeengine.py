@@ -324,7 +324,7 @@ class SchemaChooser:
         if not self.__active:
             # Ctrl-` or F1 calls schema chooser menu
             if keycode == keysyms.grave and mask & modifier.CONTROL_MASK or \
-                keycode == keysyms.F1 and mask == 0:
+                keycode == keysyms.F1:
                 self.__activate()
                 return True
             return self.__engine.process_key_event(keycode, mask)
