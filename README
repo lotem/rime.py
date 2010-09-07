@@ -12,6 +12,7 @@ http://ibus.googlecode.com/
 
 cd ibus-zime/
 sudo make install
+make restart_ibus
 
 2. Install the schema(s) of your choice.
 

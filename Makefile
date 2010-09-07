@@ -3,7 +3,7 @@ targetdir = /usr/share/ibus-zime
 libexecdir = /usr/lib/ibus-zime
 all:
 	@echo ':)'
-install: clean stop_service
+install: clean
 	mkdir -p $(targetdir)
 	cp -R $(folders) $(targetdir)
 	mkdir -p $(libexecdir)
@@ -17,17 +17,17 @@ clean:
 	-find . -name '*~' -delete
 	-find . -name '*.py[co]' -delete
 	-find . -name '.*.swp' -delete
-stop_service:
+restart_ibus:
 	ibus-daemon -drx
-schema_pinyin: stop_service
+schema_pinyin: restart_ibus
 	(cd data; python create-schema.py -v Pinyin.txt; python create-schema.py -k DoublePinyin.txt; python create-schema.py -k ComboPinyin.txt)
-schema_tonal_pinyin: stop_service
+schema_tonal_pinyin: restart_ibus
 	(cd data; python make-phrases.py tonal-pinyin; python create-schema.py -v TonalPinyin.txt)
-schema_zhuyin: stop_service
+schema_zhuyin: restart_ibus
 	(cd data; python make-phrases.py zhuyin; python create-schema.py -v Zhuyin.txt)
-schema_jyutping: stop_service
+schema_jyutping: restart_ibus
 	(cd data; python make-phrases.py jyutping; python create-schema.py -v Jyutping.txt)
-schema_wu: stop_service
+schema_wu: restart_ibus
 	(cd data; python make-phrases.py wu; cat wu-extra-phrases.txt >> wu-phrases.txt; python create-schema.py -v Wu.txt)
-clear_db: stop_service
+clear_db: restart_ibus
 	rm ~/.ibus/zime/zime.db
