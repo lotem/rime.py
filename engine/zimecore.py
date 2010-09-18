@@ -148,6 +148,7 @@ class Parser:
         ch = event.get_char()
         if event.keycode == keysyms.Return:
             if len(p) > 1 and p[0] in self.quote:
+                # 以quote做前導的西文，上屏時不包含quote
                 return Commit(p[1:]) 
             else:
                 return Commit(p)
@@ -158,6 +159,7 @@ class Parser:
             self.prompt = p[:-1]
             return Prompt(self.prompt)
         if ch in self.quote and p[0] in self.quote:
+            # 成對的quote與引文一同上屏
             return Commit(p + ch)
         if self.acceptable(ch):
             self.prompt += ch
@@ -175,12 +177,15 @@ class Parser:
                 return True, None
             p = self.__punct[ch]
             if p[0] == 1:
+                # 唯一的標點，直接上屏
                 return True, p[1]
             elif p[0] == 2:
+                # 成對使用的標號，如以"輸入“”，前後引交替著出
                 x = p[1][0]
                 p[1].reverse()
                 return True, x
             else:
+                # 一鍵表示多種標點，反覆按鍵輪循
                 return True, p[1]
         return False, None
 
@@ -313,17 +318,24 @@ class Context:
         # 處理的起始位置為句首或已確認部份之後
         # 如果Context中記錄了上文信息，則以位置-1（前一回上屏的末一個單詞）代替句首
         i = self.sel[-1].j if self.sel else (-1 if self.info.last else 0)
+        # 取得詞組的後續部份或從後續位置起的最佳預測結果
         p = (self.sel[-1].next if self.sel else None) or self.info.pred[i]
         while p:
+            # 組成當前詞組的單詞序列，如［中國｜功夫］
             s = p.get_all()
+            # 詞組應排除上文的尾詞，方得到屬於當前Context的有效部份
+            # 如上一次輸入了［我｜喜歡｜中國］，上文信息為［中國］
+            # 又輸入［gungfu］，則組成詞組［（中國）｜功夫］，預測結果為［功夫］
             if s[0].i < 0:
                 del s[0]
             if s:
                 p = s[-1]
                 if exclude_the_last and p.j == self.info.m:
-                    # 如果要顯示候選詞列表，最後一個詞就不必執行自動選詞
+                    # 如果要顯示候選詞列表，最後一個詞組就不必執行自動選詞
                     break
+                # 自動選用當前詞組
                 self.sel.extend(s)
+            # 預測後續詞句
             i = p.j
             p = self.info.pred[i]
         # 返回自動選詞的結束位置
@@ -336,6 +348,7 @@ class Context:
         # 清除手工選詞的記錄
         self.sel = []
         self.confirmed = 0
+        # 顯示句首的候選詞
         self.__update_candidates(0)
         return True
 
@@ -359,7 +372,9 @@ class Context:
             return
         i = self.cur[0].i
         j = self.cur[-1].j
+        # 由大到小枚舉各種長度的子編碼串
         for k in range(j - 1, i, -1):
+            # 遇到最長的、有候選詞的子編碼串，就以這個範圍生成候選詞列表
             if self.info.cand[i][k] or self.info.fraz[i][k]:
                 self.__update_candidates(i, k)
                 return
