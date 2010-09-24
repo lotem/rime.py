@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # vim:set et sts=4 sw=4:
 
+from math import log
 import re
 
 class Entry:
-    def __init__(self, e, i, j, prob=1.0, use_count=0, next=None):
+    def __init__(self, e, i, j, prob=0.0, use_count=0, next=None):
         self.e = e
         self.i = i
         self.j = j
@@ -34,8 +35,8 @@ class Entry:
             a, b = a.next, b.next
         return not a
     def __unicode__(self):
-        return u'<%s (%d, %d) %g%s>' % \
-            (self.get_word(), self.i, self.j, self.prob, (u' => %s' % self.next.get_phrase()) if self.next else u'')
+        return u'<%s %g %d (%d, %d)%s>' % \
+            (self.get_word(), self.prob, self.use_count, self.i, self.j, (u' => %s' % self.next.get_phrase()) if self.next else u'')
 
 class SpellingCollisionError:
     def __init__(self, rule, vars):
@@ -161,7 +162,7 @@ class ContextInfo:
 
 class Model:
 
-    PENALTY = 1e-3
+    PENALTY = log(1e-3)
     LIMIT = 50
     MAX_CONCAT_PHRASE = 3
 
@@ -304,7 +305,7 @@ class Model:
         unig = info.unig
         big = info.big
         total, utotal = [x + 0.1 for x in self.__db.lookup_freq_total()]
-        to_prob = lambda x: (x + 0.1) / total
+        to_prob = lambda x: log((x + 0.1) / total)
         def make_keys(i, k, length):
             if length == 0 or i == m:    
                 return [(i, k)]
@@ -358,11 +359,13 @@ class Model:
         c[diff:] = [[None for j in range(m + 1)] for i in range(diff, m + 1)]
         # last committed word goes to array index -1
         if info.last:
-            c[-1][0] = [info.last]
+            last = info.last
+            #print u'last: %s' % last
+            c[-1][0] = [Entry(last.e, -1, 0, last.prob, last.use_count, None)]
             if not info.q:
-                r = self.__db.lookup_bigram_by_entry(info.last)
+                r = self.__db.lookup_bigram_by_entry(last)
                 if r:
-                    eid = info.last.get_eid()
+                    eid = last.get_eid()
                     if eid in big:
                         s = big[eid]
                     else:
@@ -375,7 +378,7 @@ class Model:
                 for j, k in make_keys(jw, [kw], self.__max_key_length - 1):
                     if j <= diff and len(k) < self.__max_key_length:
                         continue
-                    print 'lookup:', i, j, k
+                    #print 'lookup:', i, j, k
                     for x in lookup(k):
                         judge(x, i, j)
 
@@ -391,7 +394,10 @@ class Model:
         pred = [None for i in range(m + 1 + 1)]
         info.pred = pred
         def update_pred(i, e):
-            if not pred[i] or e.prob > pred[i].prob:
+            # 用戶用過的詞優先於未用過而但概率高的詞
+            used = lambda x: bool(x.use_count) and x.get_all()[-1].j == m
+            pred_cmp = lambda a, b: cmp(used(a), used(b)) or cmp(a.prob, b.prob)
+            if not pred[i] or pred_cmp(e, pred[i]) > 0:
                 pred[i] = e
         def succ_phrases(j):
             '''returns succeeding phrases starting with position j, grouped by eid'''
@@ -419,12 +425,10 @@ class Model:
                 if c[i][j]:
                     for x in c[i][j]:
                         # calculate prob
-                        if i == -1:
-                            pass
-                        elif j == m:
+                        if i != -1:
                             x.prob = unig[x.get_eid()]
-                        else:
-                            x.prob = unig[x.get_eid()] * pred[j].prob * Model.PENALTY
+                        if j != m:
+                            x.prob += pred[j].prob + Model.PENALTY
                         update_pred(i, x)
                         if j == m:
                             continue
@@ -436,9 +440,9 @@ class Model:
                             for v in big[eid]:
                                 if v in succ:
                                     for y in succ[v]:
-                                        prob = big[eid][v] / unig[v] * y.prob
+                                        prob = big[eid][v] - unig[v] + y.prob
                                         e = Entry(x.e, i, j, prob, min(x.use_count, y.use_count), y)
-                                        print "concat'd phrase:", unicode(e)
+                                        #print "concat'd phrase:", unicode(e)
                                         # save phrase
                                         k = e.get_all()[-1].j
                                         if f[i][k]:
@@ -447,6 +451,12 @@ class Model:
                                             f[i][k] = [e]
                                         # update pred[i] with concat'd phrases
                                         update_pred(i, e)
+            """
+            #print 'pred:'
+            for x in pred:
+                if x:
+                    #print unicode(x)
+            """
 
     def train(self, ctx, s):
         def g(ikeys, okey, depth):
@@ -487,31 +497,31 @@ class Model:
         prev_table = dict()
         prev = ctx.sel[-1] if ctx.sel else ctx.info.last
         if prev:
-            prev_award = 1.0
+            prev_award = 0.0
             prev_eid = prev.get_eid()
-            print 'prev:', prev.get_phrase(), prev_eid
+            #print 'prev:', prev.get_phrase(), prev_eid
             for x in cand[prev.i][prev.j]:
                 if x.get_eid() == prev_eid:
-                    print 'pred[x.j].prob:', pred[x.j].prob, 'x.prob:', x.prob
-                    prev_award = pred[x.j].prob / x.prob
-                    print 'prev_award:', prev_award
+                    #print u'pred[x.j]: %s x: %s' % (pred[x.j], x)
+                    prev_award = pred[x.j].prob - x.prob
+                    #print 'prev_award:', prev_award
                     break
             for y in fraz[prev.i][prev.j:]:
                 if y:
                     for x in y[:Model.LIMIT]:
-                        print x.get_phrase(), x.get_eid(), x.i, x.j
                         if x.next and x.get_eid() == prev_eid:
-                            prev_table[id(x.next)] = x.prob * prev_award
-            print 'prev_table:', prev_table
+                            #print 'award goes to:', unicode(x)
+                            prev_table[id(x.next)] = x.prob + prev_award
+            #print 'prev_table:', prev_table
         def adjust(e):
             if id(e) not in prev_table:
                 return e
             prob = prev_table[id(e)]
-            print 'adjust:', e.get_phrase(), e.prob, prob
+            #print 'adjust:', e.get_phrase(), e.prob, prob
             return Entry(e.e, e.i, e.j, prob, e.use_count, e.next)
         r = [[] for k in range(m + 1)]
         p = []
-        print 'range:', u''.join(ctx.input[i:j])
+        #print 'range:', u''.join(ctx.input[i:j])
         for k in range(j, i, -1):
             if cand[i][k]:
                 for x in cand[i][k]:
@@ -520,7 +530,7 @@ class Model:
             if fraz[i][k]:
                 for x in fraz[i][k]:
                     e = adjust(x)
-                    print "concat'd phrase:", e.get_phrase(), e.prob
+                    #print "concat'd phrase:", e.get_phrase(), e.prob
                     if not any([e.partof(ex) for kx, ex in p]):
                         p.append((k, e))
         phrase_cmp = lambda a, b: -cmp(a[1].prob, b[1].prob)
@@ -532,7 +542,7 @@ class Model:
                 if kx == j:
                     r[j].append(ex)
                     break
-            print 'supplemented:', r[j][0].get_phrase()
+            #print 'supplemented:', r[j][0].get_phrase()
         cand_cmp = lambda a, b: -cmp(a.use_count + a.prob, b.use_count + b.prob)
         ret = []
         for s in reversed(r):  # longer words come first
@@ -544,4 +554,8 @@ class Model:
                     if p not in phrases:
                         phrases.add(p)
                         ret.append((p, e))
+        """
+        for x in ret[:5]:
+            #print u'cand: %s' % x[1]
+        """
         return ret
