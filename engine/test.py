@@ -161,7 +161,8 @@ def main():
     e = TestEngine(u'Pinyin')
     #e.test("pinyin-shuru'fa' ")
     #e.test('henanquan{Home}{Tab} ')
-    e.test('jiong ')
+    #e.test('jiong ')
+    e.test('gongshen{Home}1. shen{Escape}gongshen{Left}1')
 
     #e = TestEngine(u'ComboPinyin')
     #e.process_key_event(keysyms.r, 0)

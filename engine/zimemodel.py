@@ -161,7 +161,7 @@ class ContextInfo:
 
 class Model:
 
-    PENALTY = 1e-4
+    PENALTY = 1e-3
     LIMIT = 50
     MAX_CONCAT_PHRASE = 3
 
@@ -233,7 +233,7 @@ class Model:
                 s = u''.join(input[i:j])
                 if len (s) > self.__max_keyword_length:
                     break
-                #print j, s
+                ##print j, s
                 if not self.__is_keyword(s):
                     continue
                 if j < n and input[j] in self.__delimiter:
@@ -241,7 +241,7 @@ class Model:
                     beyond_delimiter = True
                 else:
                     t = j
-                #print i, t, s
+                ##print i, t, s
                 if t not in q:
                     q.append(t)
                     m = max(m, t)
@@ -327,7 +327,7 @@ class Model:
                     s[x[1]] = to_prob(x[2])
             return result
         def add_word(x, i, j):
-            #print 'add_word:', i, j, x[0], x[1]
+            ##print 'add_word:', i, j, x[0], x[1]
             use_count = x[4]
             e = Entry(x, i, j, 1.0, use_count)
             if not c[i][j]:
@@ -375,7 +375,7 @@ class Model:
                 for j, k in make_keys(jw, [kw], self.__max_key_length - 1):
                     if j <= diff and len(k) < self.__max_key_length:
                         continue
-                    #print 'lookup:', i, j, k
+                    print 'lookup:', i, j, k
                     for x in lookup(k):
                         judge(x, i, j)
 
@@ -438,7 +438,7 @@ class Model:
                                     for y in succ[v]:
                                         prob = big[eid][v] / unig[v] * y.prob
                                         e = Entry(x.e, i, j, prob, min(x.use_count, y.use_count), y)
-                                        #print "concat'd phrase:", unicode(e)
+                                        print "concat'd phrase:", unicode(e)
                                         # save phrase
                                         k = e.get_all()[-1].j
                                         if f[i][k]:
@@ -474,48 +474,53 @@ class Model:
 
     def make_candidate_list(self, ctx, i, j):
         m = ctx.info.m
-        c = ctx.info.cand
-        f = ctx.info.fraz
+        cand = ctx.info.cand
+        fraz = ctx.info.fraz
         pred = ctx.info.pred
         if i >= m:
             return []
         if j == 0:
             j = m
-            while j > i and not c[i][j] and not f[i][j]:
+            while j > i and not cand[i][j] and not fraz[i][j]:
                 j -= 1
         # info about the previously selected phrase
         prev_table = dict()
         prev = ctx.sel[-1] if ctx.sel else ctx.info.last
         if prev:
-            #print 'prev:', prev.get_phrase()
             prev_award = 1.0
             prev_eid = prev.get_eid()
-            for x in c[prev.i][prev.j]:
+            print 'prev:', prev.get_phrase(), prev_eid
+            for x in cand[prev.i][prev.j]:
                 if x.get_eid() == prev_eid:
+                    print 'pred[x.j].prob:', pred[x.j].prob, 'x.prob:', x.prob
                     prev_award = pred[x.j].prob / x.prob
+                    print 'prev_award:', prev_award
                     break
-            for y in c[prev.i][prev.j:]:
+            for y in fraz[prev.i][prev.j:]:
                 if y:
                     for x in y[:Model.LIMIT]:
+                        print x.get_phrase(), x.get_eid(), x.i, x.j
                         if x.next and x.get_eid() == prev_eid:
                             prev_table[id(x.next)] = x.prob * prev_award
+            print 'prev_table:', prev_table
         def adjust(e):
             if id(e) not in prev_table:
                 return e
             prob = prev_table[id(e)]
+            print 'adjust:', e.get_phrase(), e.prob, prob
             return Entry(e.e, e.i, e.j, prob, e.use_count, e.next)
         r = [[] for k in range(m + 1)]
         p = []
-        #print 'range:', u''.join(ctx.input[i:j])
+        print 'range:', u''.join(ctx.input[i:j])
         for k in range(j, i, -1):
-            if c[i][k]:
-                for x in c[i][k]:
+            if cand[i][k]:
+                for x in cand[i][k]:
                     e = adjust(x)
                     r[k].append(e)
-            if f[i][k]:
-                for x in f[i][k]:
+            if fraz[i][k]:
+                for x in fraz[i][k]:
                     e = adjust(x)
-                    #print "concat'd phrase:", e.get_phrase(), e.prob
+                    print "concat'd phrase:", e.get_phrase(), e.prob
                     if not any([e.partof(ex) for kx, ex in p]):
                         p.append((k, e))
         phrase_cmp = lambda a, b: -cmp(a[1].prob, b[1].prob)
@@ -527,7 +532,7 @@ class Model:
                 if kx == j:
                     r[j].append(ex)
                     break
-            #print 'supplemented:', r[j][0].get_phrase()
+            print 'supplemented:', r[j][0].get_phrase()
         cand_cmp = lambda a, b: -cmp(a.use_count + a.prob, b.use_count + b.prob)
         ret = []
         for s in reversed(r):  # longer words come first
