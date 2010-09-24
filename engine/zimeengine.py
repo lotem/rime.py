@@ -23,6 +23,7 @@ class Engine:
         self.__punct_key = 0
         self.__punct_rep = 0
         self.__rollback_time = 0
+        self.__numeric = False
         self.update_ui()
     def process_key_event(self, keycode, mask):
         # disable engine when Caps Lock is on
@@ -78,6 +79,8 @@ class Engine:
             self.__frontend.commit_string(result)
             self.__parser.clear()
             self.__ctx.clear()
+            self.__numeric = False
+            return True
         if isinstance(result, Prompt):
             if result.is_empty():
                 self.update_ui()
@@ -112,6 +115,7 @@ class Engine:
         if commit:
             self.__frontend.commit_string(punct)
             self.__ctx.clear()
+            self.__numeric = False
     def __judge(self, event):
         if event.mask & modifier.RELEASE_MASK == 0:
             self.update_ui()
@@ -122,12 +126,17 @@ class Engine:
             if not event.mask:
                 self.__frontend.commit_string(event.get_char())
             return True
+        # 此標誌為判斷浮點數輸入而置
+        if not (event.mask & modifier.RELEASE_MASK):
+            self.__numeric = event.get_char().isdigit()
         return False
     def __process(self, event):
         ctx = self.__ctx
         if ctx.is_empty():
             if event.mask & modifier.RELEASE_MASK and self.__punct:
                 return True
+            if self.__numeric and event.get_char() == u'.':
+                return False
             if self.__handle_punct(event, commit=False):
                 return True
             return self.__judge(event)
@@ -160,9 +169,9 @@ class Engine:
             return True
         if event.keycode == keysyms.Return:
             if event.mask & modifier.SHIFT_MASK:
-                self.__commit(code_input=True)
+                self.__commit(as_display=True)
             elif self.__auto_prompt:
-                self.__commit(raw_input=True)
+                self.__commit(plain_input=True)
             elif ctx.being_converted():
                 self.__confirm_current()
             else:
@@ -230,6 +239,7 @@ class Engine:
                 self.__frontend.update_preedit(punct[0], 0, len(punct[0]))
             else:
                 self.__frontend.commit_string(punct)
+                self.__numeric = False
         return result
     def __select_by_index(self, candidates, n):
         if not candidates:
@@ -252,10 +262,10 @@ class Engine:
             self.__commit()
         else:
             self.__ctx.forward()
-    def __commit(self, code_input=False, raw_input=False):
-        if raw_input:
+    def __commit(self, as_display=False, plain_input=False):
+        if plain_input:
             s = self.__ctx.get_input_string() 
-        elif code_input:
+        elif as_display:
             s = self.__ctx.get_display_string()
         else:
             s = self.__ctx.get_commit_string()
@@ -263,6 +273,7 @@ class Engine:
         self.__parser.clear()
         self.__ctx.commit()
         self.__rollback_time = time.time() + Engine.ROLLBACK_COUNTDOWN
+        self.__numeric = False
     def __update_preedit(self):
         preedit, start, end = self.__ctx.get_preedit()
         self.__frontend.update_preedit(preedit, start, end)

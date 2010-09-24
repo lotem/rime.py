@@ -179,6 +179,10 @@ def main():
     #e.test('jyuhomindeoicangjatheizaugwodikjatzi')
     #e.test('fanhoifongziganbunsamgikci')
 
+    #e = TestEngine(u'TonalPinyin')
+    #e.test('pkucn.com')
+    #e.test('3.14wo1.0')
+
     pass
 
 if __name__ == "__main__":

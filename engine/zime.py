@@ -41,7 +41,7 @@ class ZimeEngine(ibus.EngineBase):
 
     def __init__(self, conn, object_path):
         super(ZimeEngine, self).__init__(conn, object_path)
-        self.__page_size = DB.read_setting(u'Option/PageSize') or 7
+        self.__page_size = DB.read_setting(u'Option/PageSize') or 5
         self.__lookup_table = ibus.LookupTable(self.__page_size)
         self.__backend = zimeengine.SchemaChooser(self)
 

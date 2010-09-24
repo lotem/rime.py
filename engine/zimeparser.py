@@ -51,8 +51,15 @@ class RomanParser(Parser):
             self.__input.append(ch)
             ctx.input = self.__get_input()
             return []
+        # 進入西文模式
         if self.is_empty() and self.initial_acceptable(ch):
             return self.start_raw_mode(ch)
+        # 不可轉換的輸入串，追加符號後轉入西文模式
+        if ctx.err and self.acceptable(ch) and not ch in self.alphabet:
+            self.prompt = u''.join(self.__input)
+            self.__input = []
+            ctx.input = []
+            return self.process_raw_mode(event)
         # unused
         return False
 
@@ -216,7 +223,7 @@ class GroupingParser(Parser):
 class ComboParser(Parser):
     def __init__(self, schema):
         Parser.__init__(self, schema)
-        self.__prompt_pattern = schema.get_config_char_sequence(u'PromptPattern') or u'%s\u203a'
+        self.__prompt_pattern = schema.get_config_char_sequence(u'PromptPattern') or u'%s'
         self.__combo_keys = schema.get_config_char_sequence(u'ComboKeys') or u''
         self.__combo_codes = schema.get_config_char_sequence(u'ComboCodes') or u''
         self.__combo_max_length = min(len(self.__combo_keys), len(self.__combo_codes))

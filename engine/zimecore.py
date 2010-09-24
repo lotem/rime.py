@@ -195,7 +195,7 @@ class Parser:
         若擊自定義編輯鍵，會返回一個偽造的等效預設編輯鍵
         '''
         if not event.coined and event.keycode in self.__edit_keys:
-            return KeyEvent(self.__edit_keys[event.keycode], 0, coined=True)
+            return KeyEvent(self.__edit_keys[event.keycode], 0, coined=event)
         return None
 
 class Context:
