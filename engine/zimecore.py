@@ -360,8 +360,14 @@ class Context:
             # do a fresh new prediction in case of a full prediction is present
             self.sel = []
             self.confirmed = 0
+        if self.cur and self.cur[-1].j == self.info.m:
+            # 已在句尾則調轉到未確認部份的起始處
+            del self.sel[self.confirmed:]
+            self.__update_candidates(self.sel[-1].j if self.sel else 0)
+            return True
         # 預測轉換結果，並顯示句尾的候選詞
         self.__update_candidates(self.__predict(exclude_the_last=True))
+        return True
 
     def left(self):
         '''

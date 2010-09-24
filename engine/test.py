@@ -159,10 +159,11 @@ def main():
     #e.test('rm/3rm/3u.3gp6zj/ {Escape}2k7al {Tab}{Return}')
 
     e = TestEngine(u'Pinyin')
+    e.test('jiong ')
     #e.test("pinyin-shuru'fa' ")
     #e.test('henanquan{Home}{Tab} ')
     #e.test('hezhinan{Home}. 23qianwanghezhinan')  # 河之南 vs. 和指南
-    e.test('jiong ')
+    #e.test('henanhenanquan{Tab} {Tab}{Tab}')
 
     #e = TestEngine(u'ComboPinyin')
     #e.process_key_event(keysyms.r, 0)
