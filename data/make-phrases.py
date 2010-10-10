@@ -30,7 +30,7 @@ word_map = dict()
 
 keyword_file = open('%s-keywords.txt' % prefix)
 for line in keyword_file:
-    x = line.strip().decode('utf-8')
+    x = line.strip().decode('utf-8').lstrip(u'\ufeff')
     if not x or x.startswith(u'#'):
         continue
     k, w = x.split(u'\t', 1)
@@ -73,7 +73,7 @@ def g(keywords, words, start):
                 g(keywords + [k], words + [w], i + 1)
 
 for line in source_file:
-    x = line.strip().decode('utf-8')
+    x = line.strip().decode('utf-8').lstrip(u'\ufeff')
     if not x or x.startswith(u'#'):
         continue
     phrase, freq_str = x.split(None, 1)

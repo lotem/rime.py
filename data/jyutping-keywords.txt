@@ -720,7 +720,7 @@ mo	磨
 mo	麼
 mo	魔
 mo	摩
-na	乸
+naa	乸
 ne	呢
 ne	乜
 ng	五

@@ -1,6 +1,14 @@
 
 ibus-zime - release notes
 
+ibus-zime 3.6 - 2010-10-10
+==========================
+  - enhanced conversion algorithm with perfomance improvement and bug-fixes.
+  - Tab key toggles the cursor between the beginning and then end of undetermined input.
+  - backquote (`) turns existing input into raw-mode, enabling easy input for URLs and email addresses.
+  - floating-point numbers like 3.14 is now traited correctly.
+  - introducing schema Quick.
+
 ibus-zime 3.5 - 2010-09-05
 ==========================
   - merged branch from weasel/engine.

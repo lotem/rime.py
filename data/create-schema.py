@@ -283,7 +283,7 @@ if schema_file:
     compile_repl_pattern = lambda x: (re.compile(x[0]), x[1])
     f = open(schema_file, 'r')
     for line in f:
-        x = line.strip().decode('utf-8')
+        x = line.strip().decode('utf-8').lstrip(u'\ufeff')
         if not x or x.startswith(u'#'):
             continue
         try:
@@ -331,7 +331,7 @@ keywords = dict()
 if keyword_file:
     f = open(keyword_file, 'r')
     for line in f:
-        x = line.strip().decode('utf-8')
+        x = line.strip().decode('utf-8').lstrip(u'\ufeff')
         if not x or x.startswith(u'#'):
             continue
         try:
@@ -486,7 +486,7 @@ del keywords
 if phrase_file:
     f = open(phrase_file, 'r')
     for line in f:
-        x = line.strip().decode('utf-8')
+        x = line.strip().decode('utf-8').lstrip(u'\ufeff')
         if not x or x.startswith(u'#'):
             continue
         try:

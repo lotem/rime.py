@@ -1,14 +1,13 @@
 # ZIME Schema v3
-Schema = Wu
-DisplayName = 吳語
-Dict = wu
-Parser = roman
+Schema = Quick
+DisplayName = 速成
+Dict = quick
+Parser = table
+MaxKeywordLength = 2
 AutoPrompt = yes
-AutoDelimit = yes
-Delimiter = [ ']
-MaxKeywordLength = 5
-#FuzzyRule = ^([bcdfghjklprstvwxyz]).*$ \1
-AlternativeRule = ^(ch|d?j|gn|x|y)i([aeou]) \1\2
+Delimiter = [ ';]
+Alphabet = abcdefghijklmnopqrstuvwxyz ';
+PromptChar = 日月金木水火土竹戈十大中一弓人心手口尸廿山女田難卜符 ··
 # punctuation
 Punct = , ，
 Punct = . 。

@@ -8696,10 +8696,10 @@ jiao4	*礄
 jiao4	*窔
 jiao4	*窟
 jiao4	*蘸
-jiao4	*覺
+jiao4	覺
 jiao4	*譥
 jiao4	*蹻
-jiao4	*酵
+jiao4	酵
 jiao4	叫
 jiao4	叽
 jiao4	呌

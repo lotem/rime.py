@@ -31,6 +31,9 @@ make schema_tonal_pinyin
 # Install schema: Zhuyin (Bopomofo)
 make schema_zhuyin
 
+# Install schema: Quick (a Cangjie variant)
+make schema_quick
+
 # Install schema: Jyutping (Cantonese)
 make schema_jyutping
 
@@ -40,7 +43,6 @@ make schema_wu
 # Invent your own schema!
 # Guides and more schema samples available at
 http://code.google.com/p/zime/wiki/ZIMEData
-
 
 3. Restart IBus and enable ZIME engine in IBus preferences.
 

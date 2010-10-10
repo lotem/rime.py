@@ -25,6 +25,8 @@ schema_tonal_pinyin: restart_ibus
 	(cd data; python make-phrases.py tonal-pinyin; python create-schema.py -v TonalPinyin.txt)
 schema_zhuyin: restart_ibus
 	(cd data; python make-phrases.py zhuyin; python create-schema.py -v Zhuyin.txt)
+schema_quick: restart_ibus
+	(cd data; python make-phrases.py quick; python create-schema.py -v Quick.txt)
 schema_jyutping: restart_ibus
 	(cd data; python make-phrases.py jyutping; python create-schema.py -v Jyutping.txt)
 schema_wu: restart_ibus
