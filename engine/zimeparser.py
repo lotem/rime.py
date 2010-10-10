@@ -54,11 +54,17 @@ class RomanParser(Parser):
         # 進入西文模式
         if self.is_empty() and self.initial_acceptable(ch):
             return self.start_raw_mode(ch)
+        # 在輸入串後追加quote按鍵，轉入西文模式
+        if ch in self.quote and not self.is_empty() and self.__input[0] not in self.quote:
+            self.prompt = u''.join(self.__input)
+            self.__input = []
+            ctx.edit([])
+            return Prompt(self.prompt)
         # 不可轉換的輸入串，追加符號後轉入西文模式
         if ctx.err and self.acceptable(ch) and not ch in self.alphabet:
             self.prompt = u''.join(self.__input)
             self.__input = []
-            ctx.input = []
+            ctx.edit([])
             return self.process_raw_mode(event)
         # unused
         return False
