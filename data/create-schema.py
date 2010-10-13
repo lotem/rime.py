@@ -260,6 +260,7 @@ if options.keep:
     print >> sys.stderr, 'done.'
     exit()
 
+# recreate dict
 cur.executescript(DROP_DICT_SQLS % prefix_args)
 cur.executescript(CREATE_DICT_SQLS % prefix_args)
 
