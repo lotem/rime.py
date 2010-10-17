@@ -361,13 +361,11 @@ class Model:
                 for y in self.__oi_map[okey[0]]:
                     r.append(x + [y])
             return g(r, okey[1:], depth + 1)
-        def f(a, b):
-            okey = a.get_okey().split() + b.get_okey().split()
-            return [u' '.join(ikey) for ikey in g([[]], okey, 0)]
+        indexer = lambda okey: [u' '.join(ikey) for ikey in g([[]], okey.split(), 0)]
         last = None
         for e in s:
             if last:
-                self.__db.update_bigram(last, e, f)
+                self.__db.update_bigram(last, e, indexer)
             last = e
             self.__db.update_unigram(e)
         self.__db.update_freq_total(len(s))

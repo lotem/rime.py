@@ -22,8 +22,8 @@ def _initialize():
     zimeparser.register_parsers()
     # initialize DB 
     IBUS_ZIME_LOCATION = os.getenv('IBUS_ZIME_LOCATION')
-    HOME_PATH = os.getenv('HOME')
-    db_path = os.path.join(HOME_PATH, '.ibus', 'zime')
+    home_path = os.path.expanduser('~')
+    db_path = os.path.join(home_path, '.ibus', 'zime')
     user_db = os.path.join(db_path, 'zime.db')
     if not os.path.exists(user_db):
         sys_db = IBUS_ZIME_LOCATION and os.path.join(IBUS_ZIME_LOCATION, 'data', 'zime.db')

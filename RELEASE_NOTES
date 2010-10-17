@@ -1,8 +1,10 @@
 
 ibus-zime - release notes
 
-ibus-zime 3.6 - 2010-10-10
+ibus-zime 3.6 - 2010-10-17
 ==========================
+  - new zimedb-admin tool with schema install/uninstall and userdata dump/restore functionalities.
+  - improve performance in schema installation process.
   - enhanced conversion algorithm with perfomance improvement and bug-fixes.
   - Tab key toggles the cursor between the beginning and then end of undetermined input.
   - backquote (`) turns existing input into raw-mode, enabling easy input for URLs and email addresses.
