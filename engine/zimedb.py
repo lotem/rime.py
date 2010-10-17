@@ -578,9 +578,15 @@ class DB:
 
     def restore_user_freq(self, freq_table):
         cur = DB.__conn.cursor()
+        unigram_freq = dict()
+        for (u, n) in freq_table:
+            if u in unigram_freq:
+                unigram_freq[u] += n
+            else:
+                unigram_freq[u] = n
         table = list()
         total_increment = 0
-        for ((phrase, okey), n) in freq_table:
+        for (phrase, okey), n in unigram_freq.iteritems():
             p_id = self.__get_phrase_id(phrase)
             if not p_id:
                 continue
@@ -595,9 +601,16 @@ class DB:
 
     def restore_user_gram(self, freq_table, indexer):
         cur = DB.__conn.cursor()
-        entries = list()
+        bigram_freq = dict()
+        for (a, b, n) in freq_table:
+            k = (a, b)
+            if k in bigram_freq:
+                bigram_freq[k] += n
+            else:
+                bigram_freq[k] = n
+        missing = list()
         increment = list()
-        for ((phrase1, okey1), (phrase2, okey2), n) in freq_table:
+        for ((phrase1, okey1), (phrase2, okey2)), n in bigram_freq.iteritems():
             p1 = self.__get_phrase_id(phrase1)
             if not p1:
                 continue
@@ -614,11 +627,11 @@ class DB:
             if cur.execute(self._bigram_exist_sql, args).fetchone():
                 increment.append(args)
             else:
-                entries.append(args)
+                missing.append(args)
         cur.executemany(self._inc_bfreq_sql, increment)
-        cur.executemany(self._add_bigram_sql, entries)
+        cur.executemany(self._add_bigram_sql, missing)
         # generate ikey-bigram index
-        for args in entries:
+        for args in missing:
             b_id = cur.execute(self._bigram_exist_sql, args).fetchone()[0]
             k_ids = [self.__get_or_insert_key(k) for k in indexer(args['okey'])]
             for k_id in k_ids:
