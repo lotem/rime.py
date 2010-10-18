@@ -178,11 +178,11 @@ INSERT INTO %(prefix)s_unigram VALUES (NULL, :p_id, :okey, :freq, 0);
 """
 
 INC_SFREQ_SQL = """
-UPDATE %(prefix)s_unigram SET sfreq = sfreq + 1 WHERE id = :id;
+UPDATE %(prefix)s_unigram SET sfreq = sfreq + :freq WHERE id = :id;
 """
 
 INC_UFREQ_SQL = """
-UPDATE %(prefix)s_unigram SET ufreq = ufreq + 1 WHERE id = :id;
+UPDATE %(prefix)s_unigram SET ufreq = ufreq + :freq WHERE id = :id;
 """
 
 QUERY_USER_FREQ_SQL = """
@@ -218,7 +218,7 @@ INSERT INTO %(prefix)s_bigram VALUES (:e1, :e2, 1);
 """
 
 INC_BFREQ_SQL = """
-UPDATE %(prefix)s_bigram SET bfreq = bfreq + :n WHERE e1 = :e1 AND e2 = :e2;
+UPDATE %(prefix)s_bigram SET bfreq = bfreq + :freq WHERE e1 = :e1 AND e2 = :e2;
 """
 
 QUERY_KB_SQL = """
@@ -299,26 +299,29 @@ class DB:
         return [(x[0][len(key):], x[1]) for x in r]
 
     @classmethod
-    def update_setting(cls, key, value):
+    def add_setting(cls, key, value):
         if cls.read_only:
             return False
-        cur = cls.__conn.cursor()
-        path = cur.execute(QUERY_SETTING_PATH_SQL, {'path': key}).fetchone()
-        if path:
-            path_id = path[0]
-        else:
-            c = cur.execute(ADD_SETTING_PATH_SQL, {'path': key})
-            path_id = c.lastrowid
-        if cls.read_setting(key) is None:
-            cur.execute(ADD_SETTING_VALUE_SQL, {'path_id': path_id, 'value': value})
-        else:
-            cur.execute(UPDATE_SETTING_VALUE_SQL, {'path_id': path_id, 'value': value})
-        cls.flush(True)
+        path_id = cls.__get_or_insert_setting_path(key)
+        args = {'path_id': path_id, 'value': value}
+        cls.__conn.execute(ADD_SETTING_VALUE_SQL, args)
         return True
 
     @classmethod
-    def get_or_insert_setting_path(path):
-        cur = DB.__conn.cursor()
+    def update_setting(cls, key, value):
+        if cls.read_only:
+            return False
+        path_id = cls.__get_or_insert_setting_path(key)
+        args = {'path_id': path_id, 'value': value}
+        if cls.read_setting(key) is None:
+            cls.__conn.execute(ADD_SETTING_VALUE_SQL, args)
+        else:
+            cls.__conn.execute(UPDATE_SETTING_VALUE_SQL, args)
+        return True
+
+    @classmethod
+    def __get_or_insert_setting_path(cls, path):
+        cur = cls.__conn.cursor()
         args = {'path' : path}
         r = cur.execute(QUERY_SETTING_PATH_SQL, args).fetchone()
         if r:
@@ -417,14 +420,14 @@ class DB:
     def __update_unigram(self, e):
         if DB.read_only:
             return
-        args = {'id' : e.get_eid()}
+        args = {'id' : e.get_eid(), 'freq': 1}
         DB.__conn.execute(self._inc_ufreq_sql, args)
 
     def __update_bigram(self, a, b, indexer):
         if DB.read_only:
             return
         cur = DB.__conn.cursor()
-        args = {'e1' : a.get_eid(), 'e2' : b.get_eid(), 'n': 1}
+        args = {'e1' : a.get_eid(), 'e2' : b.get_eid(), 'freq': 1}
         if cur.execute(self._bigram_exist_sql, args).fetchone():
             cur.execute(self._inc_bfreq_sql, args)
         else:
@@ -593,7 +596,7 @@ class DB:
             u_id = self.__get_unigram_id(p_id, okey)
             if not u_id:
                 continue
-            table.append({'id': u_id, 'n': n})
+            table.append({'id': u_id, 'freq': n})
             total_increment += n
         cur.executemany(self._inc_ufreq_sql, table)
         if total_increment > 0:
@@ -623,7 +626,7 @@ class DB:
             e2 = self.__get_unigram_id(p2, okey2)
             if not e2:
                 continue
-            args = {'e1': e1, 'e2': e2, 'n': n, 'okey': u' '.join([okey1, okey2])}
+            args = {'e1': e1, 'e2': e2, 'freq': n, 'okey': u' '.join([okey1, okey2])}
             if cur.execute(self._bigram_exist_sql, args).fetchone():
                 increment.append(args)
             else:

@@ -134,7 +134,7 @@ def install_schema(schema_file):
             elif path == u'AlternativeRule':
                 alternative_rules.append(compile_repl_pattern(value))
             # save setting to db
-            DB.update_setting(u'%s/%s' % (schema, path), value)
+            DB.add_setting(u'%s/%s' % (schema, path), value)
 
     if not schema:
         print >> sys.stderr, 'error: no schema defined.'
