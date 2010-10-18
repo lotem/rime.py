@@ -185,20 +185,6 @@ INC_UFREQ_SQL = """
 UPDATE %(prefix)s_unigram SET ufreq = ufreq + :freq WHERE id = :id;
 """
 
-QUERY_USER_FREQ_SQL = """
-SELECT phrase, ufreq, okey
-FROM %(prefix)s_unigram u LEFT JOIN phrases p ON p_id = p.id
-WHERE ufreq > 0
-"""
-
-QUERY_USER_GRAM_SQL = """
-SELECT p1.phrase, p2.phrase, bfreq, u1.okey, u2.okey
-FROM %(prefix)s_bigram b, 
-     %(prefix)s_unigram u1 LEFT JOIN phrases p1 ON u1.p_id = p1.id,
-     %(prefix)s_unigram u2 LEFT JOIN phrases p2 ON u2.p_id = p2.id
-WHERE e1 = u1.id AND e2 = u2.id AND bfreq > 0
-"""
-
 QUERY_BIGRAM_SQL = """
 SELECT e1, e2, bfreq AS freq FROM %(prefix)s_bigram b , %(prefix)s_kb kb, %(prefix)s_keys k
 WHERE ikey = :ikey AND k.id = k_id AND b_id = b.rowid
@@ -237,6 +223,25 @@ ADD_KU_SQL = """
 INSERT INTO %(prefix)s_ku VALUES (:k_id, :u_id);
 """
 
+QUERY_USER_FREQ_SQL = """
+SELECT phrase, ufreq, okey
+FROM %(prefix)s_unigram u LEFT JOIN phrases p ON p_id = p.id
+WHERE ufreq > 0
+"""
+
+QUERY_USER_GRAM_SQL = """
+SELECT p1.phrase, p2.phrase, bfreq, u1.okey, u2.okey
+FROM %(prefix)s_bigram b, 
+     %(prefix)s_unigram u1 LEFT JOIN phrases p1 ON u1.p_id = p1.id,
+     %(prefix)s_unigram u2 LEFT JOIN phrases p2 ON u2.p_id = p2.id
+WHERE e1 = u1.id AND e2 = u2.id AND bfreq > 0
+"""
+
+UPDATE_USER_FREQ_SQL = """
+UPDATE OR IGNORE %(prefix)s_unigram SET ufreq = ufreq + :freq
+WHERE p_id IN (SELECT id FROM phrases WHERE phrase = :phrase) AND okey = :okey;
+"""
+
 def _generate_dict_specific_sql(db, prefix_args):
     db._create_dict_sql = CREATE_DICT_SQL % prefix_args
     db._drop_dict_sql = DROP_DICT_SQL % prefix_args
@@ -262,6 +267,7 @@ def _generate_dict_specific_sql(db, prefix_args):
     db._add_kb_sql = ADD_KB_SQL % prefix_args
     db._query_user_freq_sql = QUERY_USER_FREQ_SQL % prefix_args
     db._query_user_gram_sql = QUERY_USER_GRAM_SQL % prefix_args
+    db._update_user_freq_sql = UPDATE_USER_FREQ_SQL % prefix_args
 
 
 class DB:
@@ -590,15 +596,9 @@ class DB:
         table = list()
         total_increment = 0
         for (phrase, okey), n in unigram_freq.iteritems():
-            p_id = self.__get_phrase_id(phrase)
-            if not p_id:
-                continue
-            u_id = self.__get_unigram_id(p_id, okey)
-            if not u_id:
-                continue
-            table.append({'id': u_id, 'freq': n})
+            table.append({'phrase': phrase, 'okey': okey, 'freq': n})
             total_increment += n
-        cur.executemany(self._inc_ufreq_sql, table)
+        cur.executemany(self._update_user_freq_sql, table)
         if total_increment > 0:
             cur.execute(self._update_ufreq_total_sql, {'n': total_increment})
 

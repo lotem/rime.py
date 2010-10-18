@@ -366,9 +366,13 @@ def restore_userdata(schema):
             print >> sys.stderr, 'error: invalid format (%s) %s' % (userfreq_file, x)
             exit()
         userfreq_table.append(((phrase, okey), freq))
+    if options.verbose:
+        print >> sys.stderr, 'checking new phrases...'
     def reporter(phrase, okey):
-        print >> sys.stderr, 'INFO: introducing new phrase', phrase, okey
+        print >> sys.stderr, 'INFO: introducing new phrase %s %s' % (phrase, okey)
     db.add_phrases([(k, 0) for (k, ufreq) in userfreq_table], indexer, reporter=reporter)
+    if options.verbose:
+        print >> sys.stderr, 'adjusting user freq...'
     db.restore_user_freq(userfreq_table)
     print >> sys.stderr, '%d records restored from %s' % (len(userfreq_table), userfreq_file)
 
@@ -390,6 +394,8 @@ def restore_userdata(schema):
             print >> sys.stderr, 'error: invalid format (%s) %s' % (usergram_file, x)
             exit()
         usergram_table.append(((phrase1, okey1), (phrase2, okey2), freq))
+    if options.verbose:
+        print >> sys.stderr, 'restoring user grams...'
     db.restore_user_gram(usergram_table, indexer)
     print >> sys.stderr, '%d records restored from %s' % (len(usergram_table), usergram_file)
 
