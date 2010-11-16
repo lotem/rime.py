@@ -4,11 +4,11 @@
 from ibus import keysyms
 from ibus import modifier
 
-from zimecore import *
+from zime_core import *
 
-class RomanParser(Parser):
+class RomanComposer(Processor):
     def __init__(self, schema):
-        Parser.__init__(self, schema)
+        Processor.__init__(self, schema)
         self.clear()
     def clear(self):
         self.__input = []
@@ -69,9 +69,9 @@ class RomanParser(Parser):
         # unused
         return False
 
-class TableParser(Parser):
+class TableComposer(Processor):
     def __init__(self, schema):
-        Parser.__init__(self, schema)
+        Processor.__init__(self, schema)
         self.__auto_commit_keyword_length = int(schema.get_config_value(u'AutoCommitKeywordLength') or schema.get_config_value(u'MaxKeywordLength') or u'4')
         self.clear()
     def clear(self):
@@ -153,9 +153,9 @@ class TableParser(Parser):
         # unused
         return False
 
-class GroupingParser(Parser):
+class GroupingComposer(Processor):
     def __init__(self, schema):
-        Parser.__init__(self, schema)
+        Processor.__init__(self, schema)
         self.__prompt_pattern = schema.get_config_char_sequence(u'PromptPattern') or u'%s\u203a'
         self.__key_groups = schema.get_config_value(u'KeyGroups').split()
         self.__code_groups = schema.get_config_value(u'CodeGroups').split()
@@ -226,9 +226,9 @@ class GroupingParser(Parser):
             self.__cursor = k
             return self.__get_prompt(ctx.is_empty())
 
-class ComboParser(Parser):
+class ComboComposer(Processor):
     def __init__(self, schema):
-        Parser.__init__(self, schema)
+        Processor.__init__(self, schema)
         self.__prompt_pattern = schema.get_config_char_sequence(u'PromptPattern') or u'%s'
         self.__combo_keys = schema.get_config_char_sequence(u'ComboKeys') or u''
         self.__combo_codes = schema.get_config_char_sequence(u'ComboCodes') or u''
@@ -281,9 +281,11 @@ class ComboParser(Parser):
             return Prompt()
         return False
 
-def register_parsers():
-    Parser.register('roman', RomanParser)
-    Parser.register('table', TableParser)
-    Parser.register('grouping', GroupingParser)
-    Parser.register('combo', ComboParser)
+def register_processors():
+    Processor.register('natual', RomanComposer)
+    Processor.register('table', TableComposer)
+    Processor.register('group', GroupComposer)
+    Processor.register('combo', ComboComposer)
+    #Processor.register('echo', EchoComposer)
+    #Processor.register('symbol', SymbolComposer)
 

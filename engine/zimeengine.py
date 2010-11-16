@@ -5,10 +5,11 @@ import time
 from ibus import keysyms
 from ibus import modifier
 
-from zimecore import *
-from zimedb import *
+from zime_core import *
+from zime_processor import *
+from zime_storage import *
 
-class Engine:
+class Session:
 
     ROLLBACK_COUNTDOWN = 3  # seconds
 
@@ -25,6 +26,7 @@ class Engine:
         self.__rollback_time = 0
         self.__numeric = False
         self.update_ui()
+
     def process_key_event(self, keycode, mask):
         # disable engine when Caps Lock is on
         if mask & modifier.LOCK_MASK:
@@ -272,7 +274,7 @@ class Engine:
         self.__frontend.commit_string(s)
         self.__parser.clear()
         self.__ctx.commit()
-        self.__rollback_time = time.time() + Engine.ROLLBACK_COUNTDOWN
+        self.__rollback_time = time.time() + Session.ROLLBACK_COUNTDOWN
         self.__numeric = False
     def __update_preedit(self):
         preedit, start, end = self.__ctx.get_preedit()
@@ -290,15 +292,18 @@ class Engine:
         self.__frontend.update_candidates(self.__ctx.get_candidates())
         
 class SchemaChooser:
+
     SELECTED = u'選用【%s】'
     MENU = u'方案選單'
     NO_SCHEMA = u'無方案'
+
     def __init__(self, frontend, schema_name=None):
         self.__frontend = frontend
-        self.__engine = None
+        self.__session = None
         self.__deactivate()
         self.__load_schema_list()
         self.choose(schema_name)
+
     def __load_schema_list(self):
         t = dict()
         for x in DB.read_setting_items(u'SchemaChooser/LastUsed/'):
@@ -306,6 +311,7 @@ class SchemaChooser:
         last_used_time = lambda s: t[s[0]] if s[0] in t else 0.0
         schema_list = sorted(DB.read_setting_items(u'SchemaList/'), key=last_used_time, reverse=True)
         self.__schema_list = [(s[1], s[0]) for s in schema_list]
+
     def choose(self, schema_name):
         s = [x[1] for x in self.__schema_list]
         d = [x[0] for x in self.__schema_list]
@@ -318,18 +324,21 @@ class SchemaChooser:
             now = time.time()        
             DB.update_setting(u'SchemaChooser/LastUsed/%s' % s[c], unicode(now))
             self.__deactivate()
-            self.__engine = Engine(self.__frontend, s[c])
+            self.__session = Session(self.__frontend, s[c])
             self.__frontend.update_aux_string(SchemaChooser.SELECTED % d[c])
+
     def __activate(self):
         self.__active = True
         self.__load_schema_list()
         self.__frontend.update_aux_string(SchemaChooser.MENU)
         self.__frontend.update_candidates(self.__schema_list)
+
     def __deactivate(self):
         self.__active = False
         self.__schema_list = []
+
     def process_key_event(self, keycode, mask):
-        if not self.__engine:
+        if not self.__session:
             self.__frontend.update_aux_string(SchemaChooser.NO_SCHEMA)
             return False
         if not self.__active:
@@ -338,7 +347,7 @@ class SchemaChooser:
                 keycode == keysyms.F1:
                 self.__activate()
                 return True
-            return self.__engine.process_key_event(keycode, mask)
+            return self.__session.process_key_event(keycode, mask)
         # ignore hotkeys
         if mask & (modifier.CONTROL_MASK | modifier.ALT_MASK | \
             modifier.SUPER_MASK | modifier.HYPER_MASK | modifier.META_MASK
@@ -349,14 +358,14 @@ class SchemaChooser:
         # schema chooser menu
         # press F1 the second time, close chooser and send F1
         if keycode == keysyms.F1:
-            if self.__engine:
+            if self.__session:
                 self.__deactivate()
-                self.__engine.update_ui()
+                self.__session.update_ui()
             return False
         if keycode == keysyms.Escape:
-            if self.__engine:
+            if self.__session:
                 self.__deactivate()
-                self.__engine.update_ui()
+                self.__session.update_ui()
             return True
         if keycode in (keysyms.Page_Up, keysyms.comma):
             if self.__frontend.page_up():
@@ -383,6 +392,7 @@ class SchemaChooser:
             self.__choose_schema_by_index(index)
             return True    
         return True
+
     def __choose_schema_by_index(self, index):
         if index >= 0 and index < len(self.__schema_list):
             schema_name = self.__schema_list[index][1]

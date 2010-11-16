@@ -4,13 +4,14 @@
 from ibus import keysyms
 from ibus import modifier
 
-from zimedb import DB
-from zimemodel import *
+from zime_model import *
+from zime_storage import DB
+
 
 class KeyEvent:
     '''
     鍵盤事件
-    按ibus／GNOME對鍵值的定義，keycode與字符對應而非與按鍵對應，即區分A與a
+    按ibus／GTK對鍵值的定義，keycode與字符對應而非與按鍵對應，即區分A與a
     mask含各種功能鍵狀態及按鍵的RELEASE狀態
     coined，是否偽造的按鍵，有時會在程序裡產生不同於實際輸入的鍵盤事件以模擬某個功能
     '''
@@ -25,7 +26,9 @@ class KeyEvent:
     def __str__(self):
         return "<KeyEvent: '%s'(%x), %08x>" % (keysyms.keycode_to_name(self.keycode), self.keycode, self.mask)
 
+
 class Prompt:
+
     '''
     編碼提示，在寫作串preedit內高亮顯示正在編輯的編碼／標點符號
     其文字內容不記入已輸入編碼中因此也不做轉換，例如未完成的注音音節
@@ -45,9 +48,11 @@ class Prompt:
     def is_empty(self):
         return not self.text
 
+
 class Commit(unicode):
     '''由Engine發出的一個上屏動作'''
     pass
+
 
 class Schema:
     '''輸入方案對象'''
@@ -84,10 +89,11 @@ class Schema:
         '''取多個設定值'''
         return self.__db.read_config_list(key)
 
-class Parser:
-    '''Parser基類'''
 
-    '''註冊工廠方法用'''
+class Processor:
+    '''Processor基類'''
+
+    #註冊工廠方法用
     __parsers = dict()
 
     @classmethod
@@ -197,6 +203,7 @@ class Parser:
         if not event.coined and event.keycode in self.__edit_keys:
             return KeyEvent(self.__edit_keys[event.keycode], 0, coined=event)
         return None
+
 
 class Context:
     '''

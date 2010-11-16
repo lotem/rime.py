@@ -14,12 +14,12 @@ import gobject
 _ = lambda a : a
 N_ = lambda a : a
 
-import zimeengine
-import zimeparser
-from zimedb import DB
+import zime_session
+import zime_processor
+from zime_storage import DB
 
 def _initialize():
-    zimeparser.register_parsers()
+    zime_processor.register_processors()
     # initialize DB 
     IBUS_ZIME_LOCATION = os.getenv('IBUS_ZIME_LOCATION')
     home_path = os.path.expanduser('~')
@@ -43,7 +43,7 @@ class ZimeEngine(ibus.EngineBase):
         super(ZimeEngine, self).__init__(conn, object_path)
         self.__page_size = DB.read_setting(u'Option/PageSize') or 5
         self.__lookup_table = ibus.LookupTable(self.__page_size)
-        self.__backend = zimeengine.SchemaChooser(self)
+        self.__backend = zime_session.Switcher(self)
 
     def process_key_event(self, keyval, keycode, mask):
         return self.__backend.process_key_event(keyval, mask)
@@ -130,8 +130,10 @@ class ZimeEngine(ibus.EngineBase):
         config = bus.get_config()
         if section != "engine/Zime":
             return
+        pass
 
     @classmethod
     def CONFIG_RELOADED(cls, bus):
         config = bus.get_config()
+        pass
 

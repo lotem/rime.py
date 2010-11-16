@@ -3,9 +3,11 @@
 
 from math import log
 import re
-from zimealgebra import *
+from zime_algebra import *
+
 
 class Entry:
+
     def __init__(self, e, i, j, prob=0.0, use_count=0, next=None):
         self.e = e
         self.i = i
@@ -13,12 +15,16 @@ class Entry:
         self.prob = prob
         self.use_count = use_count
         self.next = next
+
     def get_word(self):
         return self.e[0] if self.e else u''
+
     def get_okey(self):
         return self.e[1] if self.e else u''
+
     def get_eid(self):
         return self.e[2] if self.e else 0
+
     def get_all(self):
         w = []
         s = self
@@ -26,8 +32,10 @@ class Entry:
             w.append(s)
             s = s.next
         return w
+
     def get_phrase(self):
         return u''.join([e.get_word() for e in self.get_all()])
+
     def partof(self, other):
         if self.use_count != other.use_count:
             return False
@@ -35,9 +43,11 @@ class Entry:
         while a and b and a.get_eid() == b.get_eid():
             a, b = a.next, b.next
         return not a
+
     def __unicode__(self):
         return u'<%s %g %d (%d, %d)%s>' % \
             (self.get_word(), self.prob, self.use_count, self.i, self.j, (u' => %s' % self.next.get_phrase()) if self.next else u'')
+
 
 class ContextInfo:
 
@@ -51,6 +61,7 @@ class ContextInfo:
         self.cand = []
         self.pred = [None]
         self.last = None
+
 
 class Model:
 
@@ -344,13 +355,14 @@ class Model:
                                         # update pred[i] with concat'd phrases
                                         update_pred(i, e)
             """
-            #print 'pred:'
+            #print '[DEBUG] pred:'
             for x in pred:
                 if x:
                     #print unicode(x)
             """
 
     def train(self, ctx, s):
+
         def g(ikeys, okey, depth):
             if not okey or depth >= self.__max_key_length:
                 return ikeys
@@ -361,6 +373,7 @@ class Model:
                 for y in self.__oi_map[okey[0]]:
                     r.append(x + [y])
             return g(r, okey[1:], depth + 1)
+
         indexer = lambda okey: [u' '.join(ikey) for ikey in g([[]], okey.split(), 0)]
         last = None
         for e in s:
@@ -446,6 +459,6 @@ class Model:
                         ret.append((p, e))
         """
         for x in ret[:5]:
-            #print u'cand: %s' % x[1]
+            #print u'[DEBUG] cand: %s' % x[1]
         """
         return ret
