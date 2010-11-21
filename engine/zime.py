@@ -8,12 +8,6 @@ __all__ = (
 import ibus
 import os
 
-#import logging
-#import logging.config
-#logfile = os.path.join(os.path.dirname(__file__), "logging.conf")
-#logging.config.fileConfig(logfile)
-#logger = logging.getLogger("rhyme")
-
 import session
 import processor
 from storage import DB
