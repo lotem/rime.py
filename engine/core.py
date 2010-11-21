@@ -395,10 +395,12 @@ class Context:
             rest = s.j
         if rest < self.info.n:
             s, t = self.__display
-            r.append(s[t[rest]:])
             if self.has_error():
+                r.append(s[t[rest]:])
                 diff = t[rest] - end
                 start, end = t[self.err.i] - diff, t[self.err.j] - diff
+            else:
+                r.append(u'...')
         return u''.join(r), start, end
 
     def get_commit_string(self):
@@ -423,18 +425,21 @@ class Context:
         
     def get_aux_string(self):
         '''取得提示文字'''
+        if not self.__auto_prompt:
+            return u''
         if self.info.m == 0:
             return u''
         s, t = self.__display
         c = self.cur
-        if self.__auto_prompt:
-            if not c or c[-1].j == self.info.n:
-                # 編碼提示限長
-                return s if len(s) <= self.__aux_length else u'...' + s[-self.__aux_length:]
-        elif not c:
-            return u''
-        # return the corresponding part of display string without trailing space
-        return s[t[c[0].i]:t[c[-1].j]].rstrip()
+        if c:
+            p = t[c[-1].j]
+            if p > 0 and s[p - 1] == u' ':
+                p -= 1
+            s = s[:p]+ u'\u00bb' + s[p:]
+        # 編碼提示限長
+        if len(s) > self.__aux_length:
+            s = u'...' + s[-self.__aux_length:]
+        return s
 
     def get_candidates(self):
         '''取得當前候選詞'''

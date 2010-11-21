@@ -23,14 +23,20 @@ class ZimeTester:
         print u'commit: [%s]' % s
 
     def update_preedit(self, s, start=0, end=0):
-        print u'preedit: [%s[%s]%s]' % (s[:start], s[start:end], s[end:])
+        if start < end:
+            print u'preedit: [%s[%s]%s]' % (s[:start], s[start:end], s[end:])
+        else:
+            print u'preedit: [%s]' % s
         if not s:
             #super(ZimeEngine, self).hide_preedit_text()
             return
         #super(ZimeEngine, self).update_preedit_text(ibus.Text(s), length, True)
 
     def update_aux(self, s, start=0, end=0):
-        print u'aux: [%s[%s]%s]' % (s[:start], s[start:end], s[end:])
+        if start < end:
+            print u'aux: [%s[%s]%s]' % (s[:start], s[start:end], s[end:])
+        else:
+            print u'aux: [%s]' % s
         if not s:
             #super(ZimeEngine, self).hide_auxiliary_text()
             return
@@ -127,8 +133,8 @@ def main():
     #e.test('rm/3rm/3u.3gp6zj/ {Escape}2k7al {Tab}{Return}')
 
     e = ZimeTester(u'Pinyin')
-    e.test('jiong ')
-    e.test("pinyin-shuru'fa' ")
+    #e.test('jiong ')
+    e.test("pinyin-shuru'fa'{Left}")
     #e.test('henanquan{Home}{Tab} ')
     #e.test('hezhinan{Home}. 23qianwanghezhinan')  # 河之南 vs. 和指南
     #e.test('henanhenanquan{Tab} {Tab}{Tab}')
