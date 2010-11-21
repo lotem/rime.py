@@ -1,30 +1,12 @@
 # -*- coding: utf-8 -*-
 # vim:set et sts=4 sw=4:
 
-import os
-import logging
-import logging.config
-
-logfile = os.path.join(os.path.dirname(__file__), "logging.conf")
-logging.config.fileConfig(logfile)
-logger = logging.getLogger("rhyme")
-
 from ibus import keysyms
 from ibus import modifier
 
 from model import *
 from storage import DB
 
-class Config:
-    options = None
-    schema_list = None
-    def __load_schema_list(self):
-        t = dict()
-        for x in DB.read_setting_items(u'SchemaChooser/LastUsed/'):
-            t[x[0]] = float(x[1])
-        last_used_time = lambda s: t[s[0]] if s[0] in t else 0.0
-        schema_list = sorted(DB.read_setting_items(u'SchemaList/'), key=last_used_time, reverse=True)
-        self.__schema_list = [(s[1], s[0]) for s in schema_list]
 
 class KeyEvent:
     '''

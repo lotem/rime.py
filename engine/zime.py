@@ -5,8 +5,14 @@ __all__ = (
     "ZimeEngine",
 )
 
-import os
 import ibus
+import os
+
+#import logging
+#import logging.config
+#logfile = os.path.join(os.path.dirname(__file__), "logging.conf")
+#logging.config.fileConfig(logfile)
+#logger = logging.getLogger("rhyme")
 
 import session
 import processor
@@ -24,11 +30,11 @@ class ZimeEngine(ibus.EngineBase):
         return self.__backend.process_key_event(keyval, mask)
 
     def commit_string(self, s):
-        logger.debug(u'commit: [%s]' % s)
+        #logger.debug(u'commit: [%s]' % s)
         super(ZimeEngine, self).commit_text(ibus.Text(s))
 
     def update_preedit(self, s, start, end):
-        logger.debug(u'preedit: [%s]' % s)
+        #logger.debug(u'preedit: [%s]' % s)
         if not s:
             super(ZimeEngine, self).hide_preedit_text()
             return
@@ -41,7 +47,7 @@ class ZimeEngine(ibus.EngineBase):
         super(ZimeEngine, self).update_preedit_text(ibus.Text(s, preedit_attrs), length, True)
 
     def update_aux_string(self, s):
-        logger.debug(u'aux: [%s]' % s)
+        #logger.debug(u'aux: [%s]' % s)
         if not s:
             super(ZimeEngine, self).hide_auxiliary_text()
             return
