@@ -1,12 +1,30 @@
 # -*- coding: utf-8 -*-
 # vim:set et sts=4 sw=4:
 
+import os
+import logging
+import logging.config
+
+logfile = os.path.join(os.path.dirname(__file__), "logging.conf")
+logging.config.fileConfig(logfile)
+logger = logging.getLogger("rhyme")
+
 from ibus import keysyms
 from ibus import modifier
 
-from zime_model import *
-from zime_storage import DB
+from model import *
+from storage import DB
 
+class Config:
+    options = None
+    schema_list = None
+    def __load_schema_list(self):
+        t = dict()
+        for x in DB.read_setting_items(u'SchemaChooser/LastUsed/'):
+            t[x[0]] = float(x[1])
+        last_used_time = lambda s: t[s[0]] if s[0] in t else 0.0
+        schema_list = sorted(DB.read_setting_items(u'SchemaList/'), key=last_used_time, reverse=True)
+        self.__schema_list = [(s[1], s[0]) for s in schema_list]
 
 class KeyEvent:
     '''
@@ -88,121 +106,6 @@ class Schema:
     def get_config_list(self, key):
         '''取多個設定值'''
         return self.__db.read_config_list(key)
-
-
-class Processor:
-    '''Processor基類'''
-
-    #註冊工廠方法用
-    __parsers = dict()
-
-    @classmethod
-    def register(cls, name, parser_class):
-        cls.__parsers[name] = parser_class
-
-    @classmethod
-    def get_parser_class(cls, parser_name):
-        return cls.__parsers[parser_name]
-
-    @classmethod
-    def create(cls, schema):
-        return cls.get_parser_class(schema.get_parser_name()) (schema)
-
-    def __init__(self, schema):
-        self.__schema = schema
-        # 從Schema中讀取Parser會用到的一些設定值
-        self.auto_prompt = schema.get_config_value(u'AutoPrompt') in (u'yes', u'true')
-        self.auto_predict = schema.get_config_value(u'Predict') in (None, u'yes', u'true')
-        self.alphabet = schema.get_config_char_sequence(u'Alphabet') or u'abcdefghijklmnopqrstuvwxyz'
-        self.initial = self.alphabet.split(None, 1)[0]
-        self.delimiter = schema.get_config_char_sequence(u'Delimiter') or u' '
-        self.quote = schema.get_config_char_sequence('Quote') or u'`'
-        acc = (schema.get_config_char_sequence('Acceptable') or \
-               u'''ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
-                   0123456789!@#$%^&*()`~-_=+[{]}\\|;:'",<.>/?''').split(None, 1)
-        self.acceptable = lambda x: x == u' ' or any([x in s for s in acc])
-        self.initial_acceptable = lambda x: x in self.quote or x in acc[0]
-        get_rules = lambda f, key: [f(r.split()) for r in schema.get_config_list(key)]
-        compile_repl_pattern = lambda x: (re.compile(x[0]), x[1])
-        transform = lambda s, r: r[0].sub(r[1], s)
-        self.xform_rules = get_rules(compile_repl_pattern, u'TransformRule')
-        self.xform = lambda s: reduce(transform, self.xform_rules, s)
-        punct_mapping = lambda(x, y): (x, (0, y.split(u' ')) if u' ' in y else \
-                                           (2, y.split(u'~', 1)) if u'~' in y else \
-                                           (1, y))
-        self.__punct = dict([punct_mapping(c.split(None, 1)) for c in schema.get_config_list(u'Punct')])
-        key_mapping = lambda(x, y): (keysyms.name_to_keycode(x), keysyms.name_to_keycode(y))
-        self.__edit_keys = dict([key_mapping(c.split(None, 1)) for c in schema.get_config_list(u'EditKey')])
-        # 初始化一個Prompt對象
-        self.prompt = u''
-
-    def get_schema(self):
-        return self.__schema
-
-    def start_raw_mode(self, ch):
-        '''
-        進入西文模式
-        ch為進入西文模式的前導編碼
-        用Prompt來表現西文模式下的輸入串（反白顯示且不作為編碼輸入）
-        '''
-        self.prompt = ch
-        return Prompt(self.prompt)
-
-    def process_raw_mode(self, event):
-        '''處理西文模式下的輸入'''
-        p = self.prompt
-        ch = event.get_char()
-        if event.keycode == keysyms.Return:
-            if len(p) > 1 and p[0] in self.quote:
-                # 以quote做前導的西文，上屏時不包含quote
-                return Commit(p[1:]) 
-            else:
-                return Commit(p)
-        if event.keycode == keysyms.Escape:
-            self.clear()
-            return Prompt()
-        if event.keycode == keysyms.BackSpace:
-            self.prompt = p[:-1]
-            return Prompt(self.prompt)
-        if ch in self.quote and p[0] in self.quote:
-            # 成對的quote與引文一同上屏
-            return Commit(p + ch)
-        if self.acceptable(ch):
-            self.prompt += ch
-            return Prompt(self.prompt)
-        return True
-
-    def check_punct(self, event):
-        '''
-        判斷給定的鍵盤事件是否標點輸入
-        結果中包含查表所得的標點符號
-        '''
-        ch = event.get_char()
-        if ch in self.__punct:
-            if event.mask & modifier.RELEASE_MASK:
-                return True, None
-            p = self.__punct[ch]
-            if p[0] == 1:
-                # 唯一的標點，直接上屏
-                return True, p[1]
-            elif p[0] == 2:
-                # 成對使用的標號，如以"輸入“”，前後引交替著出
-                x = p[1][0]
-                p[1].reverse()
-                return True, x
-            else:
-                # 一鍵表示多種標點，反覆按鍵輪循
-                return True, p[1]
-        return False, None
-
-    def check_edit_key(self, event):
-        '''
-        檢查給定的鍵盤事件是否自定義編輯功能鍵
-        若擊自定義編輯鍵，會返回一個偽造的等效預設編輯鍵
-        '''
-        if not event.coined and event.keycode in self.__edit_keys:
-            return KeyEvent(self.__edit_keys[event.keycode], 0, coined=event)
-        return None
 
 
 class Context:

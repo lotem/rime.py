@@ -18,8 +18,8 @@ import re
 zime_data_path = os.path.dirname(__file__)
 zime_engine_path = os.path.normpath(os.path.join(zime_data_path, '..', 'engine'))
 sys.path.append(zime_engine_path)
-from zimealgebra import *
-from zimedb import DB
+from algebra import *
+from storage import DB
 
 
 def debug(*what):

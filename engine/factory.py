@@ -26,8 +26,8 @@ class EngineFactory(ibus.EngineFactoryBase):
         self.__id = 0
         self.__config = self.__bus.get_config()
 
-        self.__config.connect("reloaded", self.__config_reloaded_cb)
-        self.__config.connect("value-changed", self.__config_value_changed_cb)
+        #self.__config.connect("reloaded", self.__config_reloaded_cb)
+        #self.__config.connect("value-changed", self.__config_value_changed_cb)
 
     def create_engine(self, engine_name):
         if engine_name == "zime":
@@ -35,9 +35,9 @@ class EngineFactory(ibus.EngineFactoryBase):
             return zime.ZimeEngine(self.__bus, "%s/%d" % (self.ENGINE_PATH, self.__id))
         return super(EngineFactory, self).create_engine(engine_name)
 
-    def __config_reloaded_cb(self, config):
-        zime.ZimeEngine.CONFIG_RELOADED(self.__bus)
+    #def __config_reloaded_cb(self, config):
+    #    zime.ZimeEngine.CONFIG_RELOADED(self.__bus)
 
-    def __config_value_changed_cb(self, config, section, name, value):
-        zime.ZimeEngine.self.CONFIG_VALUE_CHANGED(__bus, section, name, value)
+    #def __config_value_changed_cb(self, config, section, name, value):
+    #    zime.ZimeEngine.self.CONFIG_VALUE_CHANGED(__bus, section, name, value)
 

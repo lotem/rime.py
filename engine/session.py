@@ -5,9 +5,19 @@ import time
 from ibus import keysyms
 from ibus import modifier
 
-from zime_core import *
-from zime_processor import *
-from zime_storage import *
+from core import *
+from processor import *
+from storage import *
+
+#from gettext import dgettext
+#_  = lambda a : dgettext("ibus-zime", a)
+_ = lambda a : a
+N_ = lambda a : a
+
+__all__ = (
+    "Session",
+    "Switcher",
+)
 
 class Session:
 
@@ -17,7 +27,7 @@ class Session:
         self.__frontend = frontend
         self.__schema = schema = Schema(name)
         self.__db = schema.get_db()
-        self.__parser = Parser.create(schema)
+        self.__processor = Processor.create(schema)
         self.__ctx = Context(self, schema)
         self.__auto_prompt = schema.get_config_value(u'AutoPrompt') in (u'yes', u'true')
         self.__punct = None
@@ -70,7 +80,7 @@ class Session:
             self.__commit_punct()
             # continue processing
         event = KeyEvent(keycode, mask)
-        result = self.__parser.process_input(event, self.__ctx)
+        result = self.__processor.process_input(event, self.__ctx)
         if result is True:
             return True
         if result is False:
@@ -79,7 +89,7 @@ class Session:
     def __handle_parser_result(self, result):
         if isinstance(result, Commit):
             self.__frontend.commit_string(result)
-            self.__parser.clear()
+            self.__processor.clear()
             self.__ctx.clear()
             self.__numeric = False
             return True
@@ -144,7 +154,7 @@ class Session:
             return self.__judge(event)
         if event.mask & modifier.RELEASE_MASK:
             return True
-        edit_key = self.__parser.check_edit_key(event)
+        edit_key = self.__processor.check_edit_key(event)
         if edit_key:
             return self.__process(edit_key)
         if event.keycode == keysyms.Escape:
@@ -229,7 +239,7 @@ class Session:
     def __is_conversion_mode(self, assumed=False):
         return(not self.__auto_prompt or assumed) and self.__ctx.being_converted()
     def __handle_punct(self, event, commit):
-        result, punct = self.__parser.check_punct(event)
+        result, punct = self.__processor.check_punct(event)
         if punct:
             if commit:
                 self.__commit()
@@ -272,7 +282,7 @@ class Session:
         else:
             s = self.__ctx.get_commit_string()
         self.__frontend.commit_string(s)
-        self.__parser.clear()
+        self.__processor.clear()
         self.__ctx.commit()
         self.__rollback_time = time.time() + Session.ROLLBACK_COUNTDOWN
         self.__numeric = False
@@ -291,11 +301,7 @@ class Session:
         self.__frontend.update_aux_string(self.__ctx.get_aux_string())
         self.__frontend.update_candidates(self.__ctx.get_candidates())
         
-class SchemaChooser:
-
-    SELECTED = u'選用【%s】'
-    MENU = u'方案選單'
-    NO_SCHEMA = u'無方案'
+class Switcher:
 
     def __init__(self, frontend, schema_name=None):
         self.__frontend = frontend
@@ -325,12 +331,12 @@ class SchemaChooser:
             DB.update_setting(u'SchemaChooser/LastUsed/%s' % s[c], unicode(now))
             self.__deactivate()
             self.__session = Session(self.__frontend, s[c])
-            self.__frontend.update_aux_string(SchemaChooser.SELECTED % d[c])
+            self.__frontend.update_aux_string(_(u'選用【%s】') % d[c])
 
     def __activate(self):
         self.__active = True
         self.__load_schema_list()
-        self.__frontend.update_aux_string(SchemaChooser.MENU)
+        self.__frontend.update_aux_string(_(u'方案選單'))
         self.__frontend.update_candidates(self.__schema_list)
 
     def __deactivate(self):
@@ -339,7 +345,7 @@ class SchemaChooser:
 
     def process_key_event(self, keycode, mask):
         if not self.__session:
-            self.__frontend.update_aux_string(SchemaChooser.NO_SCHEMA)
+            self.__frontend.update_aux_string(_(u'無方案'))
             return False
         if not self.__active:
             # Ctrl-` or F1 calls schema chooser menu

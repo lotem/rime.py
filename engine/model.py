@@ -3,7 +3,7 @@
 
 from math import log
 import re
-from zime_algebra import *
+from algebra import *
 
 
 class Entry:

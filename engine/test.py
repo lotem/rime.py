@@ -7,37 +7,13 @@ import ibus
 from ibus import keysyms
 from ibus import modifier
 
-import zimeengine
-import zimeparser
-from zimedb import DB
+import session
 
-def _initialize():
-    zimeparser.register_parsers()
-    # initialize DB 
-    IBUS_ZIME_LOCATION = os.getenv('IBUS_ZIME_LOCATION')
-    home_path = os.getenv('HOME') or os.getenv('USERPROFILE')
-    if home_path:
-        db_path = os.path.join(home_path, '.ibus', 'zime')
-    else:
-        db_path = '.'
-    user_db = os.path.join(db_path, 'zime.db')
-    if not os.path.exists(user_db):
-        sys_db = IBUS_ZIME_LOCATION and os.path.join(IBUS_ZIME_LOCATION, 'data', 'zime.db')
-        if sys_db and os.path.exists(sys_db):
-            DB.open(sys_db, read_only=True)
-            return
-        else:
-            if not os.path.isdir(db_path):
-                os.makedirs(db_path)
-    DB.open(user_db)
-
-_initialize()
-
-class TestEngine:
+class ZimeTester:
 
     def __init__(self, schema):
         self.__lookup_table = ibus.LookupTable()
-        self.__backend = zimeengine.SchemaChooser(self, schema)
+        self.__backend = session.Switcher(self, schema)
 
     def process_key_event(self, keycode, mask):
         print "process_key_event: '%s'(%x), %08x" % (keysyms.keycode_to_name(keycode), keycode, mask)
@@ -155,17 +131,17 @@ def main():
     #e.process_key_event(keysyms.grave, modifier.CONTROL_MASK)  # Ctrl+grave
     #e.test('2')
 
-    #e = TestEngine(u'Zhuyin')
+    #e = ZimeTester(u'Zhuyin')
     #e.test('rm/3rm/3u.3gp6zj/ {Escape}2k7al {Tab}{Return}')
 
-    e = TestEngine(u'Pinyin')
+    e = ZimeTester(u'Pinyin')
     e.test('jiong ')
-    #e.test("pinyin-shuru'fa' ")
+    e.test("pinyin-shuru'fa' ")
     #e.test('henanquan{Home}{Tab} ')
     #e.test('hezhinan{Home}. 23qianwanghezhinan')  # 河之南 vs. 和指南
     #e.test('henanhenanquan{Tab} {Tab}{Tab}')
 
-    #e = TestEngine(u'ComboPinyin')
+    #e = ZimeTester(u'ComboPinyin')
     #e.process_key_event(keysyms.r, 0)
     #e.process_key_event(keysyms.j, 0)
     #e.process_key_event(keysyms.k, 0)
@@ -177,11 +153,11 @@ def main():
     #e.process_key_event(keysyms.space, 0)
     #e.process_key_event(keysyms.space, modifier.RELEASE_MASK)
 
-    #e = TestEngine(u'Jyutping')
+    #e = ZimeTester(u'Jyutping')
     #e.test('jyuhomindeoicangjatheizaugwodikjatzi')
     #e.test('fanhoifongziganbunsamgikci')
 
-    #e = TestEngine(u'TonalPinyin')
+    #e = ZimeTester(u'TonalPinyin')
     #e.test('pkucn.com')
     #e.test('3.14wo1.0')
 

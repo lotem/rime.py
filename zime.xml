@@ -4,7 +4,7 @@
 	<name>cn.ha.zz.sst.Zime</name>
 	<description>ZIME Component</description>
 	<exec>/usr/lib/ibus-zime/ibus-engine-zime --ibus</exec>
-	<version>0.1.0.20090427</version>
+	<version>4.0.0.20101111</version>
 	<author>GONG Chen &lt;chen.sst@gmail.com&gt;</author>
 	<license>GPL</license>
 	<homepage>http://zime.googlecode.com/</homepage>

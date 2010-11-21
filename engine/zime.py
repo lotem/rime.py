@@ -7,35 +7,10 @@ __all__ = (
 
 import os
 import ibus
-import gobject
 
-#from gettext import dgettext
-#_  = lambda a : dgettext("ibus-zime", a)
-_ = lambda a : a
-N_ = lambda a : a
-
-import zime_session
-import zime_processor
-from zime_storage import DB
-
-def _initialize():
-    zime_processor.register_processors()
-    # initialize DB 
-    IBUS_ZIME_LOCATION = os.getenv('IBUS_ZIME_LOCATION')
-    home_path = os.path.expanduser('~')
-    db_path = os.path.join(home_path, '.ibus', 'zime')
-    user_db = os.path.join(db_path, 'zime.db')
-    if not os.path.exists(user_db):
-        sys_db = IBUS_ZIME_LOCATION and os.path.join(IBUS_ZIME_LOCATION, 'data', 'zime.db')
-        if sys_db and os.path.exists(sys_db):
-            DB.open(sys_db, read_only=True)
-            return
-        else:
-            if not os.path.isdir(db_path):
-                os.makedirs(db_path)
-    DB.open(user_db)
-
-_initialize()
+import session
+import processor
+from storage import DB
 
 class ZimeEngine(ibus.EngineBase):
 
@@ -43,32 +18,22 @@ class ZimeEngine(ibus.EngineBase):
         super(ZimeEngine, self).__init__(conn, object_path)
         self.__page_size = DB.read_setting(u'Option/PageSize') or 5
         self.__lookup_table = ibus.LookupTable(self.__page_size)
-        self.__backend = zime_session.Switcher(self)
+        self.__backend = session.Switcher(self)
 
     def process_key_event(self, keyval, keycode, mask):
         return self.__backend.process_key_event(keyval, mask)
 
     def commit_string(self, s):
-        #print u'commit: [%s]' % s
+        logger.debug(u'commit: [%s]' % s)
         super(ZimeEngine, self).commit_text(ibus.Text(s))
 
     def update_preedit(self, s, start, end):
-        #print u'preedit: [%s]' % s
+        logger.debug(u'preedit: [%s]' % s)
         if not s:
             super(ZimeEngine, self).hide_preedit_text()
             return
         preedit_attrs = ibus.AttrList()
         length = len(s)
-        # pretty colors. but setting backgound color causes problems in some apps.
-        #if 0 < start:
-        #    preedit_attrs.append(ibus.AttributeBackground(ibus.RGB(255, 255, 128), 0, start))
-        #    preedit_attrs.append(ibus.AttributeForeground(ibus.RGB(0, 0, 0), 0, start))
-        #if start < end:
-        #    preedit_attrs.append(ibus.AttributeBackground(ibus.RGB(0, 0, 0), start, end))
-        #    preedit_attrs.append(ibus.AttributeForeground(ibus.RGB(255, 255, 128), start, end))
-        #if end < length:
-        #    preedit_attrs.append(ibus.AttributeBackground(ibus.RGB(255, 255, 128), end, length))
-        #    preedit_attrs.append(ibus.AttributeForeground(ibus.RGB(0, 0, 0), end, length))
         preedit_attrs.append(ibus.AttributeUnderline(ibus.ATTR_UNDERLINE_SINGLE, 0, length))
         if start < end:
             preedit_attrs.append(ibus.AttributeBackground(ibus.RGB(0, 0, 0), start, end))
@@ -76,7 +41,7 @@ class ZimeEngine(ibus.EngineBase):
         super(ZimeEngine, self).update_preedit_text(ibus.Text(s, preedit_attrs), length, True)
 
     def update_aux_string(self, s):
-        #print u'aux: [%s]' % s
+        logger.debug(u'aux: [%s]' % s)
         if not s:
             super(ZimeEngine, self).hide_auxiliary_text()
             return
@@ -124,16 +89,4 @@ class ZimeEngine(ibus.EngineBase):
         if index >= self.__page_size:
             return -1
         return index + self.__lookup_table.get_current_page_start()
-
-    @classmethod
-    def CONFIG_VALUE_CHANGED(cls, bus, section, name, value):
-        config = bus.get_config()
-        if section != "engine/Zime":
-            return
-        pass
-
-    @classmethod
-    def CONFIG_RELOADED(cls, bus):
-        config = bus.get_config()
-        pass
 
