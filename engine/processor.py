@@ -272,7 +272,7 @@ class TableComposer(Processor):
 class GroupComposer(Processor):
     def __init__(self, schema):
         Processor.__init__(self, schema)
-        self.__prompt_pattern = schema.get_config_char_sequence(u'PromptPattern') or u'%s\u203a'
+        self.__prompt_pattern = schema.get_config_char_sequence(u'PromptPattern') or u'\u2039%s\u203a'
         self.__key_groups = schema.get_config_value(u'KeyGroups').split()
         self.__code_groups = schema.get_config_value(u'CodeGroups').split()
         self.__group_count = len(self.__key_groups)
@@ -345,7 +345,7 @@ class GroupComposer(Processor):
 class ComboComposer(Processor):
     def __init__(self, schema):
         Processor.__init__(self, schema)
-        self.__prompt_pattern = schema.get_config_char_sequence(u'PromptPattern') or u'%s'
+        self.__prompt_pattern = schema.get_config_char_sequence(u'PromptPattern') or u'\u2039%s\u203a'
         self.__combo_keys = schema.get_config_char_sequence(u'ComboKeys') or u''
         self.__combo_codes = schema.get_config_char_sequence(u'ComboCodes') or u''
         self.__combo_max_length = min(len(self.__combo_keys), len(self.__combo_codes))
