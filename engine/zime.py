@@ -33,25 +33,32 @@ class ZimeEngine(ibus.EngineBase):
         #logger.debug(u'commit: [%s]' % s)
         super(ZimeEngine, self).commit_text(ibus.Text(s))
 
-    def update_preedit(self, s, start, end):
+    def update_preedit(self, s, start=0, end=0):
         #logger.debug(u'preedit: [%s]' % s)
         if not s:
             super(ZimeEngine, self).hide_preedit_text()
             return
-        preedit_attrs = ibus.AttrList()
         length = len(s)
-        preedit_attrs.append(ibus.AttributeUnderline(ibus.ATTR_UNDERLINE_SINGLE, 0, length))
+        attrs = ibus.AttrList()
+        attrs.append(ibus.AttributeUnderline(ibus.ATTR_UNDERLINE_SINGLE, 0, length))
         if start < end:
-            preedit_attrs.append(ibus.AttributeBackground(ibus.RGB(0, 0, 0), start, end))
-            preedit_attrs.append(ibus.AttributeForeground(ibus.RGB(255, 255, 255), start, end))
-        super(ZimeEngine, self).update_preedit_text(ibus.Text(s, preedit_attrs), length, True)
+            attrs.append(ibus.AttributeBackground(ibus.RGB(255, 255, 128), start, end))
+            attrs.append(ibus.AttributeForeground(ibus.RGB(0, 0, 0), start, end))
+        t = ibus.Text(s, attrs)
+        super(ZimeEngine, self).update_preedit_text(t, length, True)
 
-    def update_aux_string(self, s):
+    def update_aux(self, s, start=0, end=0):
         #logger.debug(u'aux: [%s]' % s)
         if not s:
             super(ZimeEngine, self).hide_auxiliary_text()
             return
-        super(ZimeEngine, self).update_auxiliary_text(ibus.Text(s), True)
+        length = len(s)
+        attrs = ibus.AttrList()
+        if start < end:
+            attrs.append(ibus.AttributeBackground(ibus.RGB(255, 255, 128), start, end))
+            attrs.append(ibus.AttributeForeground(ibus.RGB(0, 0, 0), start, end))
+        t = ibus.Text(s, attrs)
+        super(ZimeEngine, self).update_auxiliary_text(t, True)
 
     def update_candidates(self, candidates):
         self.__lookup_table.clean()

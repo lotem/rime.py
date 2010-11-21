@@ -22,23 +22,15 @@ class ZimeTester:
     def commit_string(self, s):
         print u'commit: [%s]' % s
 
-    def update_preedit(self, s, start, end):
+    def update_preedit(self, s, start=0, end=0):
         print u'preedit: [%s[%s]%s]' % (s[:start], s[start:end], s[end:])
         if not s:
             #super(ZimeEngine, self).hide_preedit_text()
             return
-        preedit_attrs = ibus.AttrList()
-        length = len(s)
-        preedit_attrs.append(ibus.AttributeBackground(ibus.RGB(255, 255, 128), 0, start))
-        preedit_attrs.append(ibus.AttributeForeground(ibus.RGB(0, 0, 0), 0, start))
-        preedit_attrs.append(ibus.AttributeBackground(ibus.RGB(0, 0, 0), start, end))
-        preedit_attrs.append(ibus.AttributeForeground(ibus.RGB(255, 255, 128), start, end))
-        preedit_attrs.append(ibus.AttributeBackground(ibus.RGB(255, 255, 128), end, length))
-        preedit_attrs.append(ibus.AttributeForeground(ibus.RGB(0, 0, 0), end, length))
-        #super(ZimeEngine, self).update_preedit_text(ibus.Text(s, preedit_attrs), length, True)
+        #super(ZimeEngine, self).update_preedit_text(ibus.Text(s), length, True)
 
-    def update_aux_string(self, s):
-        print u'aux: [%s]' % s
+    def update_aux(self, s, start=0, end=0):
+        print u'aux: [%s[%s]%s]' % (s[:start], s[start:end], s[end:])
         if not s:
             #super(ZimeEngine, self).hide_auxiliary_text()
             return

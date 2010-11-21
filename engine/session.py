@@ -266,7 +266,7 @@ class Session:
         if index >= 0 and index < len(candidates):
             self.__ctx.select(candidates[index][1])
             self.__update_preedit()
-            self.__frontend.update_aux_string(self.__ctx.get_aux_string())
+            self.__frontend.update_aux(self.__ctx.get_aux_string())
             return True
         return False
     def __confirm_current(self):
@@ -294,11 +294,11 @@ class Session:
         start = len(preedit) + prompt.start
         end = len(preedit) + prompt.end
         self.__frontend.update_preedit(preedit + prompt.text, start, end)
-        self.__frontend.update_aux_string(u'')
+        self.__frontend.update_aux(u'')
         self.__frontend.update_candidates([])
     def update_ui(self):
         self.__update_preedit()
-        self.__frontend.update_aux_string(self.__ctx.get_aux_string())
+        self.__frontend.update_aux(self.__ctx.get_aux_string())
         self.__frontend.update_candidates(self.__ctx.get_candidates())
         
 class Switcher:
@@ -331,12 +331,12 @@ class Switcher:
             DB.update_setting(u'SchemaChooser/LastUsed/%s' % s[c], unicode(now))
             self.__deactivate()
             self.__session = Session(self.__frontend, s[c])
-            self.__frontend.update_aux_string(_(u'選用【%s】') % d[c])
+            self.__frontend.update_aux(_(u'選用【%s】') % d[c])
 
     def __activate(self):
         self.__active = True
         self.__load_schema_list()
-        self.__frontend.update_aux_string(_(u'方案選單'))
+        self.__frontend.update_aux(_(u'方案選單'))
         self.__frontend.update_candidates(self.__schema_list)
 
     def __deactivate(self):
@@ -345,7 +345,7 @@ class Switcher:
 
     def process_key_event(self, keycode, mask):
         if not self.__session:
-            self.__frontend.update_aux_string(_(u'無方案'))
+            self.__frontend.update_aux(_(u'無方案'))
             return False
         if not self.__active:
             # Ctrl-` or F1 calls schema chooser menu

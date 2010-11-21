@@ -106,7 +106,7 @@ class Context:
         self.__delimiter = schema.get_config_char_sequence(u'Delimiter') or u' '
         self.__auto_delimit = schema.get_config_value(u'AutoDelimit') in (u'yes', u'true')
         self.__auto_prompt = schema.get_config_value(u'AutoPrompt') in (u'yes', u'true')
-        self.__aux_length = int(schema.get_config_value(u'AuxLength') or 20)
+        self.__aux_length = int(schema.get_config_value(u'AuxLength') or 50)
         self.__auto_predict = schema.get_config_value(u'Predict') in (None, u'yes', u'true')
         prompt_char = schema.get_config_char_sequence(u'PromptChar')
         if prompt_char:
