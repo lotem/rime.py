@@ -302,46 +302,73 @@ class Session:
         self.__frontend.update_candidates(self.__ctx.get_candidates())
         
 class Switcher:
+    '''
+    切換輸入方案
+    以熱鍵呼出方案選單，選取後將以相應的輸入方案創建會話
+    '''
 
-    def __init__(self, frontend, schema_name=None):
+    def __init__(self, frontend, schema_id=None):
         self.__frontend = frontend
         self.__session = None
         self.__deactivate()
         self.__load_schema_list()
-        self.choose(schema_name)
+        self.choose(schema_id)
 
     def __load_schema_list(self):
-        t = dict()
-        for x in DB.read_setting_items(u'SchemaChooser/LastUsed/'):
-            t[x[0]] = float(x[1])
-        last_used_time = lambda s: t[s[0]] if s[0] in t else 0.0
-        schema_list = sorted(DB.read_setting_items(u'SchemaList/'), key=last_used_time, reverse=True)
-        self.__schema_list = [(s[1], s[0]) for s in schema_list]
+        '''載入方案列表'''
+        tempo = dict()
+        for schema, t in DB.read_setting_items(u'SchemaChooser/LastUsed/'):
+            tempo[schema] = float(t)
+        # 按最近選用的時間順序排列
+        last_used_time = lambda s: tempo[s[0]] if s[0] in tempo else 0.0
+        schema_list = sorted(DB.read_setting_items(u'SchemaList/'),
+                             key=last_used_time, reverse=True)
+        self.__schema_list = schema_list
 
-    def choose(self, schema_name):
-        s = [x[1] for x in self.__schema_list]
-        d = [x[0] for x in self.__schema_list]
-        c = -1
-        if schema_name and schema_name in s:
-            c = s.index(schema_name)
-        elif len(s) > 0:
-            c = 0
-        if c != -1:
-            now = time.time()        
-            DB.update_setting(u'SchemaChooser/LastUsed/%s' % s[c], unicode(now))
-            self.__deactivate()
-            self.__session = Session(self.__frontend, s[c])
-            self.__frontend.update_aux(_(u'選用【%s】') % d[c])
+    def choose(self, schema_id):
+        '''切換方案'''
+        schema_ids = [x[0] for x in self.__schema_list]
+        names = [x[1] for x in self.__schema_list]
+        index = -1
+        if schema_id and schema_id in schema_ids:
+            # 參數指定了方案標識
+            index = schema_ids.index(schema_id)
+        elif len(schema_ids) > 0:
+            # 默認選取第一項
+            index = 0
+        if index == -1:
+            # 無可用的方案
+            return
+        # 記錄選用方案的時間
+        now = time.time()        
+        DB.update_setting(
+            u'SchemaChooser/LastUsed/%s' % schema_ids[index],
+            unicode(now)
+        )
+        # 執行切換
+        self.__deactivate()
+        self.__session = Session(self.__frontend, schema_ids[index])
+        self.__frontend.update_aux(_(u'選用【%s】') % names[index])
 
     def __activate(self):
+        '''開啟選單'''
         self.__active = True
         self.__load_schema_list()
         self.__frontend.update_aux(_(u'方案選單'))
-        self.__frontend.update_candidates(self.__schema_list)
+        self.__frontend.update_candidates([
+            (name, schema) for schema, name in self.__schema_list
+        ])
 
     def __deactivate(self):
+        '''關閉選單'''
         self.__active = False
         self.__schema_list = []
+
+    def __choose_schema_by_index(self, index):
+        '''依方案選單中的索引號選用方案'''
+        if index >= 0 and index < len(self.__schema_list):
+            schema_id = self.__schema_list[index][0]
+            self.choose(schema_id)
 
     def process_key_event(self, keycode, mask):
         if not self.__session:
@@ -354,15 +381,18 @@ class Switcher:
                 self.__activate()
                 return True
             return self.__session.process_key_event(keycode, mask)
+        # TODO: extract base class MenuProcessor, 
+        # which provide a skeleton of menu logic.
         # ignore hotkeys
+        # TODO: KeyEvent.is_modified_key(): bool
         if mask & (modifier.CONTROL_MASK | modifier.ALT_MASK | \
             modifier.SUPER_MASK | modifier.HYPER_MASK | modifier.META_MASK
             ):
             return False
         if mask & modifier.RELEASE_MASK:
             return True
-        # schema chooser menu
-        # press F1 the second time, close chooser and send F1
+        # schema switcher menu
+        # pressing F1 a second time, closes switcher and sends F1 key
         if keycode == keysyms.F1:
             if self.__session:
                 self.__deactivate()
@@ -398,9 +428,4 @@ class Switcher:
             self.__choose_schema_by_index(index)
             return True    
         return True
-
-    def __choose_schema_by_index(self, index):
-        if index >= 0 and index < len(self.__schema_list):
-            schema_name = self.__schema_list[index][1]
-            self.choose(schema_name)
 
