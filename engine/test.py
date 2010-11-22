@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # vim:set et sts=4 sw=4:
 
-import os
 import ibus
 from ibus import keysyms
 from ibus import modifier
@@ -10,13 +9,20 @@ from ibus import modifier
 import session
 
 class ZimeTester:
+    '''
+    A test engine to verify ZIME session's functionality.
+    Not a unit test.
+    The output of the session to the frontend 
+    is printed in detail and can be visually examined.
+    '''
 
     def __init__(self, schema):
         self.__lookup_table = ibus.LookupTable()
         self.__backend = session.Switcher(self, schema)
 
     def process_key_event(self, keycode, mask):
-        print "process_key_event: '%s'(%x), %08x" % (keysyms.keycode_to_name(keycode), keycode, mask)
+        print "process_key_event: '%s'(%x), %08x" % \
+            (keysyms.keycode_to_name(keycode), keycode, mask)
         return self.__backend.process_key_event(keycode, mask)
 
     def commit_string(self, s):
@@ -65,7 +71,11 @@ class ZimeTester:
                 continue
             if i >= end:
                 break
-            print u'candidate: %d%s %s' % (i + 1, u'*' if i == cursor_pos else u'.', c[i][0])
+            print u'candidate: %d%s %s' % (
+                i + 1,
+                u'*' if i == cursor_pos else u'.', 
+                c[i][0]
+            )
             
     def page_up(self):
         if self.__lookup_table.page_up():
@@ -99,44 +109,52 @@ class ZimeTester:
             return True
         return False
 
-    def get_candidate_index(self, index):
-        index += self.__lookup_table.get_current_page_start()
+    def get_candidate_index(self, order):
+        index = order + self.__lookup_table.get_current_page_start()
         print u'index = %d' % index
         return index
 
-    def get_candidate_cursor_pos(self):
+    def get_highlighted_candidate_index(self):
         index = self.__lookup_table.get_cursor_pos()
-        print u'candidate_cursor_pos = %d' % index
+        print u'highlighted_candidate_index = %d' % index
         return index
 
     def test(self, string):
-        name = ''
-        is_name = False
+        '''
+        emulate input process with a key sequence.
+        a key can be represented by the printable ascii letter it produces,
+        or a {KeyName} form.
+        example: "pin'yin shurufa{Return}"
+        '''
+        key_name = ''
+        is_key_name = False
         for c in string:
             if c == '{':
-                name = ''
-                is_name = True
+                is_key_name = True
+                key_name = ''
             elif c == '}':
-                is_name = False
-                self.process_key_event(keysyms.name_to_keycode(name), 0)
-            elif is_name:
-                name += c
+                is_key_name = False
+                self.process_key_event(keysyms.name_to_keycode(key_name), 0)
+            elif is_key_name:
+                key_name += c
             else:
                 self.process_key_event(ord(c), 0)
 
 def main():
-    # test schema chooser menu
+
+    # calls schema switcher
+    #e = ZimeTester()
     #e.process_key_event(keysyms.grave, modifier.CONTROL_MASK)  # Ctrl+grave
+    # make a choice
     #e.test('2')
 
     #e = ZimeTester(u'Zhuyin')
     #e.test('rm/3rm/3u.3gp6zj/ {Escape}2k7al {Tab}{Return}')
 
     e = ZimeTester(u'Pinyin')
-    #e.test('jiong ')
-    e.test("pinyin-shuru'fa'{Left}")
+    e.test('jiong ')
+    #e.test("pinyin-shuru'fa'{Left}")
     #e.test('henanquan{Home}{Tab} ')
-    #e.test('hezhinan{Home}. 23qianwanghezhinan')  # 河之南 vs. 和指南
     #e.test('henanhenanquan{Tab} {Tab}{Tab}')
 
     #e = ZimeTester(u'ComboPinyin')
@@ -153,7 +171,6 @@ def main():
 
     #e = ZimeTester(u'Jyutping')
     #e.test('jyuhomindeoicangjatheizaugwodikjatzi')
-    #e.test('fanhoifongziganbunsamgikci')
 
     #e = ZimeTester(u'TonalPinyin')
     #e.test('pkucn.com')

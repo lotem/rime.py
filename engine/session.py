@@ -262,7 +262,7 @@ class Session:
             self.__confirm_current()
         return True
     def __select_by_cursor(self, candidates):
-        index = self.__frontend.get_candidate_cursor_pos()
+        index = self.__frontend.get_highlighted_candidate_index()
         if index >= 0 and index < len(candidates):
             self.__ctx.select(candidates[index][1])
             self.__update_preedit()
@@ -394,7 +394,7 @@ class Switcher:
             self.__choose_schema_by_index(index)
             return True
         if keycode in (keysyms.space, keysyms.Return):
-            index = self.__frontend.get_candidate_cursor_pos()
+            index = self.__frontend.get_highlighted_candidate_index()
             self.__choose_schema_by_index(index)
             return True    
         return True
