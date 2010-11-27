@@ -314,7 +314,8 @@ class Context:
             self.sel.append(p)
             i = p.j
             j = 0
-            for k in range(i + 1, self.info.m + 1):
+            # 找到前方最長的詞
+            for k in range(self.info.m, i, -1):
                 if self.info.cand[i][k] or self.info.fraz[i][k]:
                     j = k
                     break

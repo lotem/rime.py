@@ -152,7 +152,8 @@ def main():
     #e.test('rm/3rm/3u.3gp6zj/ {Escape}2k7al {Tab}{Return}')
 
     e = ZimeTester(u'Pinyin')
-    e.test('jiong ')
+    #e.test('jiong ')
+    e.test('jiongqiongxiongyong{Home}{Right}{Right}{Right}{Right}')
     #e.test("pinyin-shurufa'{Left}")
     #e.test('henanquan{Home}{Tab} ')
     #e.test('henanhenanquan{Tab} {Tab}{Tab}')
