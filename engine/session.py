@@ -93,11 +93,11 @@ class Session:
             self.__ctx.clear()
             self.__numeric = False
             return True
-        if isinstance(result, Prompt):
+        if isinstance(result, Spelling):
             if result.is_empty():
                 self.update_ui()
             else:
-                self.__update_prompt(result)
+                self.__update_spelling(result)
             return True    
         if isinstance(result, list):
             # handle input
@@ -265,8 +265,9 @@ class Session:
         index = self.__frontend.get_highlighted_candidate_index()
         if index >= 0 and index < len(candidates):
             self.__ctx.select(candidates[index][1])
-            self.__update_preedit()
-            self.__frontend.update_aux(self.__ctx.get_aux_string())
+            self.__frontend.update_preedit(self.__ctx.get_prompt())
+            clause, start, end = self.__ctx.get_clause()
+            self.__frontend.update_aux(clause, start, end)
             return True
         return False
     def __confirm_current(self):
@@ -286,19 +287,17 @@ class Session:
         self.__ctx.commit()
         self.__rollback_time = time.time() + Session.ROLLBACK_COUNTDOWN
         self.__numeric = False
-    def __update_preedit(self):
-        preedit, start, end = self.__ctx.get_preedit()
-        self.__frontend.update_preedit(preedit, start, end)
-    def __update_prompt(self, prompt):
-        preedit, start, end = self.__ctx.get_preedit()
-        start = len(preedit) + prompt.start
-        end = len(preedit) + prompt.end
-        self.__frontend.update_preedit(preedit + prompt.text, start, end)
-        self.__frontend.update_aux(u'')
+    def __update_spelling(self, spelling):
+        clause, start, end = self.__ctx.get_clause()
+        start = len(clause) + spelling.start
+        end = len(clause) + spelling.end
+        self.__frontend.update_aux(clause + spelling.text, start, end)
+        self.__frontend.update_preedit(self.__ctx.get_prompt())
         self.__frontend.update_candidates([])
     def update_ui(self):
-        self.__update_preedit()
-        self.__frontend.update_aux(self.__ctx.get_aux_string())
+        self.__frontend.update_preedit(self.__ctx.get_prompt())
+        clause, start, end = self.__ctx.get_clause()
+        self.__frontend.update_aux(clause, start, end)
         self.__frontend.update_candidates(self.__ctx.get_candidates())
         
 class Switcher:

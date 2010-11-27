@@ -50,8 +50,8 @@ class Processor:
         self.__punct = dict([punct_mapping(c.split(None, 1)) for c in schema.get_config_list(u'Punct')])
         key_mapping = lambda(x, y): (keysyms.name_to_keycode(x), keysyms.name_to_keycode(y))
         self.__edit_keys = dict([key_mapping(c.split(None, 1)) for c in schema.get_config_list(u'EditKey')])
-        # 初始化一個Prompt對象
-        self.prompt = u''
+        # 初始化一個Spelling對象
+        self.spelling = u''
 
     def get_schema(self):
         return self.__schema
@@ -60,14 +60,14 @@ class Processor:
         '''
         進入西文模式
         ch為進入西文模式的前導編碼
-        用Prompt來表現西文模式下的輸入串（反白顯示且不作為編碼輸入）
+        用Spelling來表現西文模式下的輸入串（反白顯示且不作為編碼輸入）
         '''
-        self.prompt = ch
-        return Prompt(self.prompt)
+        self.spelling = ch
+        return Spelling(self.spelling)
 
     def process_raw_mode(self, event):
         '''處理西文模式下的輸入'''
-        p = self.prompt
+        p = self.spelling
         ch = event.get_char()
         if event.keycode == keysyms.Return:
             if len(p) > 1 and p[0] in self.quote:
@@ -77,16 +77,16 @@ class Processor:
                 return Commit(p)
         if event.keycode == keysyms.Escape:
             self.clear()
-            return Prompt()
+            return Spelling()
         if event.keycode == keysyms.BackSpace:
-            self.prompt = p[:-1]
-            return Prompt(self.prompt)
+            self.spelling = p[:-1]
+            return Spelling(self.spelling)
         if ch in self.quote and p[0] in self.quote:
             # 成對的quote與引文一同上屏
             return Commit(p + ch)
         if self.acceptable(ch):
-            self.prompt += ch
-            return Prompt(self.prompt)
+            self.spelling += ch
+            return Spelling(self.spelling)
         return True
 
     def check_punct(self, event):
@@ -128,7 +128,7 @@ class RomanComposer(Processor):
         self.clear()
     def clear(self):
         self.__input = []
-        self.prompt = u''
+        self.spelling = u''
     def is_empty(self):
         return not bool(self.__input)
     def __get_input(self):
@@ -141,7 +141,7 @@ class RomanComposer(Processor):
     def process_input(self, event, ctx):
         if event.mask & modifier.RELEASE_MASK:
             return False
-        if self.prompt:
+        if self.spelling:
             return self.process_raw_mode(event)
         # disable input in conversion mode
         if not self.auto_prompt and ctx.being_converted():
@@ -172,13 +172,13 @@ class RomanComposer(Processor):
             return self.start_raw_mode(ch)
         # 在輸入串後追加quote按鍵，轉入西文模式
         if ch in self.quote and not self.is_empty() and self.__input[0] not in self.quote:
-            self.prompt = u''.join(self.__input)
+            self.spelling = u''.join(self.__input)
             self.__input = []
             ctx.edit([])
-            return Prompt(self.prompt)
+            return Spelling(self.spelling)
         # 不可轉換的輸入串，追加符號後轉入西文模式
         if ctx.err and self.acceptable(ch) and not ch in self.alphabet:
-            self.prompt = u''.join(self.__input)
+            self.spelling = u''.join(self.__input)
             self.__input = []
             ctx.edit([])
             return self.process_raw_mode(event)
@@ -193,7 +193,7 @@ class TableComposer(Processor):
     def clear(self):
         self.__input = []
         self.__keyword = []
-        self.prompt = u''
+        self.spelling = u''
     def is_empty(self):
         return not bool(self.__input) and not bool(self.__keyword)
     def __is_keyword_empty(self):
@@ -207,7 +207,7 @@ class TableComposer(Processor):
     def process_input(self, event, ctx):
         if event.mask & modifier.RELEASE_MASK:
             return False
-        if self.prompt:
+        if self.spelling:
             return self.process_raw_mode(event)
         # disable input in conversion mode
         if not self.auto_prompt and ctx.being_converted():
@@ -282,10 +282,10 @@ class GroupComposer(Processor):
         self.__cursor = 0
     def is_empty(self):
         return not any(self.__slots)
-    def __get_prompt(self, first):
+    def __get_spelling(self, first):
         text = self.__prompt_pattern % u''.join(self.__slots)
         padding = None if first or self.auto_predict else self.delimiter[0]
-        return Prompt(text, padding=padding)
+        return Spelling(text, padding=padding)
     def process_input(self, event, ctx):
         if event.mask & modifier.RELEASE_MASK:
             return False
@@ -306,12 +306,12 @@ class GroupComposer(Processor):
                 j -= 1
             self.__cursor = j
             if not self.is_empty():
-                # update prompt
-                return self.__get_prompt(ctx.is_empty())
+                # update spelling
+                return self.__get_spelling(ctx.is_empty())
             else:
                 # keyword disposed
                 self.clear()
-                return Prompt()
+                return Spelling()
         if event.keycode == keysyms.space:
             if self.is_empty():
                 return False
@@ -340,7 +340,7 @@ class GroupComposer(Processor):
             return [keyword] if ctx.is_empty() else [self.delimiter[0], keyword]
         else:
             self.__cursor = k
-            return self.__get_prompt(ctx.is_empty())
+            return self.__get_spelling(ctx.is_empty())
 
 class ComboComposer(Processor):
     def __init__(self, schema):
@@ -357,10 +357,10 @@ class ComboComposer(Processor):
         self.__held.clear()
     def is_empty(self):
         return not bool(self.__held)
-    def __get_prompt(self, first):
+    def __get_spelling(self, first):
         text = self.__prompt_pattern % self.__get_combo_string()
         padding = None if first or self.auto_predict else self.delimiter[0]
-        return Prompt(text, padding=padding)
+        return Spelling(text, padding=padding)
     def __commit_combo(self, first):
         k = self.__get_combo_string()
         self.clear()
@@ -368,7 +368,7 @@ class ComboComposer(Processor):
         if k == self.__combo_space:
             return KeyEvent(keysyms.space, 0, coined=True)
         elif not k:
-            return Prompt()
+            return Spelling()
         else:
             return [k] if first else [self.delimiter[0], k]
     def __get_combo_string(self):
@@ -390,11 +390,11 @@ class ComboComposer(Processor):
             #print 'pressed:', ch
             self.__combo.add(ch)
             self.__held.add(ch)
-            return self.__get_prompt(ctx.is_empty())
+            return self.__get_spelling(ctx.is_empty())
         # non-combo keys
         if not self.is_empty():
             self.clear()
-            return Prompt()
+            return Spelling()
         return False
 
 def initialize():

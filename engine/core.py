@@ -27,13 +27,14 @@ class KeyEvent:
         return "<KeyEvent: '%s'(%x), %08x>" % (keysyms.keycode_to_name(self.keycode), self.keycode, self.mask)
 
 
-class Prompt:
+class Spelling:
+    '''
+    拼寫，高亮顯示未完成輸入的編碼／未選定的標點符號
+    其內容尚未記入編碼串中因此不會做轉換
+    '''
 
-    '''
-    編碼提示，在寫作串preedit內高亮顯示正在編輯的編碼／標點符號
-    其文字內容不記入已輸入編碼中因此也不做轉換，例如未完成的注音音節
-    '''
     def __init__(self, text=None, start=0, end=0, padding=None):
+        # padding 用於分隔前文與此拼寫
         if text and not end:
             end = len(text)
         if text and padding:
@@ -105,7 +106,6 @@ class Context:
         # 以下讀取Context關心的設定值
         self.__delimiter = schema.get_config_char_sequence(u'Delimiter') or u' '
         self.__auto_delimit = schema.get_config_value(u'AutoDelimit') in (u'yes', u'true')
-        self.__auto_prompt = schema.get_config_value(u'AutoPrompt') in (u'yes', u'true')
         self.__aux_length = int(schema.get_config_value(u'AuxLength') or 50)
         self.__auto_predict = schema.get_config_value(u'Predict') in (None, u'yes', u'true')
         prompt_char = schema.get_config_char_sequence(u'PromptChar')
@@ -375,8 +375,8 @@ class Context:
         t[-1] = c
         self.__display = (u''.join(p), t)
 
-    def get_preedit(self):
-        '''取得寫作串'''
+    def get_clause(self):
+        '''取得編輯中的文字'''
         if self.is_empty():
             return u'', 0, 0
         r = []
@@ -423,10 +423,8 @@ class Context:
         '''取得輸入串'''
         return u''.join(self.input)
         
-    def get_aux_string(self):
-        '''取得提示文字'''
-        if not self.__auto_prompt:
-            return u''
+    def get_prompt(self):
+        '''取得回顯編碼串'''
         if self.info.m == 0:
             return u''
         s, t = self.__display
@@ -436,7 +434,7 @@ class Context:
             if p > 0 and s[p - 1] == u' ':
                 p -= 1
             s = s[:p]+ u'\u00bb' + s[p:]
-        # 編碼提示限長
+        # 限長
         if len(s) > self.__aux_length:
             s = u'...' + s[-self.__aux_length:]
         return s
