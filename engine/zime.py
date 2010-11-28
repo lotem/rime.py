@@ -8,9 +8,9 @@ __all__ = (
 import ibus
 import os
 
-import session
-import processor
+from core import KeyEvent
 from storage import DB
+import session
 
 
 class ZimeEngine(ibus.EngineBase):
@@ -28,7 +28,7 @@ class ZimeEngine(ibus.EngineBase):
 
     def process_key_event(self, keyval, keycode, mask):
         '''處理鍵盤事件'''
-        return self.__backend.process_key_event(keyval, mask)
+        return self.__backend.process_key_event(KeyEvent(keyval, mask))
 
     def commit_string(self, s):
         '''
@@ -129,12 +129,12 @@ class ZimeEngine(ibus.EngineBase):
         index = self.__lookup_table.get_cursor_pos()
         return index
 
-    def get_candidate_index(self, order):
+    def get_candidate_index(self, number):
         '''
         依候選詞在當前頁中的序號，取得其在候選詞列表中的索引
         '''
-        if order >= self.__page_size:
+        if number >= self.__page_size:
             return -1
-        index = order + self.__lookup_table.get_current_page_start()
+        index = number + self.__lookup_table.get_current_page_start()
         return index
 

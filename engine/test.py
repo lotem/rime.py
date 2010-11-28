@@ -6,6 +6,7 @@ import ibus
 from ibus import keysyms
 from ibus import modifier
 
+from core import KeyEvent
 import session
 
 class ZimeTester:
@@ -16,14 +17,14 @@ class ZimeTester:
     is printed in detail and can be visually examined.
     '''
 
-    def __init__(self, schema):
+    def __init__(self, schema=None):
         self.__lookup_table = ibus.LookupTable()
         self.__backend = session.Switcher(self, schema)
 
     def process_key_event(self, keycode, mask):
         print "process_key_event: '%s'(%x), %08x" % \
             (keysyms.keycode_to_name(keycode), keycode, mask)
-        return self.__backend.process_key_event(keycode, mask)
+        return self.__backend.process_key_event(KeyEvent(keycode, mask))
 
     def commit_string(self, s):
         print u'commit: [%s]' % s
@@ -109,8 +110,8 @@ class ZimeTester:
             return True
         return False
 
-    def get_candidate_index(self, order):
-        index = order + self.__lookup_table.get_current_page_start()
+    def get_candidate_index(self, number):
+        index = number + self.__lookup_table.get_current_page_start()
         print u'index = %d' % index
         return index
 
@@ -152,8 +153,8 @@ def main():
     #e.test('rm/3rm/3u.3gp6zj/ {Escape}2k7al {Tab}{Return}')
 
     e = ZimeTester(u'Pinyin')
-    #e.test('jiong ')
-    e.test('jiongqiongxiongyong{Home}{Right}{Right}{Right}{Right}')
+    e.test('jiong ')
+    #e.test('jiongqiongxiongyong{Home}{Right}{Right}{Right}{Right}')
     #e.test("pinyin-shurufa'{Left}")
     #e.test('henanquan{Home}{Tab} ')
     #e.test('henanhenanquan{Tab} {Tab}{Tab}')

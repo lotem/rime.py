@@ -20,11 +20,21 @@ class KeyEvent:
         self.mask = mask
         self.coined = coined
 
+    def __str__(self):
+        return "<KeyEvent: '%s'(%x), %08x>" % (keysyms.keycode_to_name(self.keycode), self.keycode, self.mask)
+
     def get_char(self):
         return unichr(self.keycode)
 
-    def __str__(self):
-        return "<KeyEvent: '%s'(%x), %08x>" % (keysyms.keycode_to_name(self.keycode), self.keycode, self.mask)
+    def is_modified_key(self):
+        return bool(self.mask & (modifier.CONTROL_MASK | \
+                                 modifier.ALT_MASK | \
+                                 modifier.SUPER_MASK | \
+                                 modifier.HYPER_MASK | \
+                                 modifier.META_MASK)) 
+
+    def is_key_up(self):
+        return bool(self.mask & modifier.RELEASE_MASK)
 
 
 class Spelling:

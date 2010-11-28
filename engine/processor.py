@@ -7,8 +7,12 @@ from ibus import modifier
 from core import *
 
 
-class Processor:
+class Processor(object):
     '''Processor基類'''
+    pass
+
+class Composer(Processor):
+    '''完成按鍵到編碼串的轉換'''
 
     #註冊工廠方法用
     __parsers = dict()
@@ -122,9 +126,9 @@ class Processor:
         return None
 
 
-class RomanComposer(Processor):
+class RomanComposer(Composer):
     def __init__(self, schema):
-        Processor.__init__(self, schema)
+        super(RomanComposer, self).__init__(schema)
         self.clear()
     def clear(self):
         self.__input = []
@@ -185,9 +189,9 @@ class RomanComposer(Processor):
         # unused
         return False
 
-class TableComposer(Processor):
+class TableComposer(Composer):
     def __init__(self, schema):
-        Processor.__init__(self, schema)
+        super(TableComposer, self).__init__(schema)
         self.__auto_commit_keyword_length = int(schema.get_config_value(u'AutoCommitKeywordLength') or schema.get_config_value(u'MaxKeywordLength') or u'4')
         self.clear()
     def clear(self):
@@ -269,9 +273,9 @@ class TableComposer(Processor):
         # unused
         return False
 
-class GroupComposer(Processor):
+class GroupComposer(Composer):
     def __init__(self, schema):
-        Processor.__init__(self, schema)
+        super(GroupComposer, self).__init__(schema)
         self.__prompt_pattern = schema.get_config_char_sequence(u'PromptPattern') or u'\u2039%s\u203a'
         self.__key_groups = schema.get_config_value(u'KeyGroups').split()
         self.__code_groups = schema.get_config_value(u'CodeGroups').split()
@@ -342,9 +346,9 @@ class GroupComposer(Processor):
             self.__cursor = k
             return self.__get_spelling(ctx.is_empty())
 
-class ComboComposer(Processor):
+class ComboComposer(Composer):
     def __init__(self, schema):
-        Processor.__init__(self, schema)
+        super(ComboComposer, self).__init__(schema)
         self.__prompt_pattern = schema.get_config_char_sequence(u'PromptPattern') or u'\u2039%s\u203a'
         self.__combo_keys = schema.get_config_char_sequence(u'ComboKeys') or u''
         self.__combo_codes = schema.get_config_char_sequence(u'ComboCodes') or u''
@@ -397,14 +401,111 @@ class ComboComposer(Processor):
             return Spelling()
         return False
 
+
+class MenuHandler(Processor):
+    '''選單相關的按鍵處理框架'''
+
+    def __init__(self, frontend):
+        self.__frontend = frontend
+        self.active = False
+
+    def activate(self):
+        self.active = True
+
+    def deactivate(self):
+        self.active = False
+
+    def handle_additional_function_key(self, event):
+        '''
+        處理其他功能鍵
+        如對自定義功能鍵做映射
+        '''
+        return False
+
+    def triggered(self, event):
+        '''判斷開啟選單的條件'''
+        return True
+
+    def on_page_up(self):
+        pass
+        
+    def on_page_down(self):
+        pass
+        
+    def on_cursor_up(self):
+        pass
+        
+    def on_cursor_down(self):
+        pass
+        
+    def on_escape(self):
+        '''響應取消選取的動作'''
+        self.deactivate()
+        
+    def on_select(self, index):
+        '''響應選取菜單項的動作'''
+        pass
+        
+    def process_key_event(self, event):
+        '''按鍵處理流程'''
+        if not self.active:
+            if self.triggered(event):
+                if not event.is_key_up():
+                    self.activate()
+                return True
+            # 不做處理！
+            return False
+        # 快捷鍵有效
+        if event.is_modified_key():
+            return False
+        if event.is_key_up():
+            return True
+        if self.handle_additional_function_key(event):
+            return True
+        # 選單相關的功能鍵
+        if event.keycode == keysyms.Escape:
+            self.on_escape()
+            return True
+        if event.keycode == keysyms.Page_Up:
+            if self.__frontend.page_up():
+                self.on_page_up()
+                return True
+            return True
+        if event.keycode == keysyms.Page_Down:
+            if self.__frontend.page_down():
+                self.on_page_down()
+                return True
+            return True
+        if event.keycode == keysyms.Up:
+            if self.__frontend.cursor_up():
+                self.on_cursor_up()
+                return True
+            return True
+        if event.keycode == keysyms.Down:
+            if self.__frontend.cursor_down():
+                self.on_cursor_down()
+                return True
+            return True
+        if event.keycode >= keysyms._1 and event.keycode <= keysyms._9:
+            index = self.__frontend.get_candidate_index(event.keycode - keysyms._1)
+            self.on_select(index)
+            return True
+        if event.keycode in (keysyms.space, keysyms.Return):
+            index = self.__frontend.get_highlighted_candidate_index()
+            self.on_select(index)
+            return True    
+        # 不響應其他按鍵！
+        return True
+
+
 def initialize():
-    Processor.register('roman', RomanComposer)
-    Processor.register('natural', RomanComposer)  # alias
-    Processor.register('table', TableComposer)
-    Processor.register('group', GroupComposer)
-    Processor.register('grouping', GroupComposer)  # alias
-    Processor.register('combo', ComboComposer)
-    #Processor.register('echo', EchoComposer)
-    #Processor.register('symbol', SymbolComposer)
+    Composer.register('roman', RomanComposer)
+    Composer.register('natural', RomanComposer)  # alias
+    Composer.register('table', TableComposer)
+    Composer.register('group', GroupComposer)
+    Composer.register('grouping', GroupComposer)  # alias
+    Composer.register('combo', ComboComposer)
+    #Composer.register('echo', EchoComposer)
+    #Composer.register('symbol', SymbolComposer)
 
 initialize()
