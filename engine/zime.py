@@ -5,12 +5,23 @@ __all__ = (
     "ZimeEngine",
 )
 
-import ibus
 import os
+import ibus
 
 from core import KeyEvent
-from storage import DB
 import session
+import storage
+
+
+def initialize():
+    home_path = os.path.expanduser('~')
+    db_path = os.path.join(home_path, '.ibus', 'zime')
+    user_db = os.path.join(db_path, 'zime.db')
+    if not os.path.isdir(db_path):
+        os.makedirs(db_path)
+    storage.DB.open(user_db)
+
+initialize()
 
 
 class ZimeEngine(ibus.EngineBase):
@@ -22,7 +33,7 @@ class ZimeEngine(ibus.EngineBase):
         '''ctor'''
         super(ZimeEngine, self).__init__(conn, object_path)
         # TODO: extract class Config(schema) and Settings("global")
-        self.__page_size = DB.read_setting(u'Option/PageSize') or 5
+        self.__page_size = storage.DB.read_setting(u'Option/PageSize') or 5
         self.__lookup_table = ibus.LookupTable(self.__page_size)
         self.__backend = session.Switcher(self)
 

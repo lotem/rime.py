@@ -2,12 +2,19 @@
 # -*- coding: utf-8 -*-
 # vim:set et sts=4 sw=4:
 
+import os
 import ibus
 from ibus import keysyms
 from ibus import modifier
 
 from core import KeyEvent
 import session
+import storage
+
+
+test_db = os.path.join('.', 'test.db')
+storage.DB.open(test_db)
+
 
 class ZimeTester:
     '''
@@ -153,7 +160,7 @@ def main():
     #e.test('rm/3rm/3u.3gp6zj/ {Escape}2k7al {Tab}{Return}')
 
     e = ZimeTester(u'Pinyin')
-    e.test('jiong ')
+    e.test('jiong a. jiong a. jiong')
     #e.test('jiongqiongxiongyong{Home}{Right}{Right}{Right}{Right}')
     #e.test("pinyin-shurufa'{Left}")
     #e.test('henanquan{Home}{Tab} ')

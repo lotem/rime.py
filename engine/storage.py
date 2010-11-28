@@ -641,16 +641,3 @@ class DB:
             for k_id in k_ids:
                 self.__add_kb(k_id, b_id)
 
-def initialize():
-    home_path = os.path.expanduser('~')
-    db_path = os.path.join(home_path, '.ibus', 'zime')
-    user_db = os.path.join(db_path, 'zime.db')
-    test_db = os.path.join('.', 'test.db')
-    if os.path.exists(test_db):
-        DB.open(test_db)
-    else:
-        if not os.path.isdir(db_path):
-            os.makedirs(db_path)
-        DB.open(user_db)
-
-initialize()
