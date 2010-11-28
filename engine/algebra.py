@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 # vim:set et sts=4 sw=4:
 
+
 class SpellingCollisionError:
-    def __init__(self, rule, vars):
+
+    def __init__(self, rule, args):
         self.rule = rule
-        self.vars = vars
+        self.args = args
+
     def __str__(self):
-        return 'spelling collision detected in %s: %s' % (self.rule, repr(self.vars))
+        return 'spelling collision detected in %s: %s' % (self.rule, repr(self.args))
+
 
 class SpellingAlgebra:
 
@@ -95,9 +99,10 @@ class SpellingAlgebra:
                     a = oi_map[k] = []
                 a.append(ikey)
         akas = None
+        self.oi_map = oi_map
 
         # remove non-ikey keys
-        io_map = dict([(k, io_map[k]) for k in ikeys])
+        self.io_map = dict([(k, io_map[k]) for k in ikeys])
 
         spelling_map = dict()
         for s, ikey in spellings:
@@ -106,6 +111,5 @@ class SpellingAlgebra:
                 spelling_map[t] = ikey
             elif self.__report_errors:
                 raise SpellingCollisionError('SpellingRule', (s, ikey, t, spelling_map[t]))
-        spelling_map = reduce(apply_alternative_rule, alternative_rules, spelling_map)
+        self.spelling_map = reduce(apply_alternative_rule, alternative_rules, spelling_map)
 
-        return spelling_map, io_map, oi_map

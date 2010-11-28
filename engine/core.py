@@ -4,7 +4,7 @@
 from ibus import keysyms
 from ibus import modifier
 
-from model import *
+from builder import *
 from storage import DB
 
 
@@ -61,7 +61,7 @@ class Spelling:
 
 
 class Commit(unicode):
-    '''由Engine發出的一個上屏動作'''
+    '''上屏動作'''
     pass
 
 
@@ -199,7 +199,7 @@ class Context:
                 self.__update_candidates(self.__predict(exclude_the_last=True))
                 return
             if self.__auto_predict:
-                # 使用設定值Predict = yes，寫作串顯示為預測的轉換結果，而不是輸入串本身，否則需要按空格手動轉換
+                # 使用設定值Predict = yes，顯示預測的轉換結果，而不是輸入串本身，否則需要按空格手動轉換
                 self.__predict()
         # 更新到前端
         self.__cb.update_ui()

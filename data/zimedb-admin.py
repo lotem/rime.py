@@ -170,11 +170,11 @@ def install_schema(schema_file):
     # performing spelling algebra
     sa = SpellingAlgebra()
     try:
-        spelling_map, io_map, oi_map = sa.calculate(mapping_rules, 
-                                                    fuzzy_rules, 
-                                                    spelling_rules, 
-                                                    alternative_rules, 
-                                                    keywords)
+        sa.calculate(mapping_rules, 
+                     fuzzy_rules, 
+                     spelling_rules, 
+                     alternative_rules, 
+                     keywords)
     except SpellingCollisionError as e:
         print >> sys.stderr, e
         exit()
@@ -195,11 +195,11 @@ def install_schema(schema_file):
             return ikeys
         r = []
         for x in ikeys:
-            if okey[0] not in oi_map:
+            if okey[0] not in sa.oi_map:
                 if options.verbose:
                     print >> sys.stderr, 'invalid keyword encountered: [%s]' % okey[0]
                 return []
-            for y in oi_map[okey[0]]:
+            for y in sa.oi_map[okey[0]]:
                 r.append(x + [y])
         return g(r, okey[1:], depth + 1)
     indexer = lambda okey: [u' '.join(ikey) for ikey in g([[]], okey.split(), 0)]
@@ -331,21 +331,21 @@ def restore_userdata(schema):
     alternative_rules = get_rules(compile_repl_pattern, u'AlternativeRule')
     keywords = db.list_keywords()
     sa = SpellingAlgebra(report_errors=False)
-    keymap, io_map, oi_map = sa.calculate(mapping_rules, 
-                                          fuzzy_rules, 
-                                          spelling_rules, 
-                                          alternative_rules, 
-                                          keywords)
+    sa.calculate(mapping_rules, 
+                 fuzzy_rules, 
+                 spelling_rules, 
+                 alternative_rules, 
+                 keywords)
     def g(ikeys, okey, depth):
         if not okey or depth >= max_key_length:
             return ikeys
         r = []
         for x in ikeys:
-            if okey[0] not in oi_map:
+            if okey[0] not in sa.oi_map:
                 if options.verbose:
                     print >> sys.stderr, 'invalid keyword encountered: [%s]' % okey[0]
                 return []
-            for y in oi_map[okey[0]]:
+            for y in sa.oi_map[okey[0]]:
                 r.append(x + [y])
         return g(r, okey[1:], depth + 1)
     indexer = lambda okey: [u' '.join(ikey) for ikey in g([[]], okey.split(), 0)]
