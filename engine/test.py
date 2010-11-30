@@ -159,8 +159,8 @@ def main():
     #e = ZimeTester(u'Zhuyin')
     #e.test('rm/3rm/3u.3gp6zj/ {Escape}2k7al {Tab}{Return}')
 
-    e = ZimeTester(u'Pinyin')
-    e.test('jiong a. jiong a. jiong')
+    #e = ZimeTester(u'Pinyin')
+    #e.test('jiong ')
     #e.test('jiongqiongxiongyong{Home}{Right}{Right}{Right}{Right}')
     #e.test("pinyin-shurufa'{Left}")
     #e.test('henanquan{Home}{Tab} ')
@@ -181,7 +181,8 @@ def main():
     #e = ZimeTester(u'Jyutping')
     #e.test('jyuhomindeoicangjatheizaugwodikjatzi')
 
-    #e = ZimeTester(u'TonalPinyin')
+    e = ZimeTester(u'TonalPinyin')
+    e.test('woyebuzhidaoshibushi .jiong')
     #e.test('pkucn.com')
     #e.test('3.14wo1.0')
 

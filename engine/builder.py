@@ -282,9 +282,9 @@ class Model:
                 return ikeys
             r = []
             for x in ikeys:
-                if okey[0] not in self.__oi_map:
+                if okey[0] not in self.__sa.oi_map:
                     return []
-                for y in self.__oi_map[okey[0]]:
+                for y in self.__sa.oi_map[okey[0]]:
                     r.append(x + [y])
             return g(r, okey[1:], depth + 1)
 
