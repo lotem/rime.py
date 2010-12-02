@@ -14,12 +14,14 @@ import storage
 
 
 def initialize():
-    home_path = os.path.expanduser('~')
-    db_path = os.path.join(home_path, '.ibus', 'zime')
-    user_db = os.path.join(db_path, 'zime.db')
-    if not os.path.isdir(db_path):
-        os.makedirs(db_path)
-    storage.DB.open(user_db)
+    db_file = os.getenv('ZIME_DATABASE')
+    if not db_file:
+        home_path = os.path.expanduser('~')
+        db_path = os.path.join(home_path, '.ibus', 'zime')
+        if not os.path.isdir(db_path):
+            os.makedirs(db_path)
+        db_file = os.path.join(db_path, 'zime.db')
+    storage.DB.open(db_file)
 
 initialize()
 
@@ -50,8 +52,7 @@ class ZimeEngine(ibus.EngineBase):
 
     def update_preedit(self, s, start=0, end=0):
         '''
-        更新寫作串
-        由session回調
+        更新寫作串，由session回調
         [start, end) 定義了串中的高亮區間
         '''
         #logger.debug(u'preedit: [%s]' % s)

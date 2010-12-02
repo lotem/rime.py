@@ -29,8 +29,6 @@ def test(session):
     # Ctrl+grave
     print session.process_key_event(keysyms.grave, modifier.CONTROL_MASK)
     print session.get_response()
-    # noop
-    feed(session, '2')
     # choose Pinyin
     feed(session, '1')
     # input

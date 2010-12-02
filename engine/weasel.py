@@ -2,6 +2,14 @@
 # -*- coding: utf-8 -*-
 # vim:set et sts=4 sw=4:
 
+__all__ = (
+    # classes
+    "WeaselSession",
+    "WeaselService",
+    # a WeaselService instance
+    "service",
+)
+
 import logging
 import logging.config
 import os
@@ -15,35 +23,62 @@ import ibus
 from ibus import keysyms
 from ibus import modifier
 
-import zimeengine
-import zimeparser
-from zimedb import DB
+from core import KeyEvent
+import session
+import storage
 
-def _initialize():
-    zimeparser.register_parsers()
-    # initialize DB 
-    home_path = os.path.expanduser('~')
-    if home_path:
+
+def initialize():
+    db_file = os.getenv('ZIME_DATABASE')
+    if not db_file:
+        home_path = os.path.expanduser('~')
         db_path = os.path.join(home_path, '.ibus', 'zime')
-    else:
-        db_path = '.'
-    user_db = os.path.join(db_path, 'zime.db')
-    if not os.path.exists(user_db):
         if not os.path.isdir(db_path):
             os.makedirs(db_path)
-    DB.open(user_db)
+        db_file = os.path.join(db_path, 'zime.db')
+    storage.DB.open(db_file)
 
-_initialize()
+initialize()
 
 
-class Session:
+def add_text(actions, msg, field, text):
+    actions.add(u'ctx')
+    (s, attrs, cursor) = text
+    msg.append(u'ctx.%s=%s\n' % (field, s))
+    if attrs:
+        msg.append(u'ctx.%s.attr.length=%d\n' % (field, len(attrs)))
+        for i in range(len(attrs)):
+            (extent, type_) = attrs[i]
+            msg.append(u'ctx.%s.attr.%d.range=%d,%d\n' % (field, i, extent[0], extent[1]))
+            msg.append(u'ctx.%s.attr.%d.type=%s\n' % (field, i, type_))
+    if cursor:
+        msg.append(u'ctx.%s.cursor=%d,%d\n' % (field, cursor[0], cursor[1]))
+
+def add_cand(actions, msg, cand_info):
+    actions.add(u'ctx')
+    (current_page, total_pages, cursor, cands) = cand_info
+    n = len(cands)
+    msg.append(u'ctx.cand.length=%d\n' % n)
+    for i in range(n):
+        msg.append(u'ctx.cand.%d=%s\n' % (i, cands[i][0]))
+    msg.append(u'ctx.cand.cursor=%d\n' % cursor)
+    msg.append(u'ctx.cand.page=%d/%d\n' % (current_page, total_pages))
+    #msg.append(u'ctx.cand.current_page=%d\n' % current_page)
+    #msg.append(u'ctx.cand.total_pages=%d\n' % total_pages)
+
+class WeaselSession:
+    '''
+    【小狼毫】會話
+    承擔【平水韻】會話與【小狼毫】前端的交互工作，相當於ibus中的Engine
+    '''
 
     def __init__(self, params=''):
-        logger.info("init session: %s", params)
-        self.__page_size = DB.read_setting(u'Option/PageSize') or 5
+        logger.info("init weasel session: %s", params)
+        # TODO: 
+        self.__page_size = storage.DB.read_setting(u'Option/PageSize') or 5
         self.__lookup_table = ibus.LookupTable(self.__page_size)
         self.__clear()
-        self.__engine = zimeengine.SchemaChooser(self, params)
+        self.__backend = session.Switcher(self, params)
 
     def __clear(self):
         self.__commit = None
@@ -52,73 +87,76 @@ class Session:
         self.__cand = None
 
     def process_key_event(self, keycode, mask):
-        logger.debug("process_key_event: '%s'(%x), %08x" % (keysyms.keycode_to_name(keycode), keycode, mask))
+        '''處理鍵盤事件'''
+        logger.debug("process_key_event: '%s'(%x), %08x" % \
+                     (keysyms.keycode_to_name(keycode), keycode, mask))
         self.__clear()
-        taken = self.__engine.process_key_event(keycode, mask)
+        taken = self.__backend.process_key_event(KeyEvent(keycode, mask))
         return taken
 
     def get_response(self):
-        action = set()
-        r = list()
+        '''生成回應消息'''
+        actions = set()
+        msg = list()
         if self.__commit:
-            action.add(u'commit')
-            r.append(u'commit=%s\n' % u''.join(self.__commit)) 
+            actions.add(u'commit')
+            msg.append(u'commit=%s\n' % u''.join(self.__commit)) 
         if self.__preedit:
-            action.add(u'ctx')
-            (s, attrs, cursor) = self.__preedit
-            r.append(u'ctx.preedit=%s\n' % s)
-            if attrs:
-                r.append(u'ctx.preedit.attr.length=%d\n' % len(attrs))
-                for i in range(len(attrs)):
-                    (extent, type) = attrs[i]
-                    r.append(u'ctx.preedit.attr.%d.range=%d,%d\n' % (i, extent[0], extent[1]))
-                    r.append(u'ctx.preedit.attr.%d.type=%s\n' % (i, type))
-            if cursor:
-                r.append(u'ctx.preedit.cursor=%d,%d\n' % cursor)
+            add_text(actions, msg, u'preedit', self.__preedit)
         if self.__aux:
-            action.add(u'ctx')
-            (s, attrs) = self.__aux
-            r.append(u'ctx.aux=%s\n' % s)
+            add_text(actions, msg, u'aux', self.__aux)
         if self.__cand:
-            action.add(u'ctx')
-            (current_page, total_pages, cursor, cands) = self.__cand
-            n = len(cands)
-            r.append(u'ctx.cand.length=%d\n' % n)
-            for i in range(n):
-                r.append(u'ctx.cand.%d=%s\n' % (i, cands[i][0]))
-            r.append(u'ctx.cand.cursor=%d\n' % cursor)
-            r.append(u'ctx.cand.page=%d/%d\n' % (current_page, total_pages))
-            #r.append(u'ctx.cand.current_page=%d\n' % current_page)
-            #r.append(u'ctx.cand.total_pages=%d\n' % total_pages)
+            add_cand(actions, msg, self.__cand)
         #self.__clear()
-        if not action:
+        if not actions:
             return u'action=noop\n.\n'
         else:
-            r.insert(0, u'action=%s\n' % u','.join(sorted(action)))
-            r.append(u'.\n')
-            return u''.join(r)
+            # starts with an action list
+            msg.insert(0, u'action=%s\n' % u','.join(sorted(actions)))
+            # ends with a single dot
+            msg.append(u'.\n')
+            return u''.join(msg)
     
     # implement a frontend proxy for zimeengine
 
     def commit_string(self, s):
+        '''文字上屏'''
         logger.debug(u'commit: [%s]' % s)
         if self.__commit:
             self.__commit.append(s)
         else:
             self.__commit = [s]
 
-    def update_preedit(self, s, start, end):
-        logger.debug(u'preedit: [%s[%s]%s]' % (s[:start], s[start:end], s[end:]))
+    def update_preedit(self, s, start=0, end=0):
+        '''
+        更新寫作串
+        [start, end) 定義了串中的高亮區間
+        '''
+        if start < end:
+            logger.debug(u'preedit: [%s[%s]%s]' % (s[:start], s[start:end], s[end:]))
+        else:
+            logger.debug(u'preedit: [%s]' % s)
         #attrs = [((start, end), u'HIGHLIGHTED')] if start < end else None
         #self.__preedit = (s, attrs)
         cursor = (start, end) if start < end else None
         self.__preedit = (s, None, cursor)
 
-    def update_aux_string(self, s):
-        logger.debug(u'aux: [%s]' % s)
-        self.__aux = (s, None)
+    def update_aux(self, s, start=0, end=0):
+        '''
+        更新輔助串
+        [start, end) 定義了串中的高亮區間
+        '''
+        if start < end:
+            logger.debug(u'aux: [%s[%s]%s]' % (s[:start], s[start:end], s[end:]))
+        else:
+            logger.debug(u'aux: [%s]' % s)
+        cursor = (start, end) if start < end else None
+        self.__aux = (s, None, cursor)
 
     def update_candidates(self, candidates):
+        '''
+        更新候選列表
+        '''
         self.__lookup_table.clean()
         self.__lookup_table.show_cursor(False)
         if not candidates:
@@ -140,66 +178,84 @@ class Session:
             
     def page_up(self):
         if self.__lookup_table.page_up():
-            #print u'page_up.'
+            #print u'page up.'
             self.__update_page()
             return True
         return False
 
     def page_down(self):
         if self.__lookup_table.page_down():
-            #print u'page_down.'
+            #print u'page down.'
             self.__update_page()
             return True
         return False
 
     def cursor_up(self):
         if self.__lookup_table.cursor_up():
-            #print u'cursor_up.'
+            #print u'cursor up.'
             self.__update_page()
             return True
         return False
 
     def cursor_down(self):
         if self.__lookup_table.cursor_down():
-            #print u'cursor_down.'
+            #print u'cursor down.'
             self.__update_page()
             return True
         return False
 
-    def get_candidate_index(self, index):
-        index += self.__lookup_table.get_current_page_start()
-        #print u'index = %d' % index
+    def get_candidate_index(self, number):
+        if number >= self.__page_size:
+            return -1
+        index = number + self.__lookup_table.get_current_page_start()
+        #print u'cand index = %d' % index
         return index
 
-    def get_candidate_cursor_pos(self):
+    def get_highlighted_candidate_index(self):
         index = self.__lookup_table.get_cursor_pos()
-        #print u'candidate_cursor_pos = %d' % index
+        #print u'highlighted cand index = %d' % index
         return index
 
 
 class WeaselService:
+    '''
+    【小狼毫】算法服務
+    管理一組會話
+    每個會話對象為一個【平水韻】算法引擎實例，響應一個IME前端的輸入請求
+    '''
     
     def __init__(self):
         self.__sessions = dict()
 
     def cleanup(self):
+        '''清除所有會話'''
         self.__sessions.clear()
 
     def has_session(self, id):
+        '''檢查指定會話的存在狀態'''
         if id in self.__sessions:
             return True
         else:
             return False
 
     def get_session(self, id):
+        '''
+        按標識獲取會話對象
+        （以傳遞按鍵消息等）
+        '''
         if id in self.__sessions:
             return self.__sessions[id]
         else:
             return None
 
     def create_session(self):
+        '''
+        創建會話
+        IME前端開啟輸入法時調用
+        返回會話的標識（正整數）
+        '''
         try:
-            session = Session()
+            session = WeaselSession()
         except Exception, e:
             logger.error("create_session: error creating session: %s" % e)
             return None
@@ -207,11 +263,16 @@ class WeaselService:
         return id(session)
 
     def destroy_session(self, id):
+        '''
+        結束指定的會話
+        IME前端關閉輸入法時調用
+        '''
         if id not in self.__sessions:
             logger.warning("destroy_session: invalid session id %d." % id)
             return False
         del self.__sessions[id]
         return True
+
 
 service = WeaselService()
 
