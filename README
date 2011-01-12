@@ -1,55 +1,44 @@
 # README
 
-Hi. Thank you for taking time to read this, and for trying ibus-zime.
+zime: Zime Input Method Engine, an input method library designed for the Chinese language family
 
-Quick Start:
+features:
+- interchangeable schemas with a ubiquitous algorithm base
+- major functionalities from modern input method stereotypes
+- introduction of avant-guarde (sometimes PQliar) design
+- tweakability++
+- open-source 
+- cross-platform
 
-0. Make sure you've installed IBus:
+The zime alphabet: |
+    zed wy ex,
+    double-u vee u,
+    tee ess ar,
+    cue pee o,
+    en em el kay jay i aitch,
+    gee ef e dee cee bee a.
 
-http://ibus.googlecode.com/
+Sub-projects :
 
-1. Run `make install' with super user privilege under extracted ibus-zime folder.
+- ibus-rhyme : Linux/ibus client
+- weasel     : Windows client
+- squirrel   : planned Mac OS X client
+- digit      : planned Android client; reimplementation of core algo in Java
 
-cd ibus-zime/
-sudo make install
-make restart_ibus
+- breeze     : schema repository
+- essay      : the vocabulary
+- grammar    : a language model
+- plume      : planned web services
 
-2. Install the schema(s) of your choice.
+- combopinyin: innovative chord-typing practice
 
-# NOTE: Run these commands under ibus-zime/data/ as normal user. 
-# The resulting SQLite3 database file will be created for current user only, at ~/.ibus/zime/zime.db.
+- zhung      : an romanization scheme in Zhungyuan phonology
 
-# NOTE: If you're upgrading from a previous MAJOR version of ibus-zime (say, 2.x verus 3.x), 
-# clear the incompatible DB file with the command `make clear_db'.
+Epilogue: |
 
-# Install schema: Pinyin :(simplified), DoublePinyin, ComboPinyin (ZIME special offer)
-make schema_pinyin
+    Sorry for the temporary short of documentation. Feel free to explore.
 
-# Install schema: TonalPinyin (recommended:)
-make schema_tonal_pinyin
+    Visit zime project home page http://zime.googlecode.com/ for lastest news.
+    Questions go to <chen.sst@gmail.com>.
 
-# Install schema: Zhuyin (Bopomofo)
-make schema_zhuyin
-
-# Install schema: Quick (a Cangjie variant)
-make schema_quick
-
-# Install schema: Jyutping (Cantonese)
-make schema_jyutping
-
-# Install schema: Wu (Shanghainese)
-make schema_wu
-
-# Invent your own schema!
-# Guides and more schema samples available at
-http://code.google.com/p/zime/wiki/ZIMEData
-
-3. Restart IBus and enable ZIME engine in IBus preferences.
-
-4. When ZIME is active, type Ctrl+` to choose from installed schemas.
-
-Sorry for the temporary short of documentation. Feel free to explore.
-
-Visit ZIME project home page http://zime.googlecode.com/ for lastest news.
-Questions go to <chen.sst@gmail.com>.
-Thanks.
+    Thanks.
