@@ -9,11 +9,12 @@ from storage import DB
 
 
 class KeyEvent:
-    '''
-    鍵盤事件
+    ''' 鍵盤事件
+
     按ibus／GTK對鍵值的定義，keycode與字符對應而非與按鍵對應，即區分A與a
     mask含各種功能鍵狀態及按鍵的RELEASE狀態
     coined，是否偽造的按鍵，有時會在程序裡產生不同於實際輸入的鍵盤事件以模擬某個功能
+
     '''
     def __init__(self, keycode, mask, coined=False):
         self.keycode = keycode
@@ -36,11 +37,15 @@ class KeyEvent:
     def is_key_up(self):
         return bool(self.mask & modifier.RELEASE_MASK)
 
+# TODO: 這兩個類要取消
 
 class Spelling:
-    '''
-    拼寫，高亮顯示未完成輸入的編碼／未選定的標點符號
+
+    ''' 拼寫
+    
+    高亮顯示未完成輸入的編碼／未選定的標點符號
     其內容尚未記入編碼串中因此不會做轉換
+
     '''
 
     def __init__(self, text=None, start=0, end=0, padding=None):

@@ -14,6 +14,16 @@ class SpellingCollisionError:
 
 class SpellingAlgebra:
 
+    '''拼寫運算
+
+    佛振的得意設計。
+    通過一組正則表達式替換操作，變換音節表中的音節拼式。
+    以此定義音節輸入碼到內部編碼的映射關係。
+
+    TODO: ZIME 4 重新設計了拼寫運算，對編碼的映射做更精細的控制。
+
+    '''
+
     def __init__(self, report_errors=True):
         self.__report_errors = report_errors
 

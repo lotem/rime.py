@@ -10,6 +10,8 @@ from segmentation import Segmentor
 
 class Entry:
 
+    # TODO: 用slots做性能優化
+
     def __init__(self, e, i, j, prob=0.0, use_count=0, next=None):
         self.e = e
         self.i = i
@@ -36,9 +38,20 @@ class Entry:
         return w
 
     def get_phrase(self):
+        ''' 取詞組
+
+        ZIME3裡，一個候選詞組可由多個詞組成，有bigram將他們連接起來
+        ZIME4中，這樣的詞組不再作為候選列出
+        '''
         return u''.join([e.get_word() for e in self.get_all()])
 
     def partof(self, other):
+        ''' 判斷另一個詞／詞組是不是本詞組的一個前綴
+
+        作用是，判斷出實際含有半截詞組的中間節點，以從候選中去除
+        因為二元關係包含用戶選用的次數，若前綴與本詞組使用次數相同
+        則不視其為獨立的詞條
+        '''
         if self.use_count != other.use_count:
             return False
         a, b = self, other
@@ -53,6 +66,8 @@ class Entry:
 
 class ContextInfo:
 
+    # TODO: 這裡頭的一部分信息應該放到Context裡頭，另一些打包成Context.lmdata
+
     def __init__(self):
         self.m = 0
         self.n = 0
@@ -66,6 +81,8 @@ class ContextInfo:
 
 
 class Model:
+
+    # TODO: 可拆分成 LanguageModel, CandidateList, Builder
 
     PENALTY = log(1e-3)
     LIMIT = 50
