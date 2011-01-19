@@ -3,6 +3,12 @@
 # vim:set et sts=4 sw=4:
 
 import os
+import sys
+
+here = os.path.dirname(__file__)
+zime_engine_path = os.path.normpath(os.path.join(here, '..', 'engine'))
+sys.path.append(zime_engine_path)
+
 import ibus
 from ibus import keysyms
 from ibus import modifier
