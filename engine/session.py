@@ -2,15 +2,14 @@
 # vim:set et sts=4 sw=4:
 
 import time
-from ibus import keysyms
-from ibus import modifier
 
 from core import *
-from processor import *
+from context import *
+from composer import *
 from storage import *
 
 #from gettext import dgettext
-#_  = lambda a : dgettext("ibus-zime", a)
+#_  = lambda a : dgettext("zime", a)
 _ = lambda a : a
 N_ = lambda a : a
 
@@ -316,9 +315,11 @@ class Session(Processor):
         
 
 class Switcher(MenuHandler):
-    '''
-    切換輸入方案
+
+    '''切換輸入方案
+
     以熱鍵呼出方案選單，選取後將以相應的輸入方案創建會話
+
     '''
 
     def __init__(self, frontend, schema_id=None):

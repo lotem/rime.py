@@ -9,35 +9,31 @@ here = os.path.dirname(__file__)
 zime_engine_path = os.path.normpath(os.path.join(here, '..', 'engine'))
 sys.path.append(zime_engine_path)
 
-import ibus
-from ibus import keysyms
-from ibus import modifier
+test_db = os.path.join('.', 'test.db')
+os.environ["ZIME_DATABASE"] = test_db
 
-from core import KeyEvent
+from core import *
 import session
 import storage
 
 
-test_db = os.path.join('.', 'test.db')
-storage.DB.open(test_db)
-
-
 class ZimeTester:
-    '''
-    A test engine to verify ZIME session's functionality.
+
+    '''A test engine to verify ZIME session's functionality.
+
     Not a unit test.
-    The output of the session to the frontend 
-    is printed in detail and can be visually examined.
+    The output of the session for the frontend is printed in detail.
+
     '''
 
     def __init__(self, schema=None):
         self.__lookup_table = ibus.LookupTable()
-        self.__backend = session.Switcher(self, schema)
+        self.__session = session.Switcher(self, schema)
 
     def process_key_event(self, keycode, mask):
         print "process_key_event: '%s'(%x), %08x" % \
             (keysyms.keycode_to_name(keycode), keycode, mask)
-        return self.__backend.process_key_event(KeyEvent(keycode, mask))
+        return self.__session.process_key_event(KeyEvent(keycode, mask))
 
     def commit_string(self, s):
         print u'commit: [%s]' % s
@@ -134,11 +130,12 @@ class ZimeTester:
         return index
 
     def test(self, string):
-        '''
-        emulate input process with a key sequence.
+        '''emulate input process with a key sequence.
+
         a key can be represented by the printable ascii letter it produces,
         or a {KeyName} form.
         example: "pin'yin shurufa{Return}"
+
         '''
         key_name = ''
         is_key_name = False

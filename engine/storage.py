@@ -6,8 +6,10 @@ import sqlite3
 import sys
 import time
 
+
 def debug(*what):
     print >> sys.stderr, u'[DEBUG]: ', u' '.join(map(unicode, what))
+
 
 # sql for global tables
 
@@ -641,3 +643,17 @@ class DB:
             for k_id in k_ids:
                 self.__add_kb(k_id, b_id)
 
+
+def initialize():
+    # TODO: get db file path from config
+    db_file = os.getenv('ZIME_DATABASE')
+    if not db_file:
+        home_path = os.path.expanduser('~')
+        db_path = os.path.join(home_path, '.ibus', 'zime')
+        if not os.path.isdir(db_path):
+            os.makedirs(db_path)
+        db_file = os.path.join(db_path, 'zime.db')
+    debug('db_file:', db_file)
+    DB.open(db_file)
+
+initialize()

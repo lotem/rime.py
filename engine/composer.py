@@ -8,31 +8,27 @@ from ibus import modifier
 from core import *
 
 
-class Processor(object):
-    '''Processor基類'''
-    pass
-
 class Composer(Processor):
     '''完成按鍵到編碼串的轉換'''
 
-    #註冊工廠方法用
-    __parsers = dict()
+    __factories = dict()
 
     @classmethod
-    def register(cls, name, parser_class):
-        cls.__parsers[name] = parser_class
+    def register(cls, name, factory):
+        cls.__factories[name] = factory
 
     @classmethod
-    def get_parser_class(cls, parser_name):
-        return cls.__parsers[parser_name]
+    def get_factory(cls, composer_name):
+        return cls.__factories[composer_name]
 
     @classmethod
     def create(cls, schema):
-        return cls.get_parser_class(schema.get_parser_name()) (schema)
+        composer_name = schema.get_config_value(u'Parser')
+        return cls.get_factory(composer_name) (schema)
 
     def __init__(self, schema):
         self.__schema = schema
-        # 從Schema中讀取Parser會用到的一些設定值
+        # 從Schema中讀取用到的一些設定值
         self.auto_prompt = schema.get_config_value(u'AutoPrompt') in (u'yes', u'true')
         self.auto_predict = schema.get_config_value(u'Predict') in (None, u'yes', u'true')
         self.alphabet = schema.get_config_char_sequence(u'Alphabet') or u'abcdefghijklmnopqrstuvwxyz'
@@ -501,12 +497,8 @@ class MenuHandler(Processor):
 
 def initialize():
     Composer.register('roman', RomanComposer)
-    Composer.register('natural', RomanComposer)  # alias
     Composer.register('table', TableComposer)
     Composer.register('group', GroupComposer)
-    Composer.register('grouping', GroupComposer)  # alias
     Composer.register('combo', ComboComposer)
-    #Composer.register('echo', EchoComposer)
-    #Composer.register('symbol', SymbolComposer)
 
 initialize()
