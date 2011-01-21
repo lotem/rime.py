@@ -2,13 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import re
-from ibus import keysyms
-from ibus import modifier
-
 from core import *
 
 
 class Composer(Processor):
+
     '''完成按鍵到編碼串的轉換'''
 
     __factories = dict()
@@ -27,7 +25,7 @@ class Composer(Processor):
         return cls.get_factory(composer_name) (schema)
 
     def __init__(self, schema):
-        self.__schema = schema
+        self.schema = schema
         # 從Schema中讀取用到的一些設定值
         self.auto_prompt = schema.get_config_value(u'AutoPrompt') in (u'yes', u'true')
         self.auto_predict = schema.get_config_value(u'Predict') in (None, u'yes', u'true')
@@ -53,9 +51,6 @@ class Composer(Processor):
         self.__edit_keys = dict([key_mapping(c.split(None, 1)) for c in schema.get_config_list(u'EditKey')])
         # 初始化一個Spelling對象
         self.spelling = u''
-
-    def get_schema(self):
-        return self.__schema
 
     def start_raw_mode(self, ch):
         '''
