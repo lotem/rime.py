@@ -182,3 +182,4 @@ class Schema:
     def get_config_list(self, key):
         '''取多個設定值'''
         return self.__db.read_config_list(key)
+

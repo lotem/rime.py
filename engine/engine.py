@@ -2,20 +2,12 @@
 # vim:set et sts=4 sw=4:
 
 import time
-
 from core import *
 from composer import *
 from context import *
-from storage import *
-
-#from gettext import dgettext
-#_  = lambda a : dgettext("zime", a)
-_ = lambda a : a
-N_ = lambda a : a
 
 __all__ = (
     "Engine",
-    "Switcher",
 )
 
 
@@ -320,101 +312,4 @@ class Engine(Processor):
         self.__frontend.update_candidates(ctx.get_candidates())
         
 
-
-class Switcher(MenuHandler):
-
-    '''切換輸入方案
-
-    以熱鍵呼出方案選單，選取後將以相應的輸入方案創建會話
-
-    '''
-
-    def __init__(self, frontend, schema_id=None):
-        super(Switcher, self).__init__(frontend)
-        self.__frontend = frontend
-        self.__session = None
-        self.deactivate()
-        self.__load_schema_list()
-        self.choose(schema_id)
-
-    def __load_schema_list(self):
-        '''載入方案列表'''
-        tempo = dict()
-        for schema, t in DB.read_setting_items(u'SchemaChooser/LastUsed/'):
-            tempo[schema] = float(t)
-        # 按最近選用的時間順序排列
-        last_used_time = lambda s: tempo[s[0]] if s[0] in tempo else 0.0
-        schema_list = sorted(DB.read_setting_items(u'SchemaList/'),
-                             key=last_used_time, reverse=True)
-        self.__schema_list = schema_list
-
-    def choose(self, schema_id):
-        '''切換方案'''
-        schema_ids = [x[0] for x in self.__schema_list]
-        names = [x[1] for x in self.__schema_list]
-        index = -1
-        if schema_id and schema_id in schema_ids:
-            # 參數指定了方案標識
-            index = schema_ids.index(schema_id)
-        elif len(schema_ids) > 0:
-            # 默認選取第一項
-            index = 0
-        if index == -1:
-            # 無可用的方案
-            return
-        # 記錄選用方案的時間
-        now = time.time()        
-        DB.update_setting(
-            u'SchemaChooser/LastUsed/%s' % schema_ids[index],
-            unicode(now)
-        )
-        # 執行切換
-        self.deactivate()
-        self.__session = Engine(self.__frontend, schema_ids[index])
-        self.__frontend.update_aux(_(u'選用【%s】') % names[index])
-
-    def activate(self):
-        '''開啟選單'''
-        self.active = True
-        self.__load_schema_list()
-        self.__frontend.update_aux(_(u'方案選單'))
-        self.__frontend.update_candidates([
-            (name, schema) for schema, name in self.__schema_list
-        ])
-
-    def deactivate(self):
-        '''關閉選單'''
-        self.active = False
-        self.__schema_list = []
-
-    def on_escape(self):
-        '''關閉選單，返回上一會話'''
-        if self.__session:
-            self.deactivate()
-            self.__session.update_ui()
-
-    def on_select(self, index):
-        '''選用方案'''
-        if index >= 0 and index < len(self.__schema_list):
-            schema_id = self.__schema_list[index][0]
-            self.choose(schema_id)
-
-    def triggered(self, event):
-        '''以Ctrl-`或F1開啟選單'''
-        if event.keycode == keysyms.grave and event.mask & modifier.CONTROL_MASK or \
-            event.keycode == keysyms.F1:
-            return True
-        return False
-
-    def process_key_event(self, event):
-        if not self.__session:
-            self.__frontend.update_aux(_(u'無方案'))
-            return False
-        if self.active:
-            # on pressing F1 a second time, close switcher and send F1 key
-            if event.keycode == keysyms.F1 and not event.is_key_up():
-                self.on_escape()
-                return False
-        return super(Switcher, self).process_key_event(event) or \
-               self.__session.process_key_event(event)
 
