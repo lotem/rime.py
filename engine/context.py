@@ -10,12 +10,12 @@ class Context:
     '''輸入上下文
     '''
 
-    def __init__(self, callback, schema):
-        # 上下文更新後通過callback反饋給前端
-        self.__cb = callback
+    def __init__(self, schema):
+        self.schema = schema
+        # 上下文更新後通過on_update() callback反饋給前端
+        self.__update_notifiers = []
         # Context調用Model完成輸入串到預測結果的轉換，並取得所有相關候選詞
         self.__model = Model(schema)
-        #self.schema = schema
         # 以下讀取Context關心的設定值
         self.__delimiter = schema.get_config_char_sequence(u'Delimiter') or u' '
         self.__auto_delimit = schema.get_config_value(u'AutoDelimit') in (u'yes', u'true')
@@ -30,6 +30,13 @@ class Context:
             self.__translit = None
         # 置為初始狀態
         self.__reset()
+
+    def add_update_notifier(self, notifier):
+        self.__update_notifiers.append(notifier)
+
+    def notify_update(self):
+        for notifier in self.__update_notifiers:
+            notifier.on_update(self)
 
     def __reset(self, keep_context=False):
         # 輸入串，可以是字符序列（如在羅馬字解析方式下）或音節編碼的序列
@@ -51,7 +58,7 @@ class Context:
     
     def clear(self):
         self.__reset()
-        self.__cb.update_ui()
+        self.notify_update()
     
     def is_empty(self):
         return not self.input
@@ -105,7 +112,7 @@ class Context:
                 # 使用設定值Predict = yes，顯示預測的轉換結果，而不是輸入串本身，否則需要按空格手動轉換
                 self.__predict()
         # 更新到前端
-        self.__cb.update_ui()
+        self.notify_update()
 
     def has_error(self):
         '''錯誤的輸入串'''
@@ -257,7 +264,7 @@ class Context:
             self.err = Entry(None, err_pos, len(self.input))
             self.cur = []
         # 更新到前端
-        self.__cb.update_ui()
+        self.notify_update()
 
     def select(self, e):
         '''從候選詞列表中手工選定一條候選詞'''
@@ -289,7 +296,7 @@ class Context:
         t[-1] = c
         self.__display = (u''.join(p), t)
 
-    def get_clause(self):
+    def get_sentence(self):
         '''取得編輯中的文字'''
         if self.is_empty():
             return u'', 0, 0

@@ -12,28 +12,28 @@ sys.path.append(zime_engine_path)
 test_db = os.path.join('.', 'test.db')
 os.environ["ZIME_DATABASE"] = test_db
 
+import ibus
 from core import *
-import session
-import storage
+from engine import *
 
 
-class ZimeTester:
+class TestSession(Frontend):
 
-    '''A test engine to verify ZIME session's functionality.
+    '''A test session to verify ZIME engine's functionality.
 
     Not a unit test.
-    The output of the session for the frontend is printed in detail.
+    The output of the engine for the frontend is printed in detail.
 
     '''
 
-    def __init__(self, schema=None):
+    def __init__(self, schema_id=None):
         self.__lookup_table = ibus.LookupTable()
-        self.__session = session.Switcher(self, schema)
+        self.__backend = Engine(self, schema_id)
 
     def process_key_event(self, keycode, mask):
         print "process_key_event: '%s'(%x), %08x" % \
             (keysyms.keycode_to_name(keycode), keycode, mask)
-        return self.__session.process_key_event(KeyEvent(keycode, mask))
+        return self.__backend.process_key_event(KeyEvent(keycode, mask))
 
     def commit_string(self, s):
         print u'commit: [%s]' % s
@@ -129,7 +129,7 @@ class ZimeTester:
         print u'highlighted_candidate_index = %d' % index
         return index
 
-    def test(self, string):
+    def feed(self, string):
         '''emulate input process with a key sequence.
 
         a key can be represented by the printable ascii letter it produces,
@@ -151,45 +151,52 @@ class ZimeTester:
             else:
                 self.process_key_event(ord(c), 0)
 
-def main():
-
+def test_switcher():
     # calls schema switcher
-    #e = ZimeTester()
-    #e.process_key_event(keysyms.grave, modifier.CONTROL_MASK)  # Ctrl+grave
+    e = TestSession()
+    e.process_key_event(keysyms.grave, modifier.CONTROL_MASK)  # Ctrl+grave
     # make a choice
-    #e.test('2')
+    e.feed('2')
 
-    #e = ZimeTester(u'Zhuyin')
-    #e.test('rm/3rm/3u.3gp6zj/ {Escape}2k7al {Tab}{Return}')
+def test_pinyin():
+    e = TestSession(u'Pinyin')
+    e.feed('jiongajiong ')
 
-    #e = ZimeTester(u'Pinyin')
-    #e.test('jiong ')
-    #e.test('jiongqiongxiongyong{Home}{Right}{Right}{Right}{Right}')
-    #e.test("pinyin-shurufa'{Left}")
-    #e.test('henanquan{Home}{Tab} ')
-    #e.test('henanhenanquan{Tab} {Tab}{Tab}')
+def test_editor():
+    e.feed('jiongqiongxiongyong{Home}{Right}{Right}{Right}{Right}')
+    e.feed("pinyin-shurufa'{Left}")
+    e.feed('henanquan{Home}{Tab} ')
+    e.feed('henanhenanquan{Tab} {Tab}{Tab}')
 
-    #e = ZimeTester(u'ComboPinyin')
-    #e.process_key_event(keysyms.r, 0)
-    #e.process_key_event(keysyms.j, 0)
-    #e.process_key_event(keysyms.k, 0)
-    #e.process_key_event(keysyms.l, 0)
-    #e.process_key_event(keysyms.r, modifier.RELEASE_MASK)
-    #e.process_key_event(keysyms.j, modifier.RELEASE_MASK)
-    #e.process_key_event(keysyms.k, modifier.RELEASE_MASK)
-    #e.process_key_event(keysyms.l, modifier.RELEASE_MASK)
-    #e.process_key_event(keysyms.space, 0)
-    #e.process_key_event(keysyms.space, modifier.RELEASE_MASK)
+def test_zhuyin():
+    e = TestSession(u'Zhuyin')
+    e.feed('rm/3rm/3u.3gp6zj/ {Escape}2k7al {Tab}{Return}')
 
-    #e = ZimeTester(u'Jyutping')
-    #e.test('jyuhomindeoicangjatheizaugwodikjatzi')
+def test_combo_pinyin():
+    e = TestSession(u'ComboPinyin')
+    e.process_key_event(keysyms.r, 0)
+    e.process_key_event(keysyms.j, 0)
+    e.process_key_event(keysyms.k, 0)
+    e.process_key_event(keysyms.l, 0)
+    e.process_key_event(keysyms.r, modifier.RELEASE_MASK)
+    e.process_key_event(keysyms.j, modifier.RELEASE_MASK)
+    e.process_key_event(keysyms.k, modifier.RELEASE_MASK)
+    e.process_key_event(keysyms.l, modifier.RELEASE_MASK)
+    e.process_key_event(keysyms.space, 0)
+    e.process_key_event(keysyms.space, modifier.RELEASE_MASK)
 
-    e = ZimeTester(u'TonalPinyin')
-    e.test('woyebuzhidaoshibushi .jiong')
-    #e.test('pkucn.com')
-    #e.test('3.14wo1.0')
+def test_jyutping():
+    e = TestSession(u'Jyutping')
+    e.feed('jyuhomindeoicangjatheizaugwodikjatzi')
 
-    pass
+def test_tonal_pinyin():
+    e = TestSession(u'TonalPinyin')
+    e.feed('woyebuzhidaoshibushi .jiong')
+    e.feed('pkucn.com')
+    e.feed('3.14wo1.0')
+
+def main():
+    test_pinyin()
 
 if __name__ == "__main__":
     main()

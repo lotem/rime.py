@@ -12,8 +12,8 @@ class Composer(Processor):
     __factories = dict()
 
     @classmethod
-    def register(cls, name, factory):
-        cls.__factories[name] = factory
+    def register_factory(cls, composer_name, factory):
+        cls.__factories[composer_name] = factory
 
     @classmethod
     def get_factory(cls, composer_name):
@@ -491,9 +491,9 @@ class MenuHandler(Processor):
 
 
 def initialize():
-    Composer.register('roman', RomanComposer)
-    Composer.register('table', TableComposer)
-    Composer.register('group', GroupComposer)
-    Composer.register('combo', ComboComposer)
+    Composer.register_factory('roman', RomanComposer)
+    Composer.register_factory('table', TableComposer)
+    Composer.register_factory('group', GroupComposer)
+    Composer.register_factory('combo', ComboComposer)
 
 initialize()

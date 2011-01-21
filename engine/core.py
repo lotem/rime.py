@@ -12,10 +12,11 @@ __all__ = (
     "keysyms",
     "modifier",
     "KeyEvent",
+    "Frontend",
     "Processor",
     "Schema",    
     "Spelling",
-    "Commit"
+    "Commit", 
 )
 
 class KeyEvent(object):
@@ -46,6 +47,64 @@ class KeyEvent(object):
 
     def is_key_up(self):
         return bool(self.mask & modifier.RELEASE_MASK)
+
+
+class Frontend(object):
+
+    '''抽象的前端
+    '''
+
+    def commit_string(self, s):
+        '''文字上屏
+        '''
+        pass
+
+    def update_preedit(self, s, start=0, end=0):
+        '''更新寫作串
+        [start, end) 定義了串中的高亮區間
+        '''
+        pass
+
+    def update_aux(self, s, start=0, end=0):
+        '''更新輔助串
+        [start, end) 定義了串中的高亮區間
+        '''
+        pass
+
+    def update_candidates(self, candidates):
+        '''更新候選列表
+        '''
+        pass
+
+    def page_up(self):
+        '''上翻頁
+        '''
+        pass
+
+    def page_down(self):
+        '''下翻頁
+        '''
+        pass
+
+    def cursor_up(self):
+        '''高亮上一候選
+        '''
+        pass
+
+    def cursor_down(self):
+        '''高亮下一候選
+        '''
+        pass
+
+    def get_highlighted_candidate_index(self):
+        '''依選詞光標取得高亮候選詞在候選詞列表中的索引
+        '''
+        return -1
+
+    def get_candidate_index(self, number):
+        '''依候選詞在當前頁中的序號，取得其在候選詞列表中的索引
+        '''
+        return -1
 
 
 class Processor(object):
@@ -99,13 +158,9 @@ class Schema:
     '''輸入方案
     '''
 
-    def __init__(self, name):
-        self.__name = name
-        self.__db = DB(name)
-
-    def get_name(self):
-        '''取得輸入方案的內部名稱'''
-        return self.__name
+    def __init__(self, schema_id):
+        self.schema_id = schema_id
+        self.__db = DB(schema_id)
 
     def get_db(self):
         return self.__db
@@ -127,5 +182,3 @@ class Schema:
     def get_config_list(self, key):
         '''取多個設定值'''
         return self.__db.read_config_list(key)
-
-

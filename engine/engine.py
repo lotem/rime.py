@@ -4,8 +4,8 @@
 import time
 
 from core import *
-from context import *
 from composer import *
+from context import *
 from storage import *
 
 #from gettext import dgettext
@@ -14,21 +14,23 @@ _ = lambda a : a
 N_ = lambda a : a
 
 __all__ = (
-    "Session",
+    "Engine",
     "Switcher",
 )
 
-class Session(Processor):
+
+class Engine(Processor):
 
     ROLLBACK_COUNTDOWN = 3  # seconds
 
-    def __init__(self, frontend, name):
+    def __init__(self, frontend, schema_id):
         self.__frontend = frontend
-        self.__schema = schema = Schema(name)
-        self.__db = schema.get_db()
-        self.__composer = Composer.create(schema)
-        self.__ctx = Context(self, schema)
-        self.__auto_prompt = schema.get_config_value(u'AutoPrompt') in (u'yes', u'true')
+        self.schema = Schema(schema_id)
+        self.__db = self.schema.get_db()
+        self.__composer = Composer.create(self.schema)
+        self.ctx = Context(self.schema)
+        self.ctx.add_update_notifier(self)
+        self.__auto_prompt = self.schema.get_config_value(u'AutoPrompt') in (u'yes', u'true')
         self.__punct = None
         self.__punct_key = 0
         self.__punct_rep = 0
@@ -49,13 +51,13 @@ class Session(Processor):
             ):
             if (event.mask & ~modifier.RELEASE_MASK) == modifier.CONTROL_MASK and \
                 keycode >= keysyms._1 and keycode <= keysyms._9:
-                candidates = self.__ctx.get_candidates()
+                candidates = self.ctx.get_candidates()
                 if candidates:
                     if event.mask & modifier.RELEASE_MASK == 0:
                         # delete phrase
                         index = self.__frontend.get_candidate_index(event.keycode - keysyms._1)
                         if index >= 0 and index < len(candidates):
-                            self.__ctx.delete_phrase(candidates[index][1])
+                            self.ctx.delete_phrase(candidates[index][1])
                     return True
             # ignore other hotkeys
             return False
@@ -80,7 +82,7 @@ class Session(Processor):
                 return True
             self.__commit_punct()
             # continue processing
-        result = self.__composer.process_input(event, self.__ctx)
+        result = self.__composer.process_input(event, self.ctx)
         if result is True:
             return True
         if result is False:
@@ -91,7 +93,7 @@ class Session(Processor):
         if isinstance(result, Commit):
             self.__frontend.commit_string(result)
             self.__composer.clear()
-            self.__ctx.clear()
+            self.ctx.clear()
             self.__numeric = False
             return True
         if isinstance(result, Spelling):
@@ -103,12 +105,12 @@ class Session(Processor):
         if isinstance(result, list):
             # handle input
             if self.__is_conversion_mode():
-                if self.__ctx.is_completed():
+                if self.ctx.is_completed():
                     # auto-commit
                     self.__commit()
                 else:
                     return True
-            self.__ctx.edit(self.__ctx.input + result, start_conversion=self.__auto_prompt)
+            self.ctx.edit(self.ctx.input + result, start_conversion=self.__auto_prompt)
             return True
         if isinstance(result, KeyEvent):
             # coined key event
@@ -129,7 +131,7 @@ class Session(Processor):
         self.__frontend.update_preedit(u'', 0, 0)
         if commit:
             self.__frontend.commit_string(punct)
-            self.__ctx.clear()
+            self.ctx.clear()
             self.__numeric = False
 
     def __judge(self, event):
@@ -148,7 +150,7 @@ class Session(Processor):
         return False
 
     def __process(self, event):
-        ctx = self.__ctx
+        ctx = self.ctx
         if ctx.is_empty():
             if event.mask & modifier.RELEASE_MASK and self.__punct:
                 return True
@@ -243,7 +245,7 @@ class Session(Processor):
         return True
 
     def __is_conversion_mode(self, assumed=False):
-        return(not self.__auto_prompt or assumed) and self.__ctx.being_converted()
+        return(not self.__auto_prompt or assumed) and self.ctx.being_converted()
 
     def __handle_punct(self, event, commit):
         result, punct = self.__composer.check_punct(event)
@@ -266,53 +268,58 @@ class Session(Processor):
             return False
         index = self.__frontend.get_candidate_index(n)
         if index >= 0 and index < len(candidates):
-            self.__ctx.select(candidates[index][1])
+            self.ctx.select(candidates[index][1])
             self.__confirm_current()
         return True
 
     def __select_by_cursor(self, candidates):
         index = self.__frontend.get_highlighted_candidate_index()
         if index >= 0 and index < len(candidates):
-            self.__ctx.select(candidates[index][1])
-            self.__frontend.update_preedit(self.__ctx.get_prompt())
-            clause, start, end = self.__ctx.get_clause()
-            self.__frontend.update_aux(clause, start, end)
+            self.ctx.select(candidates[index][1])
+            self.__frontend.update_preedit(self.ctx.get_prompt())
+            sentence, start, end = self.ctx.get_sentence()
+            self.__frontend.update_aux(sentence, start, end)
             return True
         return False
 
     def __confirm_current(self):
-        if self.__ctx.is_completed():
+        if self.ctx.is_completed():
             self.__commit()
         else:
-            self.__ctx.forward()
+            self.ctx.forward()
 
     def __commit(self, as_display=False, plain_input=False):
         if plain_input:
-            s = self.__ctx.get_input_string() 
+            s = self.ctx.get_input_string() 
         elif as_display:
-            s = self.__ctx.get_display_string()
+            s = self.ctx.get_display_string()
         else:
-            s = self.__ctx.get_commit_string()
+            s = self.ctx.get_commit_string()
         self.__frontend.commit_string(s)
         self.__composer.clear()
-        self.__ctx.commit()
-        self.__rollback_time = time.time() + Session.ROLLBACK_COUNTDOWN
+        self.ctx.commit()
+        self.__rollback_time = time.time() + Engine.ROLLBACK_COUNTDOWN
         self.__numeric = False
 
     def __update_spelling(self, spelling):
-        clause, start, end = self.__ctx.get_clause()
-        start = len(clause) + spelling.start
-        end = len(clause) + spelling.end
-        self.__frontend.update_aux(clause + spelling.text, start, end)
-        self.__frontend.update_preedit(self.__ctx.get_prompt())
+        sentence, start, end = self.ctx.get_sentence()
+        start = len(sentence) + spelling.start
+        end = len(sentence) + spelling.end
+        self.__frontend.update_aux(sentence + spelling.text, start, end)
+        self.__frontend.update_preedit(self.ctx.get_prompt())
         self.__frontend.update_candidates([])
 
+    # TODO:
     def update_ui(self):
-        self.__frontend.update_preedit(self.__ctx.get_prompt())
-        clause, start, end = self.__ctx.get_clause()
-        self.__frontend.update_aux(clause, start, end)
-        self.__frontend.update_candidates(self.__ctx.get_candidates())
+        self.on_update(self.ctx)
+
+    def on_update(self, ctx):
+        self.__frontend.update_preedit(ctx.get_prompt())
+        sentence, start, end = ctx.get_sentence()
+        self.__frontend.update_aux(sentence, start, end)
+        self.__frontend.update_candidates(ctx.get_candidates())
         
+
 
 class Switcher(MenuHandler):
 
@@ -363,7 +370,7 @@ class Switcher(MenuHandler):
         )
         # 執行切換
         self.deactivate()
-        self.__session = Session(self.__frontend, schema_ids[index])
+        self.__session = Engine(self.__frontend, schema_ids[index])
         self.__frontend.update_aux(_(u'選用【%s】') % names[index])
 
     def activate(self):
