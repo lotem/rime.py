@@ -53,16 +53,18 @@ class Composer(Processor):
         self.spelling = u''
 
     def start_raw_mode(self, ch):
-        '''
-        進入西文模式
+        '''進入西文模式
+
         ch為進入西文模式的前導編碼
         用Spelling來表現西文模式下的輸入串（反白顯示且不作為編碼輸入）
+
         '''
         self.spelling = ch
         return Spelling(self.spelling)
 
     def process_raw_mode(self, event):
-        '''處理西文模式下的輸入'''
+        '''處理西文模式下的輸入
+        '''
         p = self.spelling
         ch = event.get_char()
         if event.keycode == keysyms.Return:
@@ -86,9 +88,10 @@ class Composer(Processor):
         return True
 
     def check_punct(self, event):
-        '''
-        判斷給定的鍵盤事件是否標點輸入
+        '''查標點輸入
+
         結果中包含查表所得的標點符號
+
         '''
         ch = event.get_char()
         if ch in self.__punct:
@@ -109,9 +112,10 @@ class Composer(Processor):
         return False, None
 
     def check_edit_key(self, event):
-        '''
-        檢查給定的鍵盤事件是否自定義編輯功能鍵
-        若擊自定義編輯鍵，會返回一個偽造的等效預設編輯鍵
+        '''檢查自定義編輯鍵
+
+        擊自定義編輯鍵，會返回一個偽造的等效預設編輯鍵
+
         '''
         if not event.coined and event.keycode in self.__edit_keys:
             return KeyEvent(self.__edit_keys[event.keycode], 0, coined=event)

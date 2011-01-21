@@ -162,6 +162,10 @@ def test_pinyin():
     e = TestSession(u'Pinyin')
     e.feed('jiongajiong ')
 
+def test_rawmode():
+    e = TestSession(u'Pinyin')
+    e.feed('ZIME 4!{Return}')
+
 def test_editor():
     e.feed('jiongqiongxiongyong{Home}{Right}{Right}{Right}{Right}')
     e.feed("pinyin-shurufa'{Left}")
@@ -196,6 +200,7 @@ def test_tonal_pinyin():
     e.feed('3.14wo1.0')
 
 def main():
+    test_rawmode()
     test_pinyin()
 
 if __name__ == "__main__":
