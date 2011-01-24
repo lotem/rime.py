@@ -9,7 +9,7 @@ here = os.path.dirname(__file__)
 zime_engine_path = os.path.normpath(os.path.join(here, '..', 'engine'))
 sys.path.append(zime_engine_path)
 
-test_db = os.path.join('.', 'test.db')
+test_db = os.path.join(here, 'test.db')
 os.environ["ZIME_DATABASE"] = test_db
 
 import ibus
