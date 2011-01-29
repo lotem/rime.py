@@ -42,7 +42,7 @@ class Engine(Processor):
             modifier.SUPER_MASK | modifier.HYPER_MASK | modifier.META_MASK
             ):
             if (event.mask & ~modifier.RELEASE_MASK) == modifier.CONTROL_MASK and \
-                keycode >= keysyms._1 and keycode <= keysyms._9:
+                event.keycode >= keysyms._1 and event.keycode <= keysyms._9:
                 candidates = self.ctx.get_candidates()
                 if candidates:
                     if event.mask & modifier.RELEASE_MASK == 0:
