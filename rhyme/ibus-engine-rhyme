@@ -1,0 +1,8 @@
+#!/bin/sh
+# vim:set et sts=4 sw=4
+
+prefix=/usr
+rhymedir=${prefix}/share/ibus-rhyme
+export IBUS_RHYME_LOCATION=${rhymedir}
+exec python ${rhymedir}/engine/main.py $@
+
