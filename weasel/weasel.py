@@ -57,17 +57,13 @@ class WeaselSession:
 
     '''
 
-    def __init__(self, params=''):
+    def __init__(self, params=None):
         logger.info("init weasel session: %s", params)
         # TODO: 
         self.__page_size = storage.DB.read_setting(u'Option/PageSize') or 5
         self.__lookup_table = ibus.LookupTable(self.__page_size)
-        logger.info("init weasel session: 1")
         self.__clear()
-        logger.info("init weasel session: 2")
-        # TODO:
-        self.__backend = Engine(self, u'Pinyin')
-        logger.info("init weasel session: 3")
+        self.__backend = Engine(self, params)
 
     def __clear(self):
         self.__commit = None

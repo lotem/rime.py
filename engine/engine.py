@@ -17,7 +17,8 @@ class Engine(Processor):
 
     def __init__(self, frontend, schema_id):
         self.__frontend = frontend
-        self.schema = Schema(schema_id)
+        # TODO: work-around the absence of Switcher
+        self.schema = Schema(schema_id or u'Pinyin')
         self.__db = self.schema.get_db()
         self.__composer = Composer.create(self.schema)
         self.ctx = Context(self.schema)
