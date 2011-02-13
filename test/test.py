@@ -6,8 +6,8 @@ import os
 import sys
 
 here = os.path.dirname(__file__)
-zime_engine_path = os.path.normpath(os.path.join(here, '..', 'engine'))
-sys.path.append(zime_engine_path)
+engine_path = os.path.normpath(os.path.join(here, '..', 'engine'))
+sys.path.append(engine_path)
 
 test_db = os.path.join(here, 'test.db')
 os.environ["ZIME_DATABASE"] = test_db
@@ -19,7 +19,7 @@ from engine import *
 
 class TestSession(Frontend):
 
-    '''A test session to verify ZIME engine's functionality.
+    '''A test session to verify rime engine's functionality.
 
     Not a unit test.
     The output of the engine for the frontend is printed in detail.
@@ -44,9 +44,7 @@ class TestSession(Frontend):
         else:
             print u'preedit: [%s]' % s
         if not s:
-            #super(ZimeEngine, self).hide_preedit_text()
             return
-        #super(ZimeEngine, self).update_preedit_text(ibus.Text(s), length, True)
 
     def update_aux(self, s, start=0, end=0):
         if start < end:
@@ -54,9 +52,7 @@ class TestSession(Frontend):
         else:
             print u'aux: [%s]' % s
         if not s:
-            #super(ZimeEngine, self).hide_auxiliary_text()
             return
-        #super(ZimeEngine, self).update_auxiliary_text(ibus.Text(s), True)
 
     def update_candidates(self, candidates):
         self.__lookup_table.clean()
@@ -164,7 +160,7 @@ def test_pinyin():
 
 def test_rawmode():
     e = TestSession(u'Pinyin')
-    e.feed('ZIME 4!{Return}')
+    e.feed('Rime 1.0!{Return}')
 
 def test_editor():
     e.feed('jiongqiongxiongyong{Home}{Right}{Right}{Right}{Right}')

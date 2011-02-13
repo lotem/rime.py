@@ -40,8 +40,8 @@ class Entry:
     def get_phrase(self):
         ''' 取詞組
 
-        ZIME3裡，一個候選詞組可由多個詞組成，有bigram將他們連接起來
-        ZIME4中，這樣的詞組不再作為候選列出
+        ZIME3.x裡，一個候選詞組可由多個詞組成，有bigram將他們連接起來
+        今後，這樣的詞組不再作為候選列出
         '''
         return u''.join([e.get_word() for e in self.get_all()])
 

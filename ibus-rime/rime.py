@@ -2,7 +2,7 @@
 # vim:set et sts=4 sw=4:
 
 __all__ = (
-    "RhymeSession",
+    "RimeSession",
 )
 
 import os
@@ -11,16 +11,16 @@ from core import *
 from engine import *
 
 
-class RhymeSession(ibus.EngineBase, Frontend):
+class RimeSession(ibus.EngineBase, Frontend):
 
-    '''【平水韻】會話
+    '''Rime會話
     
-    將ZIME核心算法包裝成ibus輸入引擎，響應一個客戶程序的輸入請求
+    實現ibus輸入引擎，響應一個客戶程序的輸入請求
 
     '''
 
     def __init__(self, conn, object_path):
-        super(RhymeSession, self).__init__(conn, object_path)
+        super(RimeSession, self).__init__(conn, object_path)
         # TODO: 
         self.__page_size = storage.DB.read_setting(u'Option/PageSize') or 5
         self.__lookup_table = ibus.LookupTable(self.__page_size)
@@ -35,7 +35,7 @@ class RhymeSession(ibus.EngineBase, Frontend):
         '''文字上屏
         '''
         #logger.debug(u'commit: [%s]' % s)
-        super(RhymeSession, self).commit_text(ibus.Text(s))
+        super(RimeSession, self).commit_text(ibus.Text(s))
 
     def update_preedit(self, s, start=0, end=0):
         '''更新寫作串
@@ -43,7 +43,7 @@ class RhymeSession(ibus.EngineBase, Frontend):
         '''
         #logger.debug(u'preedit: [%s]' % s)
         if not s:
-            super(RhymeSession, self).hide_preedit_text()
+            super(RimeSession, self).hide_preedit_text()
             return
         length = len(s)
         attrs = ibus.AttrList()
@@ -52,7 +52,7 @@ class RhymeSession(ibus.EngineBase, Frontend):
             attrs.append(ibus.AttributeBackground(ibus.RGB(255, 255, 128), start, end))
             attrs.append(ibus.AttributeForeground(ibus.RGB(0, 0, 0), start, end))
         t = ibus.Text(s, attrs)
-        super(RhymeSession, self).update_preedit_text(t, length, True)
+        super(RimeSession, self).update_preedit_text(t, length, True)
 
     def update_aux(self, s, start=0, end=0):
         '''更新輔助串
@@ -60,7 +60,7 @@ class RhymeSession(ibus.EngineBase, Frontend):
         '''
         #logger.debug(u'aux: [%s]' % s)
         if not s:
-            super(RhymeSession, self).hide_auxiliary_text()
+            super(RimeSession, self).hide_auxiliary_text()
             return
         length = len(s)
         attrs = ibus.AttrList()
@@ -68,7 +68,7 @@ class RhymeSession(ibus.EngineBase, Frontend):
             attrs.append(ibus.AttributeBackground(ibus.RGB(255, 255, 128), start, end))
             attrs.append(ibus.AttributeForeground(ibus.RGB(0, 0, 0), start, end))
         t = ibus.Text(s, attrs)
-        super(RhymeSession, self).update_auxiliary_text(t, True)
+        super(RimeSession, self).update_auxiliary_text(t, True)
 
     def update_candidates(self, candidates):
         '''更新候選列表

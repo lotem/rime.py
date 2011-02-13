@@ -1,6 +1,6 @@
 # README
 
-zime: Zime Input Method Engine, an input method library designed for the Chinese language family
+RIME: Rime Input Method Engine, an input method library designed for the Chinese language family
 
 features:
 - interchangeable schemas with a ubiquitous algorithm base
@@ -10,7 +10,21 @@ features:
 - open-source 
 - cross-platform
 
-The zime alphabet: |
+Sub-projects:
+
+- ibus-rime : Linux/ibus client
+- plume     : web-based input method
+- squirrel  : planned Mac OS X client
+- weasel    : Windows client
+
+Related projects:
+
+- combopy   : an innovative chord-typing practice
+- brise     : rime schema repository
+- essay     : vocabulary and language model
+- zhung     : an romanization scheme for Zhungyuan Mandarin phonology
+
+The rime alphabet: |
     zed wy ex,
     double-u vee u,
     tee ess ar,
@@ -18,27 +32,13 @@ The zime alphabet: |
     en em el kay jay i aitch,
     gee ef e dee cee bee a.
 
-Sub-projects :
-
-- ibus-rhyme : Linux/ibus client
-- weasel     : Windows client
-- squirrel   : planned Mac OS X client
-- digit      : planned Android client; reimplementation of core algo in Java
-
-- breeze     : schema repository
-- essay      : the vocabulary
-- grammar    : a language model
-- plume      : planned web services
-
-- combopinyin: innovative chord-typing practice
-
-- zhung      : an romanization scheme in Zhungyuan phonology
-
 Epilogue: |
 
     Sorry for the temporary short of documentation. Feel free to explore.
 
-    Visit zime project home page http://zime.googlecode.com/ for lastest news.
-    Questions go to <chen.sst@gmail.com>.
+    For lastest news, visit rime project home page:
+    http://github.com/lotem/rime
+
+    Questions go to <chen.sst@gmail.com>
 
     Thanks.

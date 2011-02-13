@@ -6,8 +6,8 @@ import os
 import sys
 
 here = os.path.dirname(__file__)
-zime_engine_path = os.path.normpath(os.path.join(here, '..', 'engine'))
-sys.path.append(zime_engine_path)
+engine_path = os.path.normpath(os.path.join(here, '..', 'engine'))
+sys.path.append(engine_path)
 weasel_path = os.path.normpath(os.path.join(here, '..', 'weasel'))
 sys.path.append(weasel_path)
 

@@ -53,7 +53,7 @@ class WeaselSession:
 
     '''【小狼毫】會話
 
-    承擔ZIME算法引擎與【小狼毫】前端的交互
+    承擔Rime算法引擎與【小狼毫】前端的交互
 
     '''
 
@@ -102,7 +102,7 @@ class WeaselSession:
             msg.append(u'.\n')
             return u''.join(msg)
     
-    # implement a frontend proxy for zimeengine
+    # implement a frontend proxy for rime engine
 
     def commit_string(self, s):
         '''文字上屏'''

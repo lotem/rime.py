@@ -9,14 +9,14 @@ import factory
 
 class IMApp:
     def __init__(self, exec_by_ibus):
-        self.__component = ibus.Component("cn.zzsst.zime.Rhyme",
-                                          "Rhyme Component",
+        self.__component = ibus.Component("cn.zzsst.Rime",
+                                          "Rime Component",
                                           "0.1.0",
                                           "GPL",
                                           "GONG Chen <chen.sst@gmail.com>")
-        self.__component.add_engine("rhyme",
-                                    "Rhyme",
-                                    "ibus-rhyme, based on Zime Input Method Engine",
+        self.__component.add_engine("rime",
+                                    "Rime",
+                                    "ibus-rime, powered by Rime Input Method Engine",
                                     "zh_CN",
                                     "GPL",
                                     "GONG Chen <chen.sst@gmail.com>",
@@ -27,7 +27,7 @@ class IMApp:
         self.__bus.connect("destroy", self.__bus_destroy_cb)
         self.__factory = factory.EngineFactory(self.__bus)
         if exec_by_ibus:
-            self.__bus.request_name("cn.zzsst.zime.Rhyme", 0)
+            self.__bus.request_name("cn.zzsst.Rime", 0)
         else:
             self.__bus.register_component(self.__component)
 
