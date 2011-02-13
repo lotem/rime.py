@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 __all__ = (
-    "MenuHandler",
+    "MenuProcessor",
     "Switcher",
 )
 
@@ -15,11 +15,12 @@ _ = lambda a : a
 N_ = lambda a : a
 
 
-class MenuHandler(Processor):
+class MenuProcessor(Processor):
+
     '''選單相關的按鍵處理框架'''
 
-    def __init__(self, frontend):
-        self.__frontend = frontend
+    def __init__(self, handler):
+        self.handler = handler
         self.active = False
 
     def activate(self):
@@ -29,28 +30,13 @@ class MenuHandler(Processor):
         self.active = False
 
     def handle_additional_function_key(self, event):
-        '''
-        處理其他功能鍵
-        如對自定義功能鍵做映射
-        '''
+        '''處理其他功能鍵'''
         return False
 
     def triggered(self, event):
         '''判斷開啟選單的條件'''
         return True
 
-    def on_page_up(self):
-        pass
-        
-    def on_page_down(self):
-        pass
-        
-    def on_cursor_up(self):
-        pass
-        
-    def on_cursor_down(self):
-        pass
-        
     def on_escape(self):
         '''響應取消選取的動作'''
         self.deactivate()
@@ -63,7 +49,8 @@ class MenuHandler(Processor):
         '''按鍵處理流程'''
         if not self.active:
             if self.triggered(event):
-                if not event.is_key_up():
+                # 為防止長按而發生重複，此處直到按鍵彈起方才打開菜單
+                if event.is_key_up():
                     self.activate()
                 return True
             # 不做處理！
@@ -80,38 +67,34 @@ class MenuHandler(Processor):
             self.on_escape()
             return True
         if event.keycode == keysyms.Page_Up:
-            if self.__frontend.page_up():
-                self.on_page_up()
-                return True
+            self.handler.on_page_up()
             return True
         if event.keycode == keysyms.Page_Down:
-            if self.__frontend.page_down():
-                self.on_page_down()
-                return True
+            self.handler.on_page_down()
             return True
         if event.keycode == keysyms.Up:
-            if self.__frontend.cursor_up():
-                self.on_cursor_up()
-                return True
+            self.handler.on_cursor_up()
             return True
         if event.keycode == keysyms.Down:
-            if self.__frontend.cursor_down():
-                self.on_cursor_down()
-                return True
+            self.handler.on_cursor_down()
             return True
         if event.keycode >= keysyms._1 and event.keycode <= keysyms._9:
-            index = self.__frontend.get_candidate_index(event.keycode - keysyms._1)
+            index = self.handler.query_index(event.keycode - keysyms._1)
+            self.on_select(index)
+            return True
+        if event.keycode == keysyms._0:
+            index = self.handler.query_index(9)
             self.on_select(index)
             return True
         if event.keycode in (keysyms.space, keysyms.Return):
-            index = self.__frontend.get_highlighted_candidate_index()
+            index = self.handler.query_index()
             self.on_select(index)
             return True    
         # 不響應其他按鍵！
-        return True
+        return False
 
 
-class Switcher(MenuHandler):
+class Switcher(MenuProcessor):
 
     '''切換輸入方案
 
@@ -119,11 +102,8 @@ class Switcher(MenuHandler):
 
     '''
 
-    def __init__(self, frontend, schema_id=None):
-        super(Switcher, self).__init__(frontend)
-        self.__frontend = frontend
-        self.__session = None
-        self.deactivate()
+    def __init__(self, handler, schema_id=None):
+        super(Switcher, self).__init__(handler)
         self.__load_schema_list()
         self.choose(schema_id)
 
@@ -160,17 +140,13 @@ class Switcher(MenuHandler):
         )
         # 執行切換
         self.deactivate()
-        self.__session = Engine(self.__frontend, schema_ids[index])
-        self.__frontend.update_aux(_(u'選用【%s】') % names[index])
+        self.handler.on_schema_change(schema_ids[index], names[index])
 
     def activate(self):
         '''開啟選單'''
         self.active = True
         self.__load_schema_list()
-        self.__frontend.update_aux(_(u'方案選單'))
-        self.__frontend.update_candidates([
-            (name, schema) for schema, name in self.__schema_list
-        ])
+        self.handler.on_switcher_active(self.__schema_list)
 
     def deactivate(self):
         '''關閉選單'''
@@ -179,9 +155,8 @@ class Switcher(MenuHandler):
 
     def on_escape(self):
         '''關閉選單，返回上一會話'''
-        if self.__session:
-            self.deactivate()
-            self.__session.update_ui()
+        self.deactivate()
+        self.handler.on_update()
 
     def on_select(self, index):
         '''選用方案'''
@@ -197,14 +172,10 @@ class Switcher(MenuHandler):
         return False
 
     def process_key_event(self, event):
-        if not self.__session:
-            self.__frontend.update_aux(_(u'無方案'))
-            return False
         if self.active:
             # on pressing F1 a second time, close switcher and send F1 key
             if event.keycode == keysyms.F1 and not event.is_key_up():
                 self.on_escape()
                 return False
-        return super(Switcher, self).process_key_event(event) or \
-               self.__session.process_key_event(event)
+        return super(Switcher, self).process_key_event(event)
 

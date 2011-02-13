@@ -54,11 +54,17 @@ class Engine(Processor):
                     return True
             # ignore other hotkeys
             return False
+
+        if not self.schema:
+            self.__frontend.update_aux(_(u'無方案'))
+            return False
+
         if self.__rollback_time:
             now = time.time()
             if now > self.__rollback_time:
                 self.__db.proceed_pending_updates()
                 self.__rollback_time = 0
+
         if self.__punct:
             if event.keycode in (keysyms.Shift_L, keysyms.Shift_R) or \
                 (event.mask & modifier.RELEASE_MASK):
@@ -312,5 +318,35 @@ class Engine(Processor):
         self.__frontend.update_aux(sentence, start, end)
         self.__frontend.update_candidates(ctx.get_candidates())
         
+    # MenuEventHandler
 
+    def on_page_up(self):
+        return self.__frontend.page_up()
+        
+    def on_page_down(self):
+        return self.__frontend.page_down()
+        
+    def on_cursor_up(self):
+        return self.__frontend.cursor_up()
+        
+    def on_cursor_down(self):
+        return self.__frontend.cursor_down()
 
+    def query_index(self, number=-1):
+        if number >= 0:
+            index = self.__frontend.get_candidate_index(number)
+        else:
+            index = self.__frontend.get_highlighted_candidate_index()
+        return index
+
+    # SwitcherEventHandler
+
+    def on_schema_change(self, schema_id, schema_name):
+        self.initialize(schema_id)
+        self.__frontend.update_aux(_(u'選用【%s】') % schema_name)
+
+    def on_switcher_active(self, schema_list):
+        self.__frontend.update_aux(_(u'方案選單'))
+        self.__frontend.update_candidates([
+            (name, schema) for schema, name in schema_list
+        ])
