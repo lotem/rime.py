@@ -1,14 +1,13 @@
 # README
 
-RIME: Rime Input Method Engine, an input method library designed for the Chinese language family
+RIME: Rime Input Method Engine, an input method designed for the Chinese language family
 
-features:
-- interchangeable schemas with a ubiquitous algorithm base
-- major functionalities from modern input method stereotypes
-- introduction of avant-guarde (sometimes PQliar) design
-- tweakability++
-- open-source 
-- cross-platform
+Features:
+- customizable input schemas powered by a generalized algorithm base
+- major functionalities found in modern input method stereotypes
+- introduction of avant-guarde (sometimes PQliar :) design
+- open-source && tweakability++
+- cross-platform; linux/ibus, windows, (yet to come...)
 
 Sub-projects:
 
@@ -37,8 +36,8 @@ Epilogue: |
     Sorry for the temporary short of documentation. Feel free to explore.
 
     For lastest news, visit rime project home page:
-    http://github.com/lotem/rime
+    http://code.google.com/p/rimeime/
 
-    Questions go to <chen.sst@gmail.com>
+    Questions go to <rime-devel@googlegroups.com>
 
     Thanks.
