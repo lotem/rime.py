@@ -151,6 +151,7 @@ def test_switcher():
     # calls schema switcher
     e = TestSession()
     e.process_key_event(keysyms.grave, modifier.CONTROL_MASK)  # Ctrl+grave
+    e.process_key_event(keysyms.grave, modifier.CONTROL_MASK | modifier.RELEASE_MASK)  # menu pops up when releasing the key
     # make a choice
     e.feed('2')
 
@@ -196,8 +197,9 @@ def test_tonal_pinyin():
     e.feed('3.14wo1.0')
 
 def main():
-    test_rawmode()
     test_pinyin()
+    test_rawmode()
+    test_switcher()
 
 if __name__ == "__main__":
     main()

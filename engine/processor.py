@@ -8,12 +8,7 @@ __all__ = (
 
 import time
 from core import *
-
-#from gettext import dgettext
-#_  = lambda a : dgettext("zime", a)
-_ = lambda a : a
-N_ = lambda a : a
-
+from storage import DB
 
 class MenuProcessor(Processor):
 

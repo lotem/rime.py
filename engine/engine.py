@@ -3,8 +3,15 @@
 
 import os
 import time
+
+#from gettext import dgettext
+#_  = lambda a : dgettext("zime", a)
+_ = lambda a : a
+N_ = lambda a : a
+
 from core import *
 from composer import *
+from processor import *
 from context import *
 from storage import DB
 
@@ -32,8 +39,8 @@ class Engine(Processor):
 
     def __init__(self, frontend, schema_id):
         self.__frontend = frontend
-        # TODO: work-around the absence of Switcher
-        self.schema = Schema(schema_id or u'Pinyin')
+        self.schema = None
+        self.__switcher = Switcher(self, schema_id)
         self.__db = self.schema.get_db()
         self.__composer = Composer.create(self.schema)
         self.ctx = Context(self.schema)
@@ -52,6 +59,10 @@ class Engine(Processor):
             return False
         # ignore Num Lock
         event.mask &= ~modifier.MOD2_MASK
+
+        if self.__switcher.process_key_event(event):
+          return True
+
         # process hotkeys
         if event.mask & ( \
             modifier.CONTROL_MASK | modifier.ALT_MASK | \
@@ -357,11 +368,14 @@ class Engine(Processor):
     # SwitcherEventHandler
 
     def on_schema_change(self, schema_id, schema_name):
-        self.initialize(schema_id)
-        self.__frontend.update_aux(_(u'選用【%s】') % schema_name)
+        previous_schema = self.schema
+        self.schema = Schema(schema_id or u'Pinyin')
+        if previous_schema is not None:
+            self.__frontend.update_aux(_(u'選用【%s】') % schema_name)
 
     def on_switcher_active(self, schema_list):
         self.__frontend.update_aux(_(u'方案選單'))
         self.__frontend.update_candidates([
             (name, schema) for schema, name in schema_list
         ])
+
