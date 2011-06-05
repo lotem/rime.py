@@ -66,7 +66,9 @@ if not os.path.exists(db_file):
     else:
         print >> sys.stderr, 'cannot locate db file: %s' % db_file
         exit(-1)
+
 DB.open(db_file)
+
 
 # retrieve schema list and associated dict names
 schema_list = DB.get_schema_list()

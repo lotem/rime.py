@@ -284,6 +284,7 @@ class DB:
 
     @classmethod
     def open(cls, db_file, read_only=False):
+        debug('opening db file:', db_file)
         if cls.__conn:
             return
         cls.__conn = sqlite3.connect(db_file)
@@ -642,18 +643,3 @@ class DB:
             k_ids = [self.__get_or_insert_key(k) for k in indexer(args['okey'])]
             for k_id in k_ids:
                 self.__add_kb(k_id, b_id)
-
-
-def initialize():
-    # TODO: get db file path from config
-    db_file = os.getenv('ZIME_DATABASE')
-    if not db_file:
-        home_path = os.path.expanduser('~')
-        db_path = os.path.join(home_path, '.ibus', 'zime')
-        if not os.path.isdir(db_path):
-            os.makedirs(db_path)
-        db_file = os.path.join(db_path, 'zime.db')
-    debug('db_file:', db_file)
-    DB.open(db_file)
-
-initialize()

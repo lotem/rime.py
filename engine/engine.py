@@ -1,10 +1,25 @@
 # -*- coding: utf-8 -*-
 # vim:set et sts=4 sw=4:
 
+import os
 import time
 from core import *
 from composer import *
 from context import *
+from storage import DB
+
+def initialize():
+    db_file=os.getenv('ZIME_DATABASE')
+    if not db_file:
+        home_path = os.path.expanduser('~')
+        db_path = os.path.join(home_path, '.ibus', 'zime')
+        if not os.path.isdir(db_path):
+            os.makedirs(db_path)
+        db_file = os.path.join(db_path, 'zime.db')
+    DB.open(db_file)
+
+initialize()
+
 
 __all__ = (
     "Engine",
