@@ -129,7 +129,7 @@ class Model:
         del ctx.sel[i:]
         ctx.confirmed = i
         self.__lookup_candidates(ctx.info, diff)
-        self.__calculate_prediction(ctx.info)
+        self.__calculate_sentence(ctx.info)
 
     def __lookup_candidates(self, info, diff):
         m = info.m
@@ -216,7 +216,7 @@ class Model:
                     for x in lookup(k):
                         judge(x, i, j)
 
-    def __calculate_prediction(self, info):
+    def __calculate_sentence(self, info):
         m = info.m
         b = info.b
         c = info.cand
@@ -285,12 +285,34 @@ class Model:
                                             f[i][k] = [e]
                                         # update pred[i] with concat'd phrases
                                         update_pred(i, e)
-            """
-            #print '[DEBUG] pred:'
-            for x in pred:
-                if x:
-                    #print unicode(x)
-            """
+        # make sentences
+        for i in range(m - 1, -1, -1):
+            if pred[i]:
+                k = i
+                s = []
+                while k < m:
+                  x = pred[k]
+                  a = x.get_all()
+                  k = a[-1].j
+                  s.extend(a)
+                if len(s) > 1:
+                    # copy nodes
+                    head = None
+                    for y in reversed(s):
+                        head = Entry(y.e, y.i, y.j, y.prob, y.use_count, head)
+                    if f[i][k]:
+                        f[i][k].append(head)
+                    else:
+                        f[i][k] = [head]
+                    #print "concat'd centence:", unicode(head)
+                    # update pred[i] with concat'd sentence
+                    pred[i] = head
+        """
+        print '[DEBUG] pred:'
+        for x in pred:
+            if x:
+                print unicode(x)
+        """
 
     def train(self, ctx, s):
 
@@ -390,6 +412,6 @@ class Model:
                         ret.append((p, e))
         """
         for x in ret[:5]:
-            #print u'[DEBUG] cand: %s' % x[1]
+            print u'[DEBUG] cand: %s' % x[1]
         """
         return ret

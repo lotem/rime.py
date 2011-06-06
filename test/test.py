@@ -197,9 +197,8 @@ def test_tonal_pinyin():
     e.feed('3.14wo1.0')
 
 def main():
-    test_pinyin()
     test_rawmode()
-    test_switcher()
+    test_pinyin()
 
 if __name__ == "__main__":
     main()

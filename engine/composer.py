@@ -401,7 +401,7 @@ class ComboComposer(Composer):
 def initialize():
     Composer.register_factory('roman', RomanComposer)
     Composer.register_factory('table', TableComposer)
-    Composer.register_factory('group', GroupComposer)
+    Composer.register_factory('grouping', GroupComposer)
     Composer.register_factory('combo', ComboComposer)
 
 initialize()
