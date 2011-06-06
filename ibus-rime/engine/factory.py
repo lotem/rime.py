@@ -9,12 +9,15 @@ from rime import RimeSession
 _ = lambda a : a
 N_ = lambda a : a
 
+engine_path = os.path.dirname(__file__)
+icon_path = os.path.normpath(os.path.join(engine_path, '..', 'icons'))
+
 class EngineFactory(ibus.EngineFactoryBase):
     FACTORY_PATH = "/cn/zzsst/Rime/Factory"
     ENGINE_PATH = "/cn/zzsst/Rime/Engine"
     NAME = _("Rime")
     LANG = "zh_CN"
-    ICON = os.getenv("IBUS_RIME_LOCATION") + "/icons/zhung.png"
+    ICON = os.path.join(icon_path, "zhung.png")
     AUTHORS = "GONG Chen <chen.sst@gmail.com>"
     CREDITS = "GPLv3"
 

@@ -37,21 +37,24 @@ class Engine(Processor):
 
     ROLLBACK_COUNTDOWN = 3  # seconds
 
-    def __init__(self, frontend, schema_id):
+    def __init__(self, frontend, schema_id=None):
         self.__frontend = frontend
         self.schema = None
         self.__switcher = Switcher(self, schema_id)
-        self.__db = self.schema.get_db()
-        self.__composer = Composer.create(self.schema)
-        self.ctx = Context(self.schema)
+        self.update_ui()
+
+    def set_schema(self, schema):
+        self.schema = schema
+        self.__db = schema.get_db()
+        self.__composer = Composer.create(schema)
+        self.ctx = Context(schema)
         self.ctx.add_update_notifier(self)
-        self.__auto_prompt = self.schema.get_config_value(u'AutoPrompt') in (u'yes', u'true')
+        self.__auto_prompt = schema.get_config_value(u'AutoPrompt') in (u'yes', u'true')
         self.__punct = None
         self.__punct_key = 0
         self.__punct_rep = 0
         self.__rollback_time = 0
         self.__numeric = False
-        self.update_ui()
 
     def process_key_event(self, event):
         # disable engine when Caps Lock is on
@@ -368,10 +371,10 @@ class Engine(Processor):
     # SwitcherEventHandler
 
     def on_schema_change(self, schema_id, schema_name):
-        previous_schema = self.schema
-        self.schema = Schema(schema_id or u'Pinyin')
-        if previous_schema is not None:
+        if self.schema is not None:
             self.__frontend.update_aux(_(u'選用【%s】') % schema_name)
+            self.__frontend.update_candidates([])
+        self.set_schema(Schema(schema_id or u'Pinyin'))
 
     def on_switcher_active(self, schema_list):
         self.__frontend.update_aux(_(u'方案選單'))

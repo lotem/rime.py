@@ -9,7 +9,7 @@ import os
 import ibus
 from core import *
 from engine import *
-
+import storage
 
 class RimeSession(ibus.EngineBase, Frontend):
 
@@ -21,7 +21,6 @@ class RimeSession(ibus.EngineBase, Frontend):
 
     def __init__(self, conn, object_path):
         super(RimeSession, self).__init__(conn, object_path)
-        # TODO: 
         self.__page_size = storage.DB.read_setting(u'Option/PageSize') or 5
         self.__lookup_table = ibus.LookupTable(self.__page_size)
         self.__backend = Engine(self)
