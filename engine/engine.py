@@ -304,9 +304,8 @@ class Engine(Processor):
         index = self.__frontend.get_highlighted_candidate_index()
         if index >= 0 and index < len(candidates):
             self.ctx.select(candidates[index][1])
-            self.__frontend.update_preedit(self.ctx.get_prompt())
-            sentence, start, end = self.ctx.get_sentence()
-            self.__frontend.update_aux(sentence, start, end)
+            self.__frontend.update_preedit(self.ctx.get_sentence())
+            self.__frontend.update_aux(*self.ctx.get_prompt())
             return True
         return False
 
@@ -330,11 +329,13 @@ class Engine(Processor):
         self.__numeric = False
 
     def __update_spelling(self, spelling):
-        sentence, start, end = self.ctx.get_sentence()
+        sentence = self.ctx.get_sentence()
         start = len(sentence) + spelling.start
         end = len(sentence) + spelling.end
-        self.__frontend.update_aux(sentence + spelling.text, start, end)
-        self.__frontend.update_preedit(self.ctx.get_prompt())
+        if self.__auto_prompt:
+            self.__frontend.update_aux(sentence + spelling.text, start, end)
+        else:
+            self.__frontend.update_preedit(sentence + spelling.text, start, end)
         self.__frontend.update_candidates([])
 
     # TODO:
@@ -342,9 +343,11 @@ class Engine(Processor):
         self.on_update()
 
     def on_update(self):
-        self.__frontend.update_preedit(self.ctx.get_prompt())
-        sentence, start, end = self.ctx.get_sentence()
-        self.__frontend.update_aux(sentence, start, end)
+        self.__frontend.update_preedit(self.ctx.get_sentence())
+        if self.__auto_prompt or self.ctx.being_converted():
+            self.__frontend.update_aux(*self.ctx.get_prompt())
+        else:
+            self.__frontend.update_aux(u'')
         self.__frontend.update_candidates(self.ctx.get_candidates())
         
     # MenuEventHandler

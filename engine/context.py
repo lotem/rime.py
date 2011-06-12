@@ -299,7 +299,7 @@ class Context:
     def get_sentence(self):
         '''取得編輯中的文字'''
         if self.is_empty():
-            return u'', 0, 0
+            return u''
         r = []
         rest = 0
         start = 0
@@ -322,7 +322,7 @@ class Context:
                 start, end = t[self.err.i] - diff, t[self.err.j] - diff
             else:
                 r.append(u'...')
-        return u''.join(r), start, end
+        return u''.join(r)
 
     def get_commit_string(self):
         '''取得上屏文字'''
@@ -345,20 +345,57 @@ class Context:
         return u''.join(self.input)
         
     def get_prompt(self):
-        '''取得回顯編碼串'''
-        if self.info.m == 0:
-            return u''
-        s, t = self.__display
-        c = self.cur
-        if c:
-            p = t[c[-1].j]
-            if p > 0 and s[p - 1] == u' ':
-                p -= 1
-            s = s[:p]+ u'\u00bb' + s[p:]
-        # 限長
-        if len(s) > self.__aux_length:
-            s = u'...' + s[-self.__aux_length:]
-        return s
+        '''取得回顯串（已確認文字＋選擇區編碼）'''
+        if self.is_empty():
+            return u'', 0, 0
+        r = []
+        start = 0
+        end = 0
+        # 已確認文字＋未轉換的編碼＋錯誤的編碼
+        if self.has_error():
+            k = 0
+            if self.confirmed > 0:
+                for x in self.sel[:self.confirmed]:
+                    w = x.get_word()
+                    r.append(w)
+                    start += len(w)
+                    k = x.j
+                end = start
+            s, t = self.__display
+            r.append(s[t[k]:])
+            r.append(u'\u203a')
+            diff = t[k] - end
+            start, end = t[self.err.i] - diff, t[self.err.j] - diff
+            return u''.join(r), start, end
+        # 計算已經變換的文字長度
+        selector = 0
+        for x in self.sel:
+            w = x.get_word()
+            r.append(w)
+            start += len(w)
+            selector = x.j
+        end = start
+        # 正在變換的部份高亮顯示為編碼
+        if self.cur:
+            cursor = self.cur[-1].j
+        else:
+            cursor = selector
+        if selector < self.info.n:
+            s, t = self.__display
+            # 插入光標符號
+            if self.cur:
+                p, q = t[selector], t[cursor]
+                # 排除後面的空白
+                if q > 0 and s[q - 1] == u' ':
+                    q -= 1
+            r.append(s[p:q])
+            r.append(u'\u203a')
+            diff = p - end
+            start, end = p - diff, q - diff
+        # 光標之後還有編碼，略去
+        if cursor < self.info.n:
+            r.append(u'...')
+        return u''.join(r), start, end
 
     def get_candidates(self):
         '''取得當前候選詞'''

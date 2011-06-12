@@ -272,7 +272,7 @@ class TableComposer(Composer):
 class GroupComposer(Composer):
     def __init__(self, schema):
         super(GroupComposer, self).__init__(schema)
-        self.__prompt_pattern = schema.get_config_char_sequence(u'PromptPattern') or u'\u2039%s\u203a'
+        self.__prompt_pattern = schema.get_config_char_sequence(u'PromptPattern') or u'%s\u203a'
         self.__key_groups = schema.get_config_value(u'KeyGroups').split()
         self.__code_groups = schema.get_config_value(u'CodeGroups').split()
         self.__group_count = len(self.__key_groups)
@@ -284,8 +284,13 @@ class GroupComposer(Composer):
         return not any(self.__slots)
     def __get_spelling(self, first):
         text = self.__prompt_pattern % u''.join(self.__slots)
+        start = end = 0
+        k = self.__prompt_pattern.find(u'%s')
+        if k != -1:
+            start = k
+            end = start + len(text) - len(self.__prompt_pattern) + len(u'%s')
         padding = None if first or self.auto_predict else self.delimiter[0]
-        return Spelling(text, padding=padding)
+        return Spelling(text, start=start, end=end, padding=padding)
     def process_input(self, event, ctx):
         if event.mask & modifier.RELEASE_MASK:
             return False
@@ -359,8 +364,13 @@ class ComboComposer(Composer):
         return not bool(self.__held)
     def __get_spelling(self, first):
         text = self.__prompt_pattern % self.__get_combo_string()
+        start = end = 0
+        k = self.__prompt_pattern.find(u'%s')
+        if k != -1:
+            start = k
+            end = start + len(text) - len(self.__prompt_pattern) + len(u'%s')
         padding = None if first or self.auto_predict else self.delimiter[0]
-        return Spelling(text, padding=padding)
+        return Spelling(text, start=start, end=end, padding=padding)
     def __commit_combo(self, first):
         k = self.__get_combo_string()
         self.clear()

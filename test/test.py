@@ -175,6 +175,7 @@ def test_rawmode():
     e.feed('Rime 1.0!{Return}')
 
 def test_editor():
+    e = TestSession(u'Pinyin')
     e.feed('jiongqiongxiongyong{Home}{Right}{Right}{Right}{Right}')
     e.feed("pinyin-shurufa'{Left}")
     e.feed('henanquan{Home}{Tab} ')
@@ -208,8 +209,12 @@ def test_tonal_pinyin():
     e.feed('3.14wo1.0')
 
 def main():
-    test_rawmode()
     test_pinyin()
+    #test_rawmode()
+    #test_editor()
+    #test_tonal_pinyin()
+    #test_zhuyin()
+    pass
 
 if __name__ == "__main__":
     main()
