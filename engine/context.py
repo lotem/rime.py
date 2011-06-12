@@ -36,7 +36,7 @@ class Context:
 
     def notify_update(self):
         for notifier in self.__update_notifiers:
-            notifier.on_update(self)
+            notifier.on_update()
 
     def __reset(self, keep_context=False):
         # 輸入串，可以是字符序列（如在羅馬字解析方式下）或音節編碼的序列

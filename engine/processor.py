@@ -44,9 +44,7 @@ class MenuProcessor(Processor):
         '''按鍵處理流程'''
         if not self.active:
             if self.triggered(event):
-                # 為防止長按而發生重複，此處直到按鍵彈起方才打開菜單
-                if event.is_key_up():
-                    self.activate()
+                self.activate()
                 return True
             # 不做處理！
             return False
@@ -86,11 +84,10 @@ class MenuProcessor(Processor):
             self.on_select(index)
             return True    
         # 不響應其他按鍵！
-        return False
+        return True
 
 
 class Switcher(MenuProcessor):
-
     '''切換輸入方案
 
     以熱鍵呼出方案選單，選取後將以相應的輸入方案創建會話
@@ -139,12 +136,14 @@ class Switcher(MenuProcessor):
 
     def activate(self):
         '''開啟選單'''
+        #print "activating switcher"
         self.active = True
         self.__load_schema_list()
         self.handler.on_switcher_active(self.__schema_list)
 
     def deactivate(self):
         '''關閉選單'''
+        #print "deactivating switcher"
         self.active = False
         self.__schema_list = []
 
@@ -161,16 +160,26 @@ class Switcher(MenuProcessor):
 
     def triggered(self, event):
         '''以Ctrl-`或F1開啟選單'''
-        if event.keycode == keysyms.grave and event.mask & modifier.CONTROL_MASK or \
-            event.keycode == keysyms.F1:
+        if event.keycode == keysyms.grave and event.mask & modifier.CONTROL_MASK:
+            return True
+        if event.keycode == keysyms.F1 and not event.is_key_up():
+            self.__F1_released = False
             return True
         return False
 
     def process_key_event(self, event):
+        #print "Swither.process_key_event(), event=%s, active=%s" % (event, self.active)
         if self.active:
             # on pressing F1 a second time, close switcher and send F1 key
-            if event.keycode == keysyms.F1 and not event.is_key_up():
-                self.on_escape()
-                return False
+            if event.keycode == keysyms.F1:
+                if event.is_key_up():
+                    self.__F1_released = True
+                    return True
+                elif self.__F1_released:
+                    self.on_escape()
+                    return False
+                else:
+                    # 防止長按F1而發生重複
+                    return True
         return super(Switcher, self).process_key_event(event)
 

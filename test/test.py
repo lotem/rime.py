@@ -151,7 +151,18 @@ def test_switcher():
     # calls schema switcher
     e = TestSession()
     e.process_key_event(keysyms.grave, modifier.CONTROL_MASK)  # Ctrl+grave
-    e.process_key_event(keysyms.grave, modifier.CONTROL_MASK | modifier.RELEASE_MASK)  # menu pops up when releasing the key
+    e.process_key_event(keysyms.grave, modifier.CONTROL_MASK | modifier.RELEASE_MASK)
+    # make a choice
+    e.feed('2')
+    # open
+    e.process_key_event(keysyms.F1, 0)
+    e.process_key_event(keysyms.F1, modifier.RELEASE_MASK)
+    # send F1
+    e.process_key_event(keysyms.F1, 0)
+    e.process_key_event(keysyms.F1, modifier.RELEASE_MASK)
+    # open
+    e.process_key_event(keysyms.F1, 0)
+    e.process_key_event(keysyms.F1, modifier.RELEASE_MASK)
     # make a choice
     e.feed('2')
 

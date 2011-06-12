@@ -339,13 +339,13 @@ class Engine(Processor):
 
     # TODO:
     def update_ui(self):
-        self.on_update(self.ctx)
+        self.on_update()
 
-    def on_update(self, ctx):
-        self.__frontend.update_preedit(ctx.get_prompt())
-        sentence, start, end = ctx.get_sentence()
+    def on_update(self):
+        self.__frontend.update_preedit(self.ctx.get_prompt())
+        sentence, start, end = self.ctx.get_sentence()
         self.__frontend.update_aux(sentence, start, end)
-        self.__frontend.update_candidates(ctx.get_candidates())
+        self.__frontend.update_candidates(self.ctx.get_candidates())
         
     # MenuEventHandler
 
