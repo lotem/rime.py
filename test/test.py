@@ -210,8 +210,8 @@ def test_tonal_pinyin():
 
 def main():
     test_pinyin()
-    #test_rawmode()
-    #test_editor()
+    test_rawmode()
+    test_editor()
     #test_tonal_pinyin()
     #test_zhuyin()
     pass

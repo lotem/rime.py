@@ -333,9 +333,11 @@ class Engine(Processor):
         start = len(sentence) + spelling.start
         end = len(sentence) + spelling.end
         if self.__auto_prompt:
+            self.__frontend.update_preedit(u'')
             self.__frontend.update_aux(sentence + spelling.text, start, end)
         else:
             self.__frontend.update_preedit(sentence + spelling.text, start, end)
+            self.__frontend.update_aux(sentence)
         self.__frontend.update_candidates([])
 
     # TODO:
@@ -343,7 +345,10 @@ class Engine(Processor):
         self.on_update()
 
     def on_update(self):
-        self.__frontend.update_preedit(self.ctx.get_sentence())
+        if self.__auto_prompt:
+            self.__frontend.update_preedit(u'')
+        else:
+            self.__frontend.update_preedit(self.ctx.get_sentence())
         if self.__auto_prompt or self.ctx.being_converted():
             self.__frontend.update_aux(*self.ctx.get_prompt())
         else:

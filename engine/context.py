@@ -106,7 +106,7 @@ class Context:
                 self.err = Entry(None, m, n)
             elif start_conversion:
                 # 轉換模式下需要顯示候選詞列表
-                self.__update_candidates(self.__predict(exclude_the_last=True))
+                self.__update_candidates()
                 return
             if self.__auto_predict:
                 # 使用設定值Predict = yes，顯示預測的轉換結果，而不是輸入串本身，否則需要按空格手動轉換
@@ -122,7 +122,7 @@ class Context:
         '''取消轉換，回到輸入串編輯狀態'''
         self.edit(self.input)
 
-    def __predict(self, exclude_the_last=False):
+    def __predict(self):
         '''
         預測轉換結果
         依據未確認部份由Model算出的最優整句變換結果自動選詞
@@ -142,15 +142,12 @@ class Context:
                 del s[0]
             if s:
                 p = s[-1]
-                if exclude_the_last and p.j == self.info.m:
-                    # 如果要顯示候選詞列表，最後一個詞組就不必執行自動選詞
-                    break
-                # 自動選用當前詞組
+                # 選用當前詞組
                 self.sel.extend(s)
             # 預測後續詞句
             i = p.j
             p = self.info.pred[i]
-        # 返回自動選詞的結束位置
+        # 返回結束位置
         return max(0, i)
 
     def home(self):
@@ -172,13 +169,15 @@ class Context:
             # do a fresh new prediction in case of a full prediction is present
             self.sel = []
             self.confirmed = 0
-        if self.cur and self.cur[-1].j == self.info.m:
-            # 已在句尾則調轉到未確認部份的起始處
+        if len(self.sel) > self.confirmed:
+            # 回到未確認部份的起始處
             del self.sel[self.confirmed:]
-            self.__update_candidates(self.sel[-1].j if self.sel else 0)
-            return True
-        # 預測轉換結果，並顯示句尾的候選詞
-        self.__update_candidates(self.__predict(exclude_the_last=True))
+        else:
+            # 預測轉換結果，並顯示句尾的候選詞
+            self.__predict()
+            if self.sel:
+                del self.sel[-1]
+        self.__update_candidates()
         return True
 
     def left(self):
@@ -251,9 +250,11 @@ class Context:
             self.confirmed = len(self.sel)
             self.__update_candidates(c[-1].j)
 
-    def __update_candidates(self, i, j=0):
+    def __update_candidates(self, i=-1, j=0):
         '''更新候選詞列表'''
         #print '__update_candidates:', i, j
+        if i == -1:
+            i = self.sel[-1].j if self.sel else 0
         self.__candidates = self.__model.make_candidate_list(self, i, j)
         if self.__candidates:
             # 高亮顯示第一個候選詞
