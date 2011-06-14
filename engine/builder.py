@@ -299,7 +299,7 @@ class Model:
                     # copy nodes
                     head = None
                     for y in reversed(s):
-                        head = Entry(y.e, y.i, y.j, y.prob, y.use_count, head)
+                        head = Entry(y.e, y.i, y.j, y.prob, 0, head)
                     if f[i][k]:
                         f[i][k].append(head)
                     else:
@@ -345,10 +345,15 @@ class Model:
         pred = ctx.info.pred
         if i >= m:
             return []
-        if j == 0:
+        if i == -1:
+            i = ctx.sel[-1].j if ctx.sel else 0
+        if j == -1:
             j = m
             while j > i and not cand[i][j] and not fraz[i][j]:
                 j -= 1
+        elif j == 0:
+            while j < m and not cand[i][j] and not fraz[i][j]:
+                j += 1
         # info about the previously selected phrase
         prev_table = dict()
         prev = ctx.sel[-1] if ctx.sel else ctx.info.last

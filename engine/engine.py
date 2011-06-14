@@ -337,10 +337,9 @@ class Engine(Processor):
             self.__frontend.update_aux(sentence + spelling.text, start, end)
         else:
             self.__frontend.update_preedit(sentence + spelling.text, start, end)
-            self.__frontend.update_aux(sentence)
+            self.__frontend.update_aux(u'')
         self.__frontend.update_candidates([])
 
-    # TODO:
     def update_ui(self):
         self.on_update()
 

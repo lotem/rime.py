@@ -5,6 +5,9 @@
 
 from builder import *
 
+# 识别一组非整句的词组候选
+is_phrase_list = lambda x: x and (len(x) != 1 or x[0].use_count != 0)
+
 class Context:
 
     '''輸入上下文
@@ -154,11 +157,15 @@ class Context:
         '''選詞光標回退至句首'''
         if not self.being_converted():
             return False
+        if self.cur[-1].j == self.info.m:
+            j = 0  # 最短词
+        else:
+            j = -1  # 最长词
         # 清除手工選詞的記錄
         self.sel = []
         self.confirmed = 0
         # 顯示句首的候選詞
-        self.__update_candidates(0)
+        self.__update_candidates(0, j)
         return True
 
     def end(self, start_conversion=False):
@@ -189,10 +196,13 @@ class Context:
             return
         i = self.cur[0].i
         j = self.cur[-1].j
-        # 由大到小枚舉各種長度的子編碼串
+        if i == 0 and j == self.info.m:
+            self.end()
+            return
+        # 按长度由大到小枚舉各種長度的子編碼串
         for k in range(j - 1, i, -1):
             # 遇到最長的、有候選詞的子編碼串，就以這個範圍生成候選詞列表
-            if self.info.cand[i][k] or self.info.fraz[i][k]:
+            if self.info.cand[i][k]:  # or is_phrase_list(self.info.fraz[i][k]):
                 self.__update_candidates(i, k)
                 return
         self.back()
@@ -207,7 +217,7 @@ class Context:
         i = self.cur[0].i
         j = self.cur[-1].j
         for k in range(j + 1, self.info.m + 1):
-            if self.info.cand[i][k] or self.info.fraz[i][k]:
+            if self.info.cand[i][k] or is_phrase_list(self.info.fraz[i][k]):
                 self.__update_candidates(i, k)
                 return
         self.forth()
@@ -219,8 +229,14 @@ class Context:
         if self.sel:
             e = self.sel.pop()
             self.confirmed = min(self.confirmed, len(self.sel))
-            self.__update_candidates(e.i)
-            return True
+            i = e.i
+            j = self.info.m - 1
+            # 按长度由大到小枚舉各種長度的子編碼串
+            for k in range(j, i, -1):
+                # 遇到最長的、有候選詞的子編碼串，就以這個範圍生成候選詞列表
+                if self.info.cand[i][k]:  # or is_phrase_list(self.info.fraz[i][k]):
+                    self.__update_candidates(i, k)
+                    return True
         return False
 
     def forth(self):
@@ -228,6 +244,7 @@ class Context:
         if not self.being_converted():
             return False
         i = self.cur[0].i
+        j = self.cur[-1].j
         p = (self.sel[-1].next if self.sel else None) or self.info.pred[i]
         if p and p.j < self.info.m:
             self.sel.append(p)
@@ -235,7 +252,7 @@ class Context:
             j = 0
             # 找到前方最長的詞
             for k in range(self.info.m, i, -1):
-                if self.info.cand[i][k] or self.info.fraz[i][k]:
+                if self.info.cand[i][k] or is_phrase_list(self.info.fraz[i][k]):
                     j = k
                     break
             self.__update_candidates(i, j)
@@ -250,11 +267,9 @@ class Context:
             self.confirmed = len(self.sel)
             self.__update_candidates(c[-1].j)
 
-    def __update_candidates(self, i=-1, j=0):
+    def __update_candidates(self, i=-1, j=-1):
         '''更新候選詞列表'''
         #print '__update_candidates:', i, j
-        if i == -1:
-            i = self.sel[-1].j if self.sel else 0
         self.__candidates = self.__model.make_candidate_list(self, i, j)
         if self.__candidates:
             # 高亮顯示第一個候選詞
