@@ -40,7 +40,7 @@ class Engine(Processor):
     def __init__(self, frontend, schema_id=None):
         self.__frontend = frontend
         self.schema = None
-        self.__switcher = Switcher(self, schema_id)
+        self.switcher = Switcher(self, schema_id)
         self.update_ui()
 
     def set_schema(self, schema):
@@ -63,7 +63,7 @@ class Engine(Processor):
         # ignore Num Lock
         event.mask &= ~modifier.MOD2_MASK
 
-        if self.__switcher.process_key_event(event):
+        if self.switcher.process_key_event(event):
           return True
 
         # process hotkeys
@@ -340,10 +340,10 @@ class Engine(Processor):
             self.__frontend.update_aux(u'')
         self.__frontend.update_candidates([])
 
-    def update_ui(self):
-        self.on_update()
-
     def on_update(self):
+        self.update_ui()
+
+    def update_ui(self):
         if self.__auto_prompt:
             self.__frontend.update_preedit(u'')
         else:

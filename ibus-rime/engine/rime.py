@@ -113,6 +113,14 @@ class RimeSession(ibus.EngineBase, Frontend):
             return True
         return False
 
+    def focus_in(self):
+        self.__backend.on_update()
+
+    def focus_out(self):
+        switcher = self.__backend.switcher
+        if switcher.active:
+            switcher.on_escape()
+
     def get_highlighted_candidate_index(self):
         '''依選詞光標取得高亮候選詞在候選詞列表中的索引
         '''
