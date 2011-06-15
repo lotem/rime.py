@@ -1,5 +1,14 @@
 
-rime - release notes
+Rime - Release Notes
+
+Rime.py 0.3 - 2011-06-15
+==========================================
+  - Improved user interaction.
+    - now our auto-prompt mode mimics sogou, ziguang, pyjj and alike;
+    - while sentence mode is something similar to mspy and chewing.
+  - Updated pre-packaged schemas, with better abbreviation support.
+  - Refactored part of the code for future maintenance.
+  - Coming with two distros, ibus-rime 0.3 and Weasel 0.3.
 
 la renaissance de la rime 0.0 - 2011-02-12
 ==========================================
