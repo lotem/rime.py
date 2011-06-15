@@ -304,7 +304,10 @@ class Engine(Processor):
         index = self.__frontend.get_highlighted_candidate_index()
         if index >= 0 and index < len(candidates):
             self.ctx.select(candidates[index][1])
-            self.__frontend.update_preedit(self.ctx.get_sentence())
+            if self.__auto_prompt:
+                self.__frontend.update_preedit(u'')
+            else:
+                self.__frontend.update_preedit(self.ctx.get_sentence())
             self.__frontend.update_aux(*self.ctx.get_prompt())
             return True
         return False
