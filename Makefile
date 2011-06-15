@@ -18,14 +18,15 @@ clean:
 	-find . -name '*~' -delete
 	-find . -name '*.py[co]' -delete
 	-find . -name '.*.swp' -delete
+	-find . -name '.swp' -delete
 restart_ibus:
 	ibus-daemon -drx
 schema_pinyin: restart_ibus
 	(cd data; python zimedb-admin.py -vi Pinyin.txt; python zimedb-admin.py -ki DoublePinyin.txt; python zimedb-admin.py -ki ComboPinyin.txt)
 schema_tonal_pinyin: restart_ibus
-	(cd data; python make-phrases.py tonal-pinyin; python zimedb-admin.py -vi TonalPinyin.txt)
+	(cd data; python zimedb-admin.py -vi TonalPinyin.txt)
 schema_zhuyin: restart_ibus
-	(cd data; python make-phrases.py zhuyin; python zimedb-admin.py -vi Zhuyin.txt)
+	(cd data; python zimedb-admin.py -vi Zhuyin.txt)
 schema_quick: restart_ibus
 	(cd data; python make-phrases.py quick; python zimedb-admin.py -vi Quick.txt)
 schema_jyutping: restart_ibus

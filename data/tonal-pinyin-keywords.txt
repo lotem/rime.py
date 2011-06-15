@@ -3343,7 +3343,7 @@ de5	的
 de5	襶
 de5	𢔨
 de5	𢔶
-dei3	*得
+dei3	得
 dei3	𢔶
 den4	㩐
 deng1	*墱
@@ -3406,7 +3406,7 @@ di2	*樀
 di2	*櫂
 di2	*濯
 di2	*甋
-di2	*的
+di2	的
 di2	*謫
 di2	*逖
 di2	*適
@@ -3483,7 +3483,7 @@ di4	*得
 di4	*悌
 di4	*搋
 di4	*晜
-di4	*的
+di4	的
 di4	*篪
 di4	*蝃
 di4	*褫
@@ -3543,7 +3543,7 @@ di4	鍗
 di4	馰
 di4	骶
 di4	𨮹
-di5	*地
+di5	地
 di5	*弟
 dian1	*闐
 dian1	傎
@@ -11508,7 +11508,7 @@ liao2	飂
 liao2	飉
 liao2	髎
 liao2	鷯
-liao3	*了
+liao3	了
 liao3	*繚
 liao3	*镽
 liao3	嘞

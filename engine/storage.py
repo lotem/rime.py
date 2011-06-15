@@ -284,7 +284,7 @@ class DB:
 
     @classmethod
     def open(cls, db_file, read_only=False):
-        debug('opening db file:', db_file)
+        #debug('opening db file:', db_file)
         if cls.__conn:
             return
         cls.__conn = sqlite3.connect(db_file)
