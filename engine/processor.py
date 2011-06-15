@@ -183,3 +183,14 @@ class Switcher(MenuProcessor):
                     return True
         return super(Switcher, self).process_key_event(event)
 
+    def handle_additional_function_key(self, event):
+        '''處理其他功能鍵'''
+        if event.is_key_up():
+            return False
+        if event.keycode in (keysyms.comma, keysyms.minus):
+            self.handler.on_page_up()
+            return True
+        if event.keycode in (keysyms.period, keysyms.equal):
+            self.handler.on_page_down()
+            return True
+        return False
