@@ -11,6 +11,8 @@ __all__ = (
 import logging
 import logging.config
 import os
+import time
+import threading
 
 logfile = os.path.join(os.path.dirname(__file__), "logging.conf")
 
@@ -59,7 +61,6 @@ class WeaselSession:
 
     def __init__(self, params=None):
         logger.info("init weasel session: %s", params)
-        # TODO: 
         self.__page_size = storage.DB.read_setting(u'Option/PageSize') or 5
         self.__lookup_table = ibus.LookupTable(self.__page_size)
         self.__clear()
@@ -211,28 +212,59 @@ class WeaselService:
 
     '''
     
+    SESSION_EXPIRE_TIME = 3 * 60  # 3 min.
+
     def __init__(self):
         self.__sessions = dict()
+        self.__timer = None
 
     def cleanup(self):
         '''清除所有會話'''
+        logger.info("cleaning up %d remaining sessions." % len(self.__sessions))
+        self.cancel_check()
         self.__sessions.clear()
 
-    def has_session(self, id):
+    def schedule_next_check(self):
+        self.cancel_check()
+        self.__timer = threading.Timer(WeaselService.SESSION_EXPIRE_TIME + 10, \
+                                       lambda: self.check_stale_sessions())
+        self.__timer.start()
+
+    def cancel_check(self):
+        if self.__timer:
+            self.__timer.cancel()
+            self.__timer = None
+
+    def check_stale_sessions(self):
+        '''檢查過期的回話'''
+        logger.info("check_stale_sessions...")
+        expire_time = time.time() - WeaselService.SESSION_EXPIRE_TIME
+        for sid in self.__sessions.keys():
+            if self.__sessions[sid].last_active_time < expire_time:
+                logger.info("removing stale session #%x." % sid)
+                self.destroy_session(sid)
+        # 還有活動會話，計劃下一次檢查
+        self.__timer = None
+        if self.__sessions:
+            self.schedule_next_check()
+
+    def has_session(self, sid):
         '''檢查指定會話的存在狀態'''
-        if id in self.__sessions:
+        if sid in self.__sessions:
             return True
         else:
             return False
 
-    def get_session(self, id):
+    def get_session(self, sid):
         '''按標識獲取會話對象
         
         以傳遞按鍵消息等
 
         '''
-        if id in self.__sessions:
-            return self.__sessions[id]
+        if sid in self.__sessions:
+            session = self.__sessions[sid]
+            session.last_active_time = time.time()
+            return session
         else:
             return None
 
@@ -245,22 +277,34 @@ class WeaselService:
         '''
         try:
             session = WeaselSession()
+            session.last_active_time = time.time()
         except Exception, e:
             logger.error("create_session: error creating session: %s" % e)
             return None
-        self.__sessions[id(session)] = session
-        return id(session)
+        sid = id(session)
+        self.__sessions[sid] = session
+        logger.info("create_session: session #%x, total %d active sessions." % \
+                    (sid, len(self.__sessions)))
+        # 啟動過期會話檢查
+        if self.__sessions and not self.__timer:
+            self.schedule_next_check()
+        return sid
 
-    def destroy_session(self, id):
+    def destroy_session(self, sid):
         '''結束指定的會話
 
         IME前端關閉輸入法時調用
 
         '''
-        if id not in self.__sessions:
-            logger.warning("destroy_session: invalid session id %d." % id)
+        if sid not in self.__sessions:
+            logger.warning("destroy_session: invalid session #%x." % sid)
             return False
-        del self.__sessions[id]
+        del self.__sessions[sid]
+        logger.info("destroy_session: session #%x, %d active sessions left." % \
+                    (sid, len(self.__sessions)))
+        # 已經無有會話時，停了過期會話檢查
+        if not self.__sessions and self.__timer:
+            self.cancel_check()
         return True
 
 

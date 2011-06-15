@@ -50,12 +50,17 @@ def test(session):
 def main():
     sid = weasel.service.create_session()
     print "session_id:", sid
+    # the above session is not destroyed explicitly and will become stale after some time
+    sid = weasel.service.create_session()
+    print "session_id:", sid
     assert weasel.service.has_session(sid)
     session = weasel.service.get_session(sid)
     assert bool(session)
     print
     test(session)
     weasel.service.destroy_session(sid)
+    # quitting; clear sesssions
+    weasel.service.cleanup()
 
 if __name__ == "__main__":
     main()
