@@ -176,10 +176,12 @@ def test_rawmode():
 
 def test_editor():
     e = TestSession(u'Pinyin')
-    e.feed('jiongqiongxiongyong{Home}{Right}{Right}{Right}{Right}')
-    e.feed("pinyin-shurufa'ya'pinyin-shurufa{End}{Left}{Left}{Left}")
-    e.feed('henanquan{Home}{Tab} ')
-    e.feed('henanhenanquan{Tab} {Tab}{Tab}')
+    #e.feed('jiongqiongxiongyong{Home}{Right}{Right}{Right}{Right}')
+    #e.feed("pinyin-shurufa'ya'pinyin-shurufa{End}{Left}{Left}{Left}")
+    #e.feed('henanquan{Home}{Tab} ')
+    #e.feed('henanhenanquan{Tab} {Tab}{Tab}')
+    e.feed('changan{Left}{Escape}')
+    e.feed('changanshizhongguodeshoudu{Left}{Escape}')
 
 def test_zhuyin():
     e = TestSession(u'Zhuyin')
@@ -209,7 +211,7 @@ def test_tonal_pinyin():
     e.feed('3.14wo1.0')
 
 def main():
-    test_pinyin()
+    #test_pinyin()
     #test_rawmode()
     #test_editor()
     #test_tonal_pinyin()

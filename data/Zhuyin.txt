@@ -8,8 +8,8 @@ CodeGroups = ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙ ㄧ
 # 不標聲調
 FuzzyRule = ^(.+)[ˊˇˋ˙]$ \1
 # 簡拼
-FuzzyRule = ^([ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒ]).+$ \1
-# punctuation
+#FuzzyRule = ^([ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒ]).+$ \1
+# 標點
 Punct = , ，
 Punct = . 。
 Punct = < ， 《 〈
@@ -29,23 +29,23 @@ Punct = @ @ ＠
 Punct = # # ＃
 Punct = % % ％
 Punct = $ $ ￥
-Punct = ^ …… ^
+Punct = ^ ……
 Punct = & & ＆
 Punct = * * ＊
 Punct = ( （
 Punct = ) ）
 Punct = - - －
-Punct = _ —— _
+Punct = _ ——
 Punct = + + ＋
 Punct = = = ＝
 Punct = [ 「 【 ［
 Punct = ] 」 】 ］
 Punct = { 『 ｛
 Punct = } 』 ｝
-# edit keys
+# 編輯鍵
 EditKey = bracketleft Left
 EditKey = bracketright Right
-EditKey = minus Up
-EditKey = equal Down
+EditKey = minus Page_Up
+EditKey = equal Page_Down
 EditKey = comma Page_Up
 EditKey = period Page_Down

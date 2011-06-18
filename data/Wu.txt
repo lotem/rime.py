@@ -7,9 +7,9 @@ AutoPrompt = yes
 AutoDelimit = yes
 Delimiter = [ ']
 MaxKeywordLength = 5
-FuzzyRule = ^([bcdfghjklprstvwxyz]).+$ \1
+#FuzzyRule = ^([bcdfghjklprstvwxyz]).+$ \1
 AlternativeRule = ^(ch|d?j|gn|x|y)i([aeou]) \1\2
-# punctuation
+# 標點
 Punct = , ，
 Punct = . 。
 Punct = < 《 〈
@@ -29,20 +29,20 @@ Punct = @ @ ＠
 Punct = # # ＃
 Punct = % % ％
 Punct = $ $ ￥
-Punct = ^ …… ^
+Punct = ^ ……
 Punct = & & ＆
 Punct = * * ＊
 Punct = ( （
 Punct = ) ）
 Punct = - - －
-Punct = _ —— _
+Punct = _ ——
 Punct = + + ＋
 Punct = = = ＝
 Punct = [ 「 【 ［
 Punct = ] 」 】 ］
 Punct = { 『 ｛
 Punct = } 』 ｝
-# edit keys
+# 編輯鍵
 EditKey = bracketleft Left
 EditKey = bracketright Right
 EditKey = minus Page_Up

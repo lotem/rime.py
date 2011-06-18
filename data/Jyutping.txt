@@ -13,10 +13,10 @@ MaxKeywordLength = 7
 #SplitRule = [gk]$ ^w
 # 可省略聲調
 #FuzzyRule = ^(.+)\d$ \1
-# j==y替代
+# y替代j,jy
 FuzzyRule = ^jy?([aeiou]) y\1
 # 簡拼
-FuzzyRule = ^([^aeioum]).+$ \1
+#FuzzyRule = ^([^aeioum]).+$ \1
 # 拼式糾錯
 AlternativeRule = ^jyu ju
 AlternativeRule = ([aeiou])ng$ \1gn
@@ -28,52 +28,43 @@ AlternativeRule = oe(k|ng)$ eo\1
 #TransformRule = ([a-z]+)[$] \g<1>4
 #TransformRule = ([a-z]+)[%] \g<1>5
 #TransformRule = ([a-z]+)[\^] \g<1>6
-# punctuation
+# 標點
 Punct = , ，
 Punct = . 。
 Punct = < 《 〈
 Punct = > 》 〉
-Punct = / ／
+Punct = / / ／
 Punct = ? ？
 Punct = ; ；
 Punct = : ：
 Punct = ' ‘~’
 Punct = " “~”
 Punct = \ 、
-Punct = | ｜
-Punct = ` ｀
-Punct = ~ ～
+Punct = | | ｜
+Punct = ` ` ｀
+Punct = ~ ~ ～
 Punct = ! ！
-Punct = @ ＠
-Punct = # ＃
-Punct = % ％
-Punct = $ ￥
+Punct = @ @ ＠
+Punct = # # ＃
+Punct = % % ％
+Punct = $ $ ￥
 Punct = ^ ……
-Punct = & ＆
-Punct = * ＊
+Punct = & & ＆
+Punct = * * ＊
 Punct = ( （
 Punct = ) ）
-Punct = - －
+Punct = - - －
 Punct = _ ——
-Punct = + ＋
-Punct = = ＝
+Punct = + + ＋
+Punct = = = ＝
 Punct = [ 「 【 ［
 Punct = ] 」 】 ］
 Punct = { 『 ｛
 Punct = } 』 ｝
-# edit keys
-#EditKey = bracketleft Left
-#EditKey = bracketright Right
+# 編輯鍵
+EditKey = bracketleft Left
+EditKey = bracketright Right
 EditKey = minus Page_Up
 EditKey = equal Page_Down
 EditKey = comma Page_Up
 EditKey = period Page_Down
-EditKey = I Up
-EditKey = K Down
-EditKey = J Left
-EditKey = L Right
-EditKey = U Page_Up
-EditKey = O Page_Down
-EditKey = H Home
-EditKey = N End
-EditKey = P Escape

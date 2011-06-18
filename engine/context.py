@@ -196,7 +196,8 @@ class Context:
             return
         i = self.cur[0].i
         j = self.cur[-1].j
-        if i == 0 and j == self.info.m:
+        # 選擇範圍是整個語句，且語句中包含多個詞組的，再向左則繞向最末一個詞組
+        if i == 0 and j == self.info.m and len(self.cur) > 1:
             self.end()
             return
         # 按长度由大到小枚舉各種長度的子編碼串

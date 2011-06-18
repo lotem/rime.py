@@ -5,6 +5,6 @@
 python make-phrases.py wu
 type wu-extra-phrases.txt >> wu-phrases.txt
 python zimedb-admin.py -vi Wu.txt
-python zimedb-admin.py -vi Wu-Lopha.txt
+rem python zimedb-admin.py -vi Wu-Lopha.txt
 
 @pause

@@ -65105,3 +65105,12 @@
 欧美国家	141	ou mei guo jia
 欧洲国家	193	ou zhou guo jia
 欧洲市场	170	ou zhou shi chang
+宫保拼音	100	gong bao pin yin
+中州韵	100	zhong zhou yun
+大白云	100	da bai yun
+小狼毫	100	xiao lang hao
+鼠须管	100	shu xu guan
+东风破	100	dong feng po
+八股文	100	ba gu wen
+式恕堂	100	shi shu tang
+佛振	100	fu zhen
