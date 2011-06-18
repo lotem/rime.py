@@ -1,6 +1,12 @@
 
 Rime - Release Notes
 
+Rime.py 0.3b - 2011-06-18
+==========================================
+  - Revised schemas.
+  - Improve syllablizing experience for incomplete input.
+  - Fixed an issue on moving cursor over a single phrase.
+
 Rime.py 0.3 - 2011-06-15
 ==========================================
   - Improved user interaction.
